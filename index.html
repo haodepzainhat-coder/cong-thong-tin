@@ -26,7 +26,7 @@
             background-color: #f8fafc;
             color: #0f172a;
             min-height: 100vh;
-            font-weight: 600; /* Tăng độ dày chữ cơ sở toàn trang */
+            font-weight: 600;
             -webkit-font-smoothing: antialiased;
             -moz-osx-font-smoothing: grayscale;
         }
@@ -66,7 +66,6 @@
             background: #94a3b8;
         }
 
-        /* Hiệu ứng xung cảnh báo khẩn cấp cho phong trào còn dưới 1 ngày */
         @keyframes urgentGlow {
             0%, 100% {
                 box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.45), 0 4px 20px -2px rgba(239, 68, 68, 0.2);
@@ -254,7 +253,7 @@
                 </div>
             </div>
 
-            <!-- Khung Thống Kê Vi Phạm Theo Mốc Thời Gian (Ẩn mặc định, bấm vào Theo Dõi Vi Phạm mới hiện) -->
+            <!-- Khung Thống Kê Vi Phạm Theo Mốc Thời Gian -->
             <div id="trackingViolationsPanel" class="hidden light-card p-4 sm:p-5 rounded-3xl border border-rose-300 bg-rose-50/40 space-y-4 shadow-sm animate-fadeIn">
                 <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 pb-2 border-b border-rose-200/80">
                     <div class="flex items-center gap-2 text-rose-800 font-black text-xs sm:text-sm">
@@ -262,7 +261,7 @@
                         <span>Chi Tiết Theo Dõi Vi Phạm</span>
                     </div>
 
-                    <!-- Thanh chọn chu kỳ thống kê (Chỉ hiển thị khi mở mục Theo Dõi) -->
+                    <!-- Thanh chọn chu kỳ thống kê -->
                     <div class="flex items-center p-1 rounded-2xl bg-white border border-rose-200 shadow-sm text-xs font-black overflow-x-auto custom-scrollbar">
                         <button onclick="setViolationTimeFilter('all')" id="vFilterBtn-all" 
                             class="px-2.5 py-1.5 rounded-xl transition whitespace-nowrap bg-rose-600 text-white shadow-sm">
@@ -287,7 +286,7 @@
                     </div>
                 </div>
 
-                <!-- BỘ CHỌN THỜI GIAN CỤ THỂ ĐỂ LỰA CHỌN -->
+                <!-- BỘ CHỌN THỜI GIAN CỤ THỂ -->
                 <div id="customTimePickerWrapper" class="hidden p-2.5 rounded-2xl bg-white border border-rose-200 shadow-sm flex flex-wrap items-center justify-between gap-2.5">
                     <div class="flex items-center gap-2 text-xs font-black text-rose-800">
                         <i class="fa-solid fa-clock-rotate-left text-rose-600"></i>
@@ -313,7 +312,6 @@
                             <span class="text-xs font-bold text-slate-600">Năm</span>
                             <select id="customSelectWeekYear" onchange="handleWeekYearChange()" 
                                 class="px-2.5 py-1.5 rounded-xl bg-slate-50 border border-rose-300 text-xs font-black text-slate-800 focus:outline-none focus:border-rose-500 shadow-sm cursor-pointer"></select>
-                            <!-- Khoảng ngày của tuần được hiển thị kế bên rõ ràng -->
                             <div id="weekDateRangeBadge" class="px-2.5 py-1 rounded-xl bg-rose-100/70 text-rose-800 text-[11px] font-black border border-rose-200 shadow-sm flex items-center gap-1">
                                 <i class="fa-solid fa-calendar-week text-[10px] text-rose-600"></i>
                                 <span id="weekDateRangeText">Đang tải...</span>
@@ -375,7 +373,7 @@
                     </div>
                 </div>
 
-                <!-- DANH SÁCH GOM TOÀN BỘ HỌC SINH VI PHẠM TRONG CHU KỲ NÀY -->
+                <!-- DANH SÁCH GOM TOÀN BỘ HỌC SINH VI PHẠM TRONG CHU KỲ -->
                 <div class="pt-2 space-y-2 border-t border-rose-200/70">
                     <div class="flex items-center justify-between">
                         <h5 class="text-xs font-black text-rose-800 uppercase tracking-wider flex items-center gap-1.5">
@@ -385,10 +383,7 @@
                         <span id="currentPeriodDescription" class="text-[11px] text-slate-600 font-bold">Tất cả thời gian</span>
                     </div>
 
-                    <!-- Container danh sách học sinh vi phạm gom lại -->
-                    <div id="trackingViolatedStudentsList" class="space-y-2 max-h-80 overflow-y-auto custom-scrollbar pr-1">
-                        <!-- JS render danh sách gom -->
-                    </div>
+                    <div id="trackingViolatedStudentsList" class="space-y-2 max-h-80 overflow-y-auto custom-scrollbar pr-1"></div>
                 </div>
 
                 <!-- Nút Đóng Cuối Khung & Nút Xuất Excel nhanh cho Admin -->
@@ -413,9 +408,7 @@
             </div>
 
             <!-- Danh sách học sinh dạng Card riêng biệt -->
-            <div id="studentsCardsContainer" class="space-y-2.5">
-                <!-- Nội dung học sinh được JS render -->
-            </div>
+            <div id="studentsCardsContainer" class="space-y-2.5"></div>
         </section>
 
         <!-- ================= CHUYÊN MỤC 2: PHONG TRÀO ================= -->
@@ -445,9 +438,7 @@
                     <i class="fa-solid fa-fire text-amber-500"></i>
                     <span>Phong Trào Đang Diễn Ra / Sắp Tới</span>
                 </h4>
-                <div id="activeMovementsContainer" class="space-y-3">
-                    <!-- JS render phong trào active -->
-                </div>
+                <div id="activeMovementsContainer" class="space-y-3"></div>
             </div>
 
             <!-- Danh sách phong trào đã hết hạn -->
@@ -456,9 +447,7 @@
                     <i class="fa-solid fa-clock-rotate-left"></i>
                     <span>Phong Trào Đã Hết Hạn</span>
                 </h4>
-                <div id="expiredMovementsContainer" class="space-y-3 opacity-90">
-                    <!-- JS render phong trào hết hạn -->
-                </div>
+                <div id="expiredMovementsContainer" class="space-y-3 opacity-90"></div>
             </div>
         </section>
 
@@ -484,9 +473,7 @@
             </div>
 
             <!-- Danh sách bài tập -->
-            <div id="academicTasksContainer" class="space-y-3">
-                <!-- JS render bài tập góc học tập -->
-            </div>
+            <div id="academicTasksContainer" class="space-y-3"></div>
         </section>
 
         <!-- ================= CHUYÊN MỤC 4: BÁO CÁO & MINH CHỨNG ================= -->
@@ -516,9 +503,7 @@
                     </button>
                 </div>
                 <p class="text-[11px] text-slate-500">Tạo sẵn các link ổ lưu / Drive để lúc tạo Phong Trào chọn gán vào. Học sinh nộp ảnh sẽ tự động được chuyển minh chứng về đúng ổ lưu tương ứng.</p>
-                <div id="storageFoldersListContainer" class="grid grid-cols-1 sm:grid-cols-2 gap-2.5 pt-1">
-                    <!-- JS render danh sách các ổ lưu -->
-                </div>
+                <div id="storageFoldersListContainer" class="grid grid-cols-1 sm:grid-cols-2 gap-2.5 pt-1"></div>
             </div>
 
             <!-- Form Nộp Báo Cáo -->
@@ -529,7 +514,6 @@
                 </div>
 
                 <form onsubmit="handleReportSubmit(event)" class="space-y-4">
-                    <!-- Nhập Tên & Bot Gợi Ý -->
                     <div class="space-y-1.5">
                         <label class="block text-xs font-bold text-slate-700">
                             Họ Và Tên Học Sinh <span class="text-rose-500">*</span>
@@ -539,20 +523,16 @@
                                 class="w-full px-4 py-2.5 rounded-2xl bg-slate-50 border border-slate-300 focus:border-emerald-500 focus:bg-white text-xs sm:text-sm text-slate-800 focus:outline-none transition shadow-sm">
                             <input type="hidden" id="botMatchedStudentId" value="">
                         </div>
-                        <!-- Khung phản hồi gợi ý thông minh của Bot -->
-                        <div id="botSuggestionBox" class="hidden p-2.5 rounded-2xl bg-emerald-50/70 border border-emerald-200 text-xs transition duration-200">
-                            <!-- JS tự điền thông báo nhận diện -->
-                        </div>
+                        <div id="botSuggestionBox" class="hidden p-2.5 rounded-2xl bg-emerald-50/70 border border-emerald-200 text-xs transition duration-200"></div>
                     </div>
 
-                    <!-- Chọn Phong Trào Liên Quan (Custom Selector tách rời đẹp mắt) -->
+                    <!-- Chọn Phong Trào Liên Quan -->
                     <div class="space-y-1.5 relative">
                         <label class="block text-xs font-bold text-slate-700">
                             Phong Trào Tham Gia <span class="text-rose-500">*</span>
                         </label>
                         <input type="hidden" id="reportMovementSelect" value="">
                         
-                        <!-- Ô hiển thị lựa chọn hiện tại -->
                         <div id="customMovementPickerBtn" onclick="toggleCustomMovementDropdown()"
                             class="w-full px-4 py-3 rounded-2xl bg-slate-50 border border-slate-300 hover:border-emerald-500 text-xs sm:text-sm text-slate-800 cursor-pointer transition flex items-center justify-between shadow-sm">
                             <div class="flex items-center gap-2.5 overflow-hidden">
@@ -562,11 +542,8 @@
                             <i id="customMovementPickerArrow" class="fa-solid fa-chevron-down text-slate-400 text-xs transition duration-200"></i>
                         </div>
 
-                        <!-- Menu danh sách thẻ phong trào tách rời nhau -->
                         <div id="customMovementDropdownMenu" 
-                            class="hidden absolute z-30 left-0 right-0 mt-1.5 p-2 rounded-2xl bg-white border border-slate-200 shadow-xl max-h-60 overflow-y-auto custom-scrollbar space-y-2">
-                            <!-- JS render các item tùy chọn dạng thẻ riêng biệt -->
-                        </div>
+                            class="hidden absolute z-30 left-0 right-0 mt-1.5 p-2 rounded-2xl bg-white border border-slate-200 shadow-xl max-h-60 overflow-y-auto custom-scrollbar space-y-2"></div>
                     </div>
 
                     <!-- Chọn hoặc Chụp Ảnh -->
@@ -662,214 +639,6 @@
         </div>
     </div>
 
-    <!-- Modal Mới: Tạo / Sửa Ổ Lưu / Kho Minh Chứng (Admin) -->
-    <div id="createStorageModal" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-sm p-4">
-        <div class="light-card w-full max-w-md rounded-3xl p-5 sm:p-6 shadow-2xl space-y-4">
-            <div class="flex items-center justify-between">
-                <h3 id="storageModalTitle" class="text-sm sm:text-base font-bold text-slate-800 flex items-center gap-2">
-                    <i class="fa-solid fa-folder-plus text-emerald-600"></i>
-                    <span>Tạo Ổ Lưu / Thư Mục Nộp Ảnh</span>
-                </h3>
-                <button onclick="closeCreateStorageModal()" class="w-7 h-7 rounded-full bg-slate-100 text-slate-500 hover:text-slate-800 flex items-center justify-center text-xs">
-                    <i class="fa-solid fa-xmark"></i>
-                </button>
-            </div>
-            <input type="hidden" id="editStorageId" value="">
-            <div class="space-y-3">
-                <div>
-                    <label class="block text-[11px] font-bold text-slate-600 mb-1">Tên Ổ Lưu / Thư Mục <span class="text-rose-500">*</span></label>
-                    <input type="text" id="newStorageNameInput" placeholder="Ví dụ: Ổ Lưu Phong Trào 20/11, Drive Văn Nghệ..."
-                        class="w-full px-3 py-2 rounded-xl bg-slate-50 border border-slate-300 text-xs text-slate-800 focus:outline-none focus:border-emerald-600 focus:bg-white">
-                </div>
-                <div>
-                    <label class="block text-[11px] font-bold text-slate-600 mb-1">Đường Link Thư Mục / Drive (URL)</label>
-                    <input type="url" id="newStorageUrlInput" placeholder="https://drive.google.com/drive/folders/..."
-                        class="w-full px-3 py-2 rounded-xl bg-slate-50 border border-slate-300 text-xs text-slate-800 focus:outline-none focus:border-emerald-600 focus:bg-white">
-                </div>
-                <div>
-                    <label class="block text-[11px] font-bold text-slate-600 mb-1">Mô Tả / Ghi Chú</label>
-                    <input type="text" id="newStorageDescInput" placeholder="Ghi chú thêm về thư mục này..."
-                        class="w-full px-3 py-2 rounded-xl bg-slate-50 border border-slate-300 text-xs text-slate-800 focus:outline-none focus:border-emerald-600 focus:bg-white">
-                </div>
-            </div>
-            <div class="flex gap-2 pt-2">
-                <button onclick="closeCreateStorageModal()" class="w-1/2 py-2.5 rounded-xl bg-slate-100 text-slate-600 text-xs font-semibold hover:bg-slate-200">Hủy</button>
-                <button onclick="handleSaveNewStorage()" id="saveStorageBtn" class="w-1/2 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs shadow-sm">Lưu Ổ Này</button>
-            </div>
-        </div>
-    </div>
-
-    <!-- Modal 8: Tạo / Sửa Phong Trào (Admin) -->
-    <div id="createMovementModal" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-sm p-4">
-        <div class="light-card w-full max-w-md rounded-3xl shadow-2xl p-5 sm:p-6 space-y-4">
-            <div class="flex items-center justify-between">
-                <h3 id="movModalTitle" class="text-sm sm:text-base font-bold text-slate-800 flex items-center gap-2">
-                    <i class="fa-solid fa-award text-purple-600"></i>
-                    <span>Tạo Phong Trào Mới</span>
-                </h3>
-                <button onclick="closeCreateMovementModal()" class="w-7 h-7 rounded-full bg-slate-100 text-slate-500 hover:text-slate-800 flex items-center justify-center text-xs">
-                    <i class="fa-solid fa-xmark"></i>
-                </button>
-            </div>
-
-            <input type="hidden" id="editMovementId" value="">
-            <div class="space-y-3">
-                <div>
-                    <label class="block text-[11px] font-bold text-slate-600 mb-1">Tên Phong Trào <span class="text-rose-500">*</span></label>
-                    <input type="text" id="newMovTitleInput" placeholder="Ví dụ: Giải Bóng Đá Nam 20/11..."
-                        class="w-full px-3 py-2 rounded-xl bg-slate-50 border border-slate-300 text-xs text-slate-800 focus:outline-none focus:border-purple-600 focus:bg-white">
-                </div>
-                <div>
-                    <label class="block text-[11px] font-bold text-slate-600 mb-1">Mô Tả Phong Trào</label>
-                    <textarea id="newMovDescInput" rows="2" placeholder="Nội dung, kế hoạch phong trào..."
-                        class="w-full px-3 py-2 rounded-xl bg-slate-50 border border-slate-300 text-xs text-slate-800 focus:outline-none focus:border-purple-600 focus:bg-white"></textarea>
-                </div>
-                <div>
-                    <label class="block text-[11px] font-bold text-slate-600 mb-1">Đường Link Phong Trào (Kế hoạch / Thể lệ)</label>
-                    <input type="url" id="newMovUrlInput" placeholder="https://..."
-                        class="w-full px-3 py-2 rounded-xl bg-slate-50 border border-slate-300 text-xs text-slate-800 focus:outline-none focus:border-purple-600 focus:bg-white">
-                </div>
-                <div>
-                    <label class="block text-[11px] font-bold text-slate-600 mb-1">
-                        Gán Vào Ổ Lưu / Kho Nộp Ảnh <span class="text-emerald-600">(Tự động đối chiếu)</span>
-                    </label>
-                    <select id="newMovStorageSelect" 
-                        class="w-full px-3 py-2 rounded-xl bg-slate-50 border border-slate-300 text-xs text-slate-800 focus:outline-none focus:border-emerald-600 focus:bg-white">
-                        <option value="">-- Mặc định (Ổ Lưu Chung) --</option>
-                    </select>
-                </div>
-                <div>
-                    <label class="block text-[11px] font-bold text-slate-600 mb-1">Thời Gian Kết Thúc (Hạn Chót)</label>
-                    <div class="p-3.5 rounded-2xl bg-slate-50 border border-purple-200 space-y-3">
-                        <div class="flex items-center justify-between pb-1.5 border-b border-purple-100">
-                            <label class="flex items-center gap-2 cursor-pointer text-xs font-black text-purple-900">
-                                <input type="checkbox" id="movNoDeadlineCheckbox" onchange="toggleMovDeadlineInputs()" class="w-4 h-4 rounded text-purple-600 focus:ring-purple-500">
-                                <span>Vô thời hạn (Không giới hạn)</span>
-                            </label>
-                            <button type="button" onclick="setQuickMovDeadline('todayEnd')" class="text-xs text-purple-600 font-extrabold hover:underline">Hôm nay 23:59</button>
-                        </div>
-                        <div id="movDeadlinePickersGroup" class="space-y-2.5">
-                            <!-- Dòng 1: Ngày - Tháng - Năm (3 cột rộng rãi) -->
-                            <div class="grid grid-cols-3 gap-2">
-                                <div>
-                                    <span class="text-[11px] text-slate-600 font-black block mb-1">Ngày</span>
-                                    <select id="movPickDay" class="w-full px-2.5 py-2 rounded-xl bg-white border border-slate-300 text-xs font-black text-slate-800 shadow-sm focus:border-purple-500"></select>
-                                </div>
-                                <div>
-                                    <span class="text-[11px] text-slate-600 font-black block mb-1">Tháng</span>
-                                    <select id="movPickMonth" class="w-full px-2.5 py-2 rounded-xl bg-white border border-slate-300 text-xs font-black text-slate-800 shadow-sm focus:border-purple-500"></select>
-                                </div>
-                                <div>
-                                    <span class="text-[11px] text-slate-600 font-black block mb-1">Năm</span>
-                                    <select id="movPickYear" class="w-full px-2.5 py-2 rounded-xl bg-white border border-slate-300 text-xs font-black text-slate-800 shadow-sm focus:border-purple-500"></select>
-                                </div>
-                            </div>
-                            <!-- Dòng 2: Giờ - Phút (2 cột rộng rãi) -->
-                            <div class="grid grid-cols-2 gap-2 pt-1 border-t border-purple-100/70">
-                                <div>
-                                    <span class="text-[11px] text-slate-600 font-black block mb-1">Giờ</span>
-                                    <select id="movPickHour" class="w-full px-2.5 py-2 rounded-xl bg-white border border-slate-300 text-xs font-black text-slate-800 shadow-sm focus:border-purple-500"></select>
-                                </div>
-                                <div>
-                                    <span class="text-[11px] text-slate-600 font-black block mb-1">Phút</span>
-                                    <select id="movPickMinute" class="w-full px-2.5 py-2 rounded-xl bg-white border border-slate-300 text-xs font-black text-slate-800 shadow-sm focus:border-purple-500"></select>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <div class="flex gap-2 pt-2">
-                <button onclick="closeCreateMovementModal()" class="w-1/2 py-2.5 rounded-xl bg-slate-100 text-slate-600 text-xs font-semibold hover:bg-slate-200">Hủy</button>
-                <button onclick="handleSaveNewMovement()" id="saveMovBtn" class="w-1/2 py-2.5 rounded-xl bg-purple-600 hover:bg-purple-700 text-white font-bold text-xs shadow-sm">Lưu Phong Trào</button>
-            </div>
-        </div>
-    </div>
-
-    <!-- Modal 9: Tạo / Sửa Bài Tập Góc Học Tập (Admin) -->
-    <div id="createAcademicModal" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-sm p-4">
-        <div class="light-card w-full max-w-md rounded-3xl shadow-2xl p-5 sm:p-6 space-y-4">
-            <div class="flex items-center justify-between">
-                <h3 id="acaModalTitle" class="text-sm sm:text-base font-bold text-slate-800 flex items-center gap-2">
-                    <i class="fa-solid fa-book-open text-sky-600"></i>
-                    <span>Tạo Bài Tập Góc Học Tập</span>
-                </h3>
-                <button onclick="closeCreateAcademicModal()" class="w-7 h-7 rounded-full bg-slate-100 text-slate-500 hover:text-slate-800 flex items-center justify-center text-xs">
-                    <i class="fa-solid fa-xmark"></i>
-                </button>
-            </div>
-
-            <input type="hidden" id="editAcademicId" value="">
-            <div class="space-y-3">
-                <div>
-                    <label class="block text-[11px] font-bold text-slate-600 mb-1">Tên Bài Tập / Chuyên Đề <span class="text-rose-500">*</span></label>
-                    <input type="text" id="newAcaTitleInput" placeholder="Ví dụ: Ôn tập Toán Chương 3..."
-                        class="w-full px-3 py-2 rounded-xl bg-slate-50 border border-slate-300 text-xs text-slate-800 focus:outline-none focus:border-sky-600 focus:bg-white">
-                </div>
-                <div>
-                    <label class="block text-[11px] font-bold text-slate-600 mb-1">Đường Link Làm Bài (URL) <span class="text-rose-500">*</span></label>
-                    <input type="url" id="newAcaUrlInput" placeholder="https://forms.gle/... hoặc https://quizizz.com/..."
-                        class="w-full px-3 py-2 rounded-xl bg-slate-50 border border-slate-300 text-xs text-slate-800 focus:outline-none focus:border-sky-600 focus:bg-white">
-                </div>
-                <div>
-                    <label class="block text-[11px] font-bold text-slate-600 mb-1">Ghi Chú Hướng Dẫn</label>
-                    <textarea id="newAcaNoteInput" rows="2" placeholder="Ghi chú hoàn thành 10 câu trắc nghiệm..."
-                        class="w-full px-3 py-2 rounded-xl bg-slate-50 border border-slate-300 text-xs text-slate-800 focus:outline-none focus:border-sky-600 focus:bg-white"></textarea>
-                </div>
-                <div>
-                    <label class="block text-[11px] font-bold text-slate-600 mb-1">Hạn Chót Hoàn Thành</label>
-                    <div class="p-3.5 rounded-2xl bg-slate-50 border border-sky-200 space-y-3">
-                        <div class="flex items-center justify-between pb-1.5 border-b border-sky-100">
-                            <label class="flex items-center gap-2 cursor-pointer text-xs font-black text-sky-900">
-                                <input type="checkbox" id="acaNoDeadlineCheckbox" onchange="toggleAcaDeadlineInputs()" class="w-4 h-4 rounded text-sky-600 focus:ring-sky-500">
-                                <span>Không giới hạn (Vô thời hạn)</span>
-                            </label>
-                            <div class="flex items-center gap-2">
-                                <button type="button" onclick="setQuickAcaDeadline('todayEnd')" class="text-xs text-sky-600 font-extrabold hover:underline">Hôm nay 23:59</button>
-                                <span class="text-slate-300 text-xs font-bold">|</span>
-                                <button type="button" onclick="setQuickAcaDeadline('plus3Days')" class="text-xs text-sky-600 font-extrabold hover:underline">+3 ngày</button>
-                            </div>
-                        </div>
-                        <div id="acaDeadlinePickersGroup" class="space-y-2.5">
-                            <!-- Dòng 1: Ngày - Tháng - Năm (3 cột rộng rãi) -->
-                            <div class="grid grid-cols-3 gap-2">
-                                <div>
-                                    <span class="text-[11px] text-slate-600 font-black block mb-1">Ngày</span>
-                                    <select id="acaPickDay" class="w-full px-2.5 py-2 rounded-xl bg-white border border-slate-300 text-xs font-black text-slate-800 shadow-sm focus:border-sky-500"></select>
-                                </div>
-                                <div>
-                                    <span class="text-[11px] text-slate-600 font-black block mb-1">Tháng</span>
-                                    <select id="acaPickMonth" class="w-full px-2.5 py-2 rounded-xl bg-white border border-slate-300 text-xs font-black text-slate-800 shadow-sm focus:border-sky-500"></select>
-                                </div>
-                                <div>
-                                    <span class="text-[11px] text-slate-600 font-black block mb-1">Năm</span>
-                                    <select id="acaPickYear" class="w-full px-2.5 py-2 rounded-xl bg-white border border-slate-300 text-xs font-black text-slate-800 shadow-sm focus:border-sky-500"></select>
-                                </div>
-                            </div>
-                            <!-- Dòng 2: Giờ - Phút (2 cột rộng rãi) -->
-                            <div class="grid grid-cols-2 gap-2 pt-1 border-t border-sky-100/70">
-                                <div>
-                                    <span class="text-[11px] text-slate-600 font-black block mb-1">Giờ</span>
-                                    <select id="acaPickHour" class="w-full px-2.5 py-2 rounded-xl bg-white border border-slate-300 text-xs font-black text-slate-800 shadow-sm focus:border-sky-500"></select>
-                                </div>
-                                <div>
-                                    <span class="text-[11px] text-slate-600 font-black block mb-1">Phút</span>
-                                    <select id="acaPickMinute" class="w-full px-2.5 py-2 rounded-xl bg-white border border-slate-300 text-xs font-black text-slate-800 shadow-sm focus:border-sky-500"></select>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <div class="flex gap-2 pt-2">
-                <button onclick="closeCreateAcademicModal()" class="w-1/2 py-2.5 rounded-xl bg-slate-100 text-slate-600 text-xs font-semibold hover:bg-slate-200">Hủy</button>
-                <button onclick="handleSaveNewAcademic()" id="saveAcaBtn" class="w-1/2 py-2.5 rounded-xl bg-sky-600 hover:bg-sky-700 text-white font-bold text-xs shadow-sm">Lưu Bài Tập</button>
-            </div>
-        </div>
-    </div>
-
     <!-- Modal 3: Đổi Mật Khẩu Admin -->
     <div id="changePasswordModal" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-sm px-4">
         <div class="light-card w-full max-w-sm rounded-3xl p-6 shadow-2xl space-y-4">
@@ -928,7 +697,211 @@
         </div>
     </div>
 
-    <!-- Modal Mới: Xuất Báo Cáo Excel (Tùy Chọn Cho Admin Theo Tuần / Tháng) -->
+    <!-- Modal: Tạo / Sửa Ổ Lưu / Kho Minh Chứng (Admin) -->
+    <div id="createStorageModal" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-sm p-4">
+        <div class="light-card w-full max-w-md rounded-3xl p-5 sm:p-6 shadow-2xl space-y-4">
+            <div class="flex items-center justify-between">
+                <h3 id="storageModalTitle" class="text-sm sm:text-base font-bold text-slate-800 flex items-center gap-2">
+                    <i class="fa-solid fa-folder-plus text-emerald-600"></i>
+                    <span>Tạo Ổ Lưu / Thư Mục Nộp Ảnh</span>
+                </h3>
+                <button onclick="closeCreateStorageModal()" class="w-7 h-7 rounded-full bg-slate-100 text-slate-500 hover:text-slate-800 flex items-center justify-center text-xs">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+            <input type="hidden" id="editStorageId" value="">
+            <div class="space-y-3">
+                <div>
+                    <label class="block text-[11px] font-bold text-slate-600 mb-1">Tên Ổ Lưu / Thư Mục <span class="text-rose-500">*</span></label>
+                    <input type="text" id="newStorageNameInput" placeholder="Ví dụ: Ổ Lưu Phong Trào 20/11, Drive Văn Nghệ..."
+                        class="w-full px-3 py-2 rounded-xl bg-slate-50 border border-slate-300 text-xs text-slate-800 focus:outline-none focus:border-emerald-600 focus:bg-white">
+                </div>
+                <div>
+                    <label class="block text-[11px] font-bold text-slate-600 mb-1">Đường Link Thư Mục / Drive (URL)</label>
+                    <input type="url" id="newStorageUrlInput" placeholder="https://drive.google.com/drive/folders/..."
+                        class="w-full px-3 py-2 rounded-xl bg-slate-50 border border-slate-300 text-xs text-slate-800 focus:outline-none focus:border-emerald-600 focus:bg-white">
+                </div>
+                <div>
+                    <label class="block text-[11px] font-bold text-slate-600 mb-1">Mô Tả / Ghi Chú</label>
+                    <input type="text" id="newStorageDescInput" placeholder="Ghi chú thêm về thư mục này..."
+                        class="w-full px-3 py-2 rounded-xl bg-slate-50 border border-slate-300 text-xs text-slate-800 focus:outline-none focus:border-emerald-600 focus:bg-white">
+                </div>
+            </div>
+            <div class="flex gap-2 pt-2">
+                <button onclick="closeCreateStorageModal()" class="w-1/2 py-2.5 rounded-xl bg-slate-100 text-slate-600 text-xs font-semibold hover:bg-slate-200">Hủy</button>
+                <button onclick="handleSaveNewStorage()" id="saveStorageBtn" class="w-1/2 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs shadow-sm">Lưu Ổ Này</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal: Tạo / Sửa Phong Trào (Admin) -->
+    <div id="createMovementModal" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-sm p-4">
+        <div class="light-card w-full max-w-md rounded-3xl shadow-2xl p-5 sm:p-6 space-y-4">
+            <div class="flex items-center justify-between">
+                <h3 id="movModalTitle" class="text-sm sm:text-base font-bold text-slate-800 flex items-center gap-2">
+                    <i class="fa-solid fa-award text-purple-600"></i>
+                    <span>Tạo Phong Trào Mới</span>
+                </h3>
+                <button onclick="closeCreateMovementModal()" class="w-7 h-7 rounded-full bg-slate-100 text-slate-500 hover:text-slate-800 flex items-center justify-center text-xs">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+
+            <input type="hidden" id="editMovementId" value="">
+            <div class="space-y-3">
+                <div>
+                    <label class="block text-[11px] font-bold text-slate-600 mb-1">Tên Phong Trào <span class="text-rose-500">*</span></label>
+                    <input type="text" id="newMovTitleInput" placeholder="Ví dụ: Giải Bóng Đá Nam 20/11..."
+                        class="w-full px-3 py-2 rounded-xl bg-slate-50 border border-slate-300 text-xs text-slate-800 focus:outline-none focus:border-purple-600 focus:bg-white">
+                </div>
+                <div>
+                    <label class="block text-[11px] font-bold text-slate-600 mb-1">Mô Tả Phong Trào</label>
+                    <textarea id="newMovDescInput" rows="2" placeholder="Nội dung, kế hoạch phong trào..."
+                        class="w-full px-3 py-2 rounded-xl bg-slate-50 border border-slate-300 text-xs text-slate-800 focus:outline-none focus:border-purple-600 focus:bg-white"></textarea>
+                </div>
+                <div>
+                    <label class="block text-[11px] font-bold text-slate-600 mb-1">Đường Link Phong Trào (Kế hoạch / Thể lệ)</label>
+                    <input type="url" id="newMovUrlInput" placeholder="https://..."
+                        class="w-full px-3 py-2 rounded-xl bg-slate-50 border border-slate-300 text-xs text-slate-800 focus:outline-none focus:border-purple-600 focus:bg-white">
+                </div>
+                <div>
+                    <label class="block text-[11px] font-bold text-slate-600 mb-1">
+                        Gán Vào Ổ Lưu / Kho Nộp Ảnh <span class="text-emerald-600">(Tự động đối chiếu)</span>
+                    </label>
+                    <select id="newMovStorageSelect" 
+                        class="w-full px-3 py-2 rounded-xl bg-slate-50 border border-slate-300 text-xs text-slate-800 focus:outline-none focus:border-emerald-600 focus:bg-white">
+                        <option value="">-- Mặc định (Ổ Lưu Chung) --</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-[11px] font-bold text-slate-600 mb-1">Thời Gian Kết Thúc (Hạn Chót)</label>
+                    <div class="p-3.5 rounded-2xl bg-slate-50 border border-purple-200 space-y-3">
+                        <div class="flex items-center justify-between pb-1.5 border-b border-purple-100">
+                            <label class="flex items-center gap-2 cursor-pointer text-xs font-black text-purple-900">
+                                <input type="checkbox" id="movNoDeadlineCheckbox" onchange="toggleMovDeadlineInputs()" class="w-4 h-4 rounded text-purple-600 focus:ring-purple-500">
+                                <span>Vô thời hạn (Không giới hạn)</span>
+                            </label>
+                            <button type="button" onclick="setQuickMovDeadline('todayEnd')" class="text-xs text-purple-600 font-extrabold hover:underline">Hôm nay 23:59</button>
+                        </div>
+                        <div id="movDeadlinePickersGroup" class="space-y-2.5">
+                            <div class="grid grid-cols-3 gap-2">
+                                <div>
+                                    <span class="text-[11px] text-slate-600 font-black block mb-1">Ngày</span>
+                                    <select id="movPickDay" class="w-full px-2.5 py-2 rounded-xl bg-white border border-slate-300 text-xs font-black text-slate-800 shadow-sm focus:border-purple-500"></select>
+                                </div>
+                                <div>
+                                    <span class="text-[11px] text-slate-600 font-black block mb-1">Tháng</span>
+                                    <select id="movPickMonth" class="w-full px-2.5 py-2 rounded-xl bg-white border border-slate-300 text-xs font-black text-slate-800 shadow-sm focus:border-purple-500"></select>
+                                </div>
+                                <div>
+                                    <span class="text-[11px] text-slate-600 font-black block mb-1">Năm</span>
+                                    <select id="movPickYear" class="w-full px-2.5 py-2 rounded-xl bg-white border border-slate-300 text-xs font-black text-slate-800 shadow-sm focus:border-purple-500"></select>
+                                </div>
+                            </div>
+                            <div class="grid grid-cols-2 gap-2 pt-1 border-t border-purple-100/70">
+                                <div>
+                                    <span class="text-[11px] text-slate-600 font-black block mb-1">Giờ</span>
+                                    <select id="movPickHour" class="w-full px-2.5 py-2 rounded-xl bg-white border border-slate-300 text-xs font-black text-slate-800 shadow-sm focus:border-purple-500"></select>
+                                </div>
+                                <div>
+                                    <span class="text-[11px] text-slate-600 font-black block mb-1">Phút</span>
+                                    <select id="movPickMinute" class="w-full px-2.5 py-2 rounded-xl bg-white border border-slate-300 text-xs font-black text-slate-800 shadow-sm focus:border-purple-500"></select>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="flex gap-2 pt-2">
+                <button onclick="closeCreateMovementModal()" class="w-1/2 py-2.5 rounded-xl bg-slate-100 text-slate-600 text-xs font-semibold hover:bg-slate-200">Hủy</button>
+                <button onclick="handleSaveNewMovement()" id="saveMovBtn" class="w-1/2 py-2.5 rounded-xl bg-purple-600 hover:bg-purple-700 text-white font-bold text-xs shadow-sm">Lưu Phong Trào</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal: Tạo / Sửa Bài Tập Góc Học Tập (Admin) -->
+    <div id="createAcademicModal" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-sm p-4">
+        <div class="light-card w-full max-w-md rounded-3xl shadow-2xl p-5 sm:p-6 space-y-4">
+            <div class="flex items-center justify-between">
+                <h3 id="acaModalTitle" class="text-sm sm:text-base font-bold text-slate-800 flex items-center gap-2">
+                    <i class="fa-solid fa-book-open text-sky-600"></i>
+                    <span>Tạo Bài Tập Góc Học Tập</span>
+                </h3>
+                <button onclick="closeCreateAcademicModal()" class="w-7 h-7 rounded-full bg-slate-100 text-slate-500 hover:text-slate-800 flex items-center justify-center text-xs">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+
+            <input type="hidden" id="editAcademicId" value="">
+            <div class="space-y-3">
+                <div>
+                    <label class="block text-[11px] font-bold text-slate-600 mb-1">Tên Bài Tập / Chuyên Đề <span class="text-rose-500">*</span></label>
+                    <input type="text" id="newAcaTitleInput" placeholder="Ví dụ: Ôn tập Toán Chương 3..."
+                        class="w-full px-3 py-2 rounded-xl bg-slate-50 border border-slate-300 text-xs text-slate-800 focus:outline-none focus:border-sky-600 focus:bg-white">
+                </div>
+                <div>
+                    <label class="block text-[11px] font-bold text-slate-600 mb-1">Đường Link Làm Bài (URL) <span class="text-rose-500">*</span></label>
+                    <input type="url" id="newAcaUrlInput" placeholder="https://forms.gle/... hoặc https://quizizz.com/..."
+                        class="w-full px-3 py-2 rounded-xl bg-slate-50 border border-slate-300 text-xs text-slate-800 focus:outline-none focus:border-sky-600 focus:bg-white">
+                </div>
+                <div>
+                    <label class="block text-[11px] font-bold text-slate-600 mb-1">Ghi Chú Hướng Dẫn</label>
+                    <textarea id="newAcaNoteInput" rows="2" placeholder="Ghi chú hoàn thành 10 câu trắc nghiệm..."
+                        class="w-full px-3 py-2 rounded-xl bg-slate-50 border border-slate-300 text-xs text-slate-800 focus:outline-none focus:border-sky-600 focus:bg-white"></textarea>
+                </div>
+                <div>
+                    <label class="block text-[11px] font-bold text-slate-600 mb-1">Hạn Chót Hoàn Thành</label>
+                    <div class="p-3.5 rounded-2xl bg-slate-50 border border-sky-200 space-y-3">
+                        <div class="flex items-center justify-between pb-1.5 border-b border-sky-100">
+                            <label class="flex items-center gap-2 cursor-pointer text-xs font-black text-sky-900">
+                                <input type="checkbox" id="acaNoDeadlineCheckbox" onchange="toggleAcaDeadlineInputs()" class="w-4 h-4 rounded text-sky-600 focus:ring-sky-500">
+                                <span>Không giới hạn (Vô thời hạn)</span>
+                            </label>
+                            <div class="flex items-center gap-2">
+                                <button type="button" onclick="setQuickAcaDeadline('todayEnd')" class="text-xs text-sky-600 font-extrabold hover:underline">Hôm nay 23:59</button>
+                                <span class="text-slate-300 text-xs font-bold">|</span>
+                                <button type="button" onclick="setQuickAcaDeadline('plus3Days')" class="text-xs text-sky-600 font-extrabold hover:underline">+3 ngày</button>
+                            </div>
+                        </div>
+                        <div id="acaDeadlinePickersGroup" class="space-y-2.5">
+                            <div class="grid grid-cols-3 gap-2">
+                                <div>
+                                    <span class="text-[11px] text-slate-600 font-black block mb-1">Ngày</span>
+                                    <select id="acaPickDay" class="w-full px-2.5 py-2 rounded-xl bg-white border border-slate-300 text-xs font-black text-slate-800 shadow-sm focus:border-sky-500"></select>
+                                </div>
+                                <div>
+                                    <span class="text-[11px] text-slate-600 font-black block mb-1">Tháng</span>
+                                    <select id="acaPickMonth" class="w-full px-2.5 py-2 rounded-xl bg-white border border-slate-300 text-xs font-black text-slate-800 shadow-sm focus:border-sky-500"></select>
+                                </div>
+                                <div>
+                                    <span class="text-[11px] text-slate-600 font-black block mb-1">Năm</span>
+                                    <select id="acaPickYear" class="w-full px-2.5 py-2 rounded-xl bg-white border border-slate-300 text-xs font-black text-slate-800 shadow-sm focus:border-sky-500"></select>
+                                </div>
+                            </div>
+                            <div class="grid grid-cols-2 gap-2 pt-1 border-t border-sky-100/70">
+                                <div>
+                                    <span class="text-[11px] text-slate-600 font-black block mb-1">Giờ</span>
+                                    <select id="acaPickHour" class="w-full px-2.5 py-2 rounded-xl bg-white border border-slate-300 text-xs font-black text-slate-800 shadow-sm focus:border-sky-500"></select>
+                                </div>
+                                <div>
+                                    <span class="text-[11px] text-slate-600 font-black block mb-1">Phút</span>
+                                    <select id="acaPickMinute" class="w-full px-2.5 py-2 rounded-xl bg-white border border-slate-300 text-xs font-black text-slate-800 shadow-sm focus:border-sky-500"></select>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="flex gap-2 pt-2">
+                <button onclick="closeCreateAcademicModal()" class="w-1/2 py-2.5 rounded-xl bg-slate-100 text-slate-600 text-xs font-semibold hover:bg-slate-200">Hủy</button>
+                <button onclick="handleSaveNewAcademic()" id="saveAcaBtn" class="w-1/2 py-2.5 rounded-xl bg-sky-600 hover:bg-sky-700 text-white font-bold text-xs shadow-sm">Lưu Bài Tập</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal: Xuất Báo Cáo Excel -->
     <div id="exportExcelModal" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-sm p-4">
         <div class="light-card w-full max-w-md rounded-3xl p-5 sm:p-6 shadow-2xl space-y-4">
             <div class="flex items-center justify-between border-b border-slate-200 pb-3">
@@ -946,7 +919,6 @@
                 </button>
             </div>
 
-            <!-- Chọn Chế Độ Xuất: Theo Tuần hoặc Theo Tháng -->
             <div class="space-y-3">
                 <label class="block text-xs font-black text-slate-700">Chọn Chu Kỳ Báo Cáo</label>
                 <div class="grid grid-cols-3 gap-2">
@@ -967,7 +939,6 @@
                     </button>
                 </div>
 
-                <!-- Tùy chọn Theo Tuần -->
                 <div id="excelOptionContainer-week" class="p-3.5 rounded-2xl bg-slate-50 border border-slate-200 space-y-2">
                     <div class="flex items-center justify-between">
                         <span class="text-xs font-black text-slate-700">Chọn Tuần Cần Xuất</span>
@@ -979,7 +950,6 @@
                     </div>
                 </div>
 
-                <!-- Tùy chọn Theo Tháng -->
                 <div id="excelOptionContainer-month" class="hidden p-3.5 rounded-2xl bg-slate-50 border border-slate-200 space-y-2">
                     <span class="text-xs font-black text-slate-700 block">Chọn Tháng & Năm Cần Xuất</span>
                     <div class="grid grid-cols-2 gap-2">
@@ -988,7 +958,6 @@
                     </div>
                 </div>
 
-                <!-- Tùy chọn Loại Dữ Liệu -->
                 <div class="space-y-1.5 pt-1">
                     <label class="block text-xs font-black text-slate-700">Dữ Liệu Bao Gồm Trong File</label>
                     <div class="space-y-1.5 text-xs text-slate-700 font-bold">
@@ -1027,7 +996,7 @@
                         <i class="fa-solid fa-user-graduate"></i>
                     </div>
                     <div>
-                        <h3 id="detailStudentName" class="text-base sm:text-lg font-black text-slate-900">Lê Duy Anh</h3>
+                        <h3 id="detailStudentName" class="text-base sm:text-lg font-black text-slate-900">Học Sinh</h3>
                         <p class="text-[11px] text-slate-500 font-bold">Hồ sơ kỷ luật & hoạt động phong trào</p>
                     </div>
                 </div>
@@ -1174,7 +1143,9 @@
 
     <!-- ================= JAVASCRIPT TOÀN BỘ HỆ THỐNG ================= -->
     <script>
-        // ... existing code ... (DEFAULT_STUDENTS_LIST, VIOLATION_PRESETS)
+        // CẤU HÌNH CỐ ĐỊNH LINK GOOGLE APPS SCRIPT ĐỂ TỰ ĐỘNG ĐỒNG BỘ MỌI THIẾT BỊ
+        const DEFAULT_APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwpZiuet9torsA0NXfYzFML8k8loifWVrVR7n38ZEcyWtrrMsrbZS3VwixQOFh35khm/exec";
+
         const DEFAULT_STUDENTS_LIST = [
             { id: "hs_01", stt: 1, name: "Lê Duy Anh", violations: [] },
             { id: "hs_02", stt: 2, name: "Lê Thị Thùy Anh", violations: [] },
@@ -1264,7 +1235,6 @@
             "Đánh bài dưới mọi hình thức"
         ];
 
-        // Dữ liệu mẫu Ổ Lưu Nộp Ảnh ban đầu
         const DEFAULT_STORAGE_FOLDERS = [
             {
                 id: "store_01",
@@ -1280,7 +1250,6 @@
             }
         ];
 
-        // Dữ liệu mẫu phong trào ban đầu (có storageId)
         const DEFAULT_MOVEMENTS = [
             {
                 id: "mov_01",
@@ -1315,7 +1284,7 @@
         // ================= TRẠNG THÁI TOÀN CỤC =================
         let currentUserRole = "student";
         let adminPassword = "admin123";
-        let appsScriptUrl = "";
+        let appsScriptUrl = DEFAULT_APPS_SCRIPT_URL;
         let students = [];
         let movements = [];
         let academicTasks = [];
@@ -1329,28 +1298,20 @@
         let currentReportFileName = "";
         let currentReportFileType = "";
         let detailMovementSubTab = "joined";
-        let currentViolationTimeFilter = "all"; // 'all', 'day', 'week', 'month', 'year'
+        let currentViolationTimeFilter = "all";
         let isTrackingViolationsOpen = false;
-        let isSubmittingReport = false; // Cờ khóa chống bấm nộp liên tiếp (Double-Submit Guard)
+        let isSubmittingReport = false;
 
-        // Hàm tiện ích lấy chuỗi định dạng thời gian địa phương của máy
         function getLocalISODate(d = new Date()) {
             const pad = num => String(num).padStart(2, '0');
             return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
         }
 
-        function getLocalISODatetime(d = new Date()) {
-            const pad = num => String(num).padStart(2, '0');
-            return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
-        }
-
-        // Các biến lưu giá trị thời gian người dùng tự lựa chọn (mặc định luôn theo máy người dùng)
         let selectedFilterDate = getLocalISODate();
         let selectedFilterWeek = getISOWeekString(new Date());
         let selectedFilterMonth = getLocalISODate().slice(0, 7);
         let selectedFilterYear = new Date().getFullYear();
 
-        // Helper tính chuỗi tuần ISO (YYYY-Www) theo máy người dùng
         function getISOWeekString(d) {
             const date = new Date(d.getTime());
             date.setHours(0, 0, 0, 0);
@@ -1360,19 +1321,12 @@
             return `${date.getFullYear()}-W${String(weekNumber).padStart(2, '0')}`;
         }
 
-        // Helper tính khoảng ngày (Thứ 2 đến Chủ nhật) của 1 tuần ISO trong năm
         function getDateRangeOfISOWeek(weekNum, year) {
             const pad = n => String(n).padStart(2, '0');
-            // Tìm ngày 4 tháng 1 của năm (luôn nằm ở tuần 1)
             const jan4 = new Date(year, 0, 4);
-            // Thứ của ngày 4/1 (0: CN, 1: T2, ..., 6: T7) -> chuẩn hóa thứ 2 là 0
             const dayOfWeek = (jan4.getDay() + 6) % 7;
-            // Thứ 2 của tuần 1
             const monWeek1 = new Date(jan4.getTime() - dayOfWeek * 86400000);
-            
-            // Thứ 2 của tuần cần tìm
             const targetMon = new Date(monWeek1.getTime() + (weekNum - 1) * 7 * 86400000);
-            // Chủ nhật của tuần cần tìm
             const targetSun = new Date(targetMon.getTime() + 6 * 86400000);
 
             return {
@@ -1382,7 +1336,6 @@
             };
         }
 
-        // Tạo danh sách các tuần kèm khoảng ngày (Từ ngày ... đến ngày ...)
         function generateWeekOptionsWithDates(year) {
             const pad = n => String(n).padStart(2, '0');
             return Array.from({ length: 53 }, (_, i) => {
@@ -1392,30 +1345,22 @@
             }).join('');
         }
 
-        // ================= POPULATE CÁC Ô CHỌN THỜI GIAN ĐẸP & TRỰC QUAN =================
         function populateTimeDropdownOptions() {
             const pad = n => String(n).padStart(2, '0');
             const now = new Date();
             const currentYear = now.getFullYear();
 
-            // 1. Ngày (1 - 31)
             const dayHtml = Array.from({ length: 31 }, (_, i) => `<option value="${pad(i + 1)}">Ngày ${pad(i + 1)}</option>`).join('');
-            // 2. Tháng (Tháng 1 - Tháng 12)
             const monthHtml = Array.from({ length: 12 }, (_, i) => `<option value="${pad(i + 1)}">Tháng ${pad(i + 1)}</option>`).join('');
-            // 3. Năm (currentYear - 2 đến currentYear + 4)
             const yearHtml = Array.from({ length: 7 }, (_, i) => {
                 const y = currentYear - 2 + i;
                 return `<option value="${y}">Năm ${y}</option>`;
             }).join('');
-            // 4. Tuần (Kèm khoảng ngày bắt đầu - kết thúc)
             const weekHtml = generateWeekOptionsWithDates(currentYear);
-            // 5. Giờ (00 - 23)
             const hourHtml = Array.from({ length: 24 }, (_, i) => `<option value="${pad(i)}">${pad(i)} giờ</option>`).join('');
-            // 6. Phút (00 - 55, bước nhảy 5 phút + 59)
             const mins = [0, 5, 10, 15, 20, 25, 30, 35, 40, 45, 50, 55, 59];
             const minHtml = mins.map(m => `<option value="${pad(m)}">${pad(m)} phút</option>`).join('');
 
-            // Gán vào Theo Dõi Vi Phạm
             const setIf = (id, html) => { const el = document.getElementById(id); if (el) el.innerHTML = html; };
             setIf('customSelectDay', dayHtml);
             setIf('customSelectMonth', monthHtml);
@@ -1426,31 +1371,26 @@
             setIf('customSelectOnlyMonthYear', yearHtml);
             setIf('customSelectOnlyYear', yearHtml);
 
-            // Gán vào Phong Trào
             setIf('movPickDay', dayHtml);
             setIf('movPickMonth', monthHtml);
             setIf('movPickYear', yearHtml);
             setIf('movPickHour', hourHtml);
             setIf('movPickMinute', minHtml);
 
-            // Gán vào Học Tập
             setIf('acaPickDay', dayHtml);
             setIf('acaPickMonth', monthHtml);
             setIf('acaPickYear', yearHtml);
             setIf('acaPickHour', hourHtml);
             setIf('acaPickMinute', minHtml);
 
-            // Gán vào Modal Xuất File Excel
             setIf('excelSelectWeekNum', weekHtml);
             setIf('excelSelectWeekYear', yearHtml);
             setIf('excelSelectMonth', monthHtml);
             setIf('excelSelectMonthYear', yearHtml);
         }
 
-        // ================= BIẾN WEB THÀNH APP (PWA MANIFEST & SERVICE WORKER) =================
         function setupPwaSupport() {
             try {
-                // Tạo Web App Manifest động
                 const manifestObj = {
                     name: "Cổng Thông Tin Quản Lý Học Sinh",
                     short_name: "Cổng Lớp",
@@ -1464,40 +1404,24 @@
                             src: "https://placehold.co/192x192/4f46e5/ffffff.png?text=LỚP",
                             sizes: "192x192",
                             type: "image/png"
-                        },
-                        {
-                            src: "https://placehold.co/512x512/4f46e5/ffffff.png?text=LỚP",
-                            sizes: "512x512",
-                            type: "image/png"
                         }
                     ]
                 };
 
-                const stringManifest = JSON.stringify(manifestObj);
-                const blob = new Blob([stringManifest], { type: 'application/json' });
-                const manifestURL = URL.createObjectURL(blob);
+                const blob = new Blob([JSON.stringify(manifestObj)], { type: 'application/json' });
                 const manifestLink = document.createElement('link');
                 manifestLink.rel = 'manifest';
-                manifestLink.href = manifestURL;
+                manifestLink.href = URL.createObjectURL(blob);
                 document.head.appendChild(manifestLink);
 
-                // Đăng ký Service Worker ngầm giúp ứng dụng có thể cài đặt được (Installable)
                 if ('serviceWorker' in navigator) {
-                    const swCode = `
-                        self.addEventListener('install', (e) => { self.skipWaiting(); });
-                        self.addEventListener('activate', (e) => { e.waitUntil(self.clients.claim()); });
-                        self.addEventListener('fetch', (e) => { return; });
-                    `;
-                    const swBlob = new Blob([swCode], { type: 'application/javascript' });
-                    const swUrl = URL.createObjectURL(swBlob);
-                    navigator.serviceWorker.register(swUrl).catch(() => {});
+                    const swBlob = new Blob([`self.addEventListener('fetch', ()=>{});`], { type: 'application/javascript' });
+                    navigator.serviceWorker.register(URL.createObjectURL(swBlob)).catch(() => {});
                 }
-            } catch (err) {
-                console.log("PWA init note:", err);
-            }
+            } catch (err) {}
         }
 
-        // ================= KHỞI TẠO =================
+        // ================= KHỞI TẠO HỆ THỐNG =================
         window.onload = function () {
             loadStorageData();
             updateRoleUI();
@@ -1513,7 +1437,6 @@
             renderViolationPresetsList();
             goHomeHub();
 
-            // Tự động kết nối và tải dữ liệu từ Google Sheet để đồng bộ tất cả các máy
             if (appsScriptUrl) {
                 fetchLatestDataFromSheet(false);
             } else {
@@ -1537,7 +1460,6 @@
             }
         }
 
-        // Tự động tải dữ liệu mới nhất từ Google Sheet khi vào trang
         async function fetchLatestDataFromSheet(showNotify = false) {
             if (!appsScriptUrl) return;
 
@@ -1558,7 +1480,6 @@
                     if (cloudData.academicTasks && cloudData.academicTasks.length > 0) academicTasks = cloudData.academicTasks;
                     if (cloudData.storageFolders && cloudData.storageFolders.length > 0) storageFolders = cloudData.storageFolders;
 
-                    // Lưu vào bộ nhớ đệm máy khách
                     localStorage.setItem("cct_admin_pass", adminPassword);
                     localStorage.setItem("cct_students", JSON.stringify(students));
                     localStorage.setItem("cct_movements", JSON.stringify(movements));
@@ -1583,7 +1504,6 @@
             }
         }
 
-        // Đẩy toàn bộ dữ liệu hiện tại lên Google Sheet
         async function pushDataToGoogleSheet(silent = false) {
             if (!appsScriptUrl) return;
 
@@ -1614,24 +1534,27 @@
             }
         }
 
-        // Nút đồng bộ thủ công trên Admin Bar
         async function syncDataWithGoogleSheet(isManual = true) {
             if (!appsScriptUrl) {
                 openAppsScriptModal();
-                showToast("Vui lòng dán Link Google Apps Script trước để kết nối Sheet!", "info");
+                showToast("Vui lòng kiểm tra Link Google Apps Script!", "info");
                 return;
             }
             await pushDataToGoogleSheet(false);
         }
 
-        // Tải dữ liệu từ LocalStorage khi khởi động
         function loadStorageData() {
             try {
                 const savedPass = localStorage.getItem("cct_admin_pass");
                 if (savedPass) adminPassword = savedPass;
 
                 const savedUrl = localStorage.getItem("cct_apps_script_url");
-                if (savedUrl) appsScriptUrl = savedUrl;
+                if (savedUrl) {
+                    appsScriptUrl = savedUrl;
+                } else {
+                    appsScriptUrl = DEFAULT_APPS_SCRIPT_URL;
+                    localStorage.setItem("cct_apps_script_url", appsScriptUrl);
+                }
 
                 const savedStudents = localStorage.getItem("cct_students");
                 students = savedStudents ? JSON.parse(savedStudents) : DEFAULT_STUDENTS_LIST;
@@ -1653,7 +1576,23 @@
             }
         }
 
-        // Khởi tạo giá trị các ô chọn thời gian theo ngày giờ hiện tại
+        function saveStorageData() {
+            try {
+                localStorage.setItem("cct_admin_pass", adminPassword);
+                localStorage.setItem("cct_apps_script_url", appsScriptUrl);
+                localStorage.setItem("cct_students", JSON.stringify(students));
+                localStorage.setItem("cct_movements", JSON.stringify(movements));
+                localStorage.setItem("cct_academics", JSON.stringify(academicTasks));
+                localStorage.setItem("cct_storage_folders", JSON.stringify(storageFolders));
+
+                if (currentUserRole === 'admin' && appsScriptUrl) {
+                    pushDataToGoogleSheet(true);
+                }
+            } catch (e) {
+                console.error("Lỗi lưu dữ liệu:", e);
+            }
+        }
+
         function initTimePickerInputs() {
             const pad = n => String(n).padStart(2, '0');
             const now = new Date();
@@ -1767,25 +1706,6 @@
             }
 
             showToast("Đã đồng bộ về thời điểm hiện tại!", "info");
-        }
-
-        // Sửa hàm saveStorageData để tự động đẩy lên Google Sheet khi Admin thay đổi dữ liệu
-        function saveStorageData() {
-            try {
-                localStorage.setItem("cct_admin_pass", adminPassword);
-                localStorage.setItem("cct_apps_script_url", appsScriptUrl);
-                localStorage.setItem("cct_students", JSON.stringify(students));
-                localStorage.setItem("cct_movements", JSON.stringify(movements));
-                localStorage.setItem("cct_academics", JSON.stringify(academicTasks));
-                localStorage.setItem("cct_storage_folders", JSON.stringify(storageFolders));
-
-                // Nếu đang là Admin và đã có URL, tự động lưu lên đám mây Google Sheet
-                if (currentUserRole === 'admin' && appsScriptUrl) {
-                    pushDataToGoogleSheet(true);
-                }
-            } catch (e) {
-                console.error("Lỗi lưu dữ liệu:", e);
-            }
         }
 
         // ================= QUẢN LÝ Ổ LƯU (ADMIN) =================
@@ -1906,11 +1826,7 @@
                 storageFolders.map(s => `<option value="${s.id}">${s.name}</option>`).join('');
         }
 
-        // Tự động đối chiếu ổ lưu khi học sinh chọn phong trào tại mục Báo Cáo
-        function handleMovementSelectionChange() {
-            // Đã ẩn hoàn toàn dòng hiển thị ổ lưu trên giao diện, 
-            // logic đối chiếu sẽ tự động thực hiện ngầm khi học sinh nhấn Nộp Báo Cáo
-        }
+        function handleMovementSelectionChange() {}
 
         // ================= CẤU HÌNH APPS SCRIPT URL =================
         function openAppsScriptModal() {
@@ -1924,7 +1840,7 @@
 
         function saveAppsScriptUrl() {
             const url = document.getElementById('appsScriptUrlInput').value.trim();
-            appsScriptUrl = url;
+            appsScriptUrl = url || DEFAULT_APPS_SCRIPT_URL;
             localStorage.setItem("cct_apps_script_url", appsScriptUrl);
             closeAppsScriptModal();
             showToast("Đã lưu Link Google Apps Script! Đang kết nối dữ liệu...", "success");
@@ -1997,8 +1913,9 @@
             renderAcademicTasks();
             renderStorageFolders();
         }
-        // ================= QUẢN LÝ XUẤT FILE EXCEL CHO ADMIN =================
-        let excelExportMode = "week"; // 'week', 'month', 'all'
+
+        // ================= XUẤT FILE EXCEL CHO ADMIN =================
+        let excelExportMode = "week";
 
         function openExportExcelModal() {
             const pad = n => String(n).padStart(2, '0');
@@ -2087,22 +2004,15 @@
                 filterChecker = () => true;
             }
 
-            // Chuẩn bị các dòng dữ liệu CSV
             const rows = [];
-            // Header báo cáo
             rows.push([`"BÁO CÁO TỔNG HỢP NỀ NẾP & PHONG TRÀO"`]);
             rows.push([`"Chu kỳ: ${periodTitle}"`]);
             rows.push([`"Thời gian xuất file: ${new Date().toLocaleString('vi-VN')}"`]);
             rows.push([]);
 
-            // Tiêu đề các cột
             const colHeaders = ["STT", "Họ và Tên"];
-            if (incViolations) {
-                colHeaders.push("Tổng Lỗi Trong Kỳ", "Chi Tiết Lỗi Vi Phạm (Buổi | Ngày | Tên lỗi | Ghi chú)");
-            }
-            if (incMovements) {
-                colHeaders.push("Số Phong Trào Tham Gia", "Danh Sách Phong Trào Đã Tham Gia");
-            }
+            if (incViolations) colHeaders.push("Tổng Lỗi Trong Kỳ", "Chi Tiết Lỗi Vi Phạm (Buổi | Ngày | Tên lỗi | Ghi chú)");
+            if (incMovements) colHeaders.push("Số Phong Trào Tham Gia", "Danh Sách Phong Trào Đã Tham Gia");
             rows.push(colHeaders.map(c => `"${c}"`));
 
             let exportedCount = 0;
@@ -2111,9 +2021,7 @@
                 const viosInPeriod = (s.violations || []).filter(v => filterChecker(v.date));
                 const joinedMovs = movements.filter(m => m.participantIds && m.participantIds.includes(s.id));
 
-                if (onlyViolated && viosInPeriod.length === 0) {
-                    return;
-                }
+                if (onlyViolated && viosInPeriod.length === 0) return;
 
                 exportedCount++;
                 const rowData = [s.stt, `"${s.name}"`];
@@ -2150,7 +2058,6 @@
                 return;
             }
 
-            // Tạo nội dung CSV kèm UTF-8 BOM (\uFEFF) giúp Excel tự nhận diện font tiếng Việt có dấu
             const csvContent = "\uFEFF" + rows.map(r => r.join(",")).join("\r\n");
             const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
             const link = document.createElement("a");
@@ -2249,7 +2156,6 @@
             return movements.filter(m => m.participantIds && m.participantIds.includes(studentId)).length;
         }
 
-        // Cập nhật các thẻ số liệu thống kê tổng hợp của Theo Dõi Vi Phạm
         function updateViolationStatsSummary() {
             let totalViolations = 0;
             const violatedStudentIds = new Set();
@@ -2267,7 +2173,6 @@
                 }
             });
 
-            // Tìm lỗi vi phạm xuất hiện nhiều nhất
             let topViolationTitle = "Không có";
             let maxCount = 0;
             for (const [title, count] of Object.entries(violationCounts)) {
@@ -2289,13 +2194,11 @@
             }
         }
 
-        // Render toàn bộ học sinh vi phạm gom vào bên trong mục Theo Dõi Vi Phạm
         function renderTrackingViolatedStudents() {
             const container = document.getElementById('trackingViolatedStudentsList');
             const badge = document.getElementById('trackingViolatedStudentsBadge');
             if (!container) return;
 
-            // Lọc ra các học sinh có vi phạm trong mốc thời gian đang chọn
             const violatedStudents = [];
             students.forEach(s => {
                 const viosInPeriod = (s.violations || []).filter(v => isDateInViolationFilter(v.date, currentViolationTimeFilter));
@@ -2339,7 +2242,6 @@
                         </button>
                     </div>
 
-                    <!-- Danh sách các lỗi của bạn này trong chu kỳ -->
                     <div class="space-y-1 pt-1 border-t border-slate-100">
                         ${activeViolations.map(v => `
                             <div class="flex items-center justify-between text-[11px] text-slate-600 bg-rose-50/50 px-2 py-1 rounded-lg">
@@ -2358,28 +2260,15 @@
             `).join('');
         }
 
-        // Kiểm tra xem ngày của vi phạm có nằm trong chu kỳ đang lọc hay không
         function isDateInViolationFilter(dateStr, filter) {
             if (!dateStr || filter === 'all') return true;
             const targetDate = new Date(dateStr);
             if (isNaN(targetDate.getTime())) return true;
 
-            if (filter === 'day') {
-                return dateStr === selectedFilterDate;
-            }
-
-            if (filter === 'week') {
-                return getISOWeekString(targetDate) === selectedFilterWeek;
-            }
-
-            if (filter === 'month') {
-                const targetMonth = dateStr.slice(0, 7);
-                return targetMonth === selectedFilterMonth;
-            }
-
-            if (filter === 'year') {
-                return targetDate.getFullYear() === Number(selectedFilterYear);
-            }
+            if (filter === 'day') return dateStr === selectedFilterDate;
+            if (filter === 'week') return getISOWeekString(targetDate) === selectedFilterWeek;
+            if (filter === 'month') return dateStr.slice(0, 7) === selectedFilterMonth;
+            if (filter === 'year') return targetDate.getFullYear() === Number(selectedFilterYear);
 
             return true;
         }
@@ -2387,7 +2276,6 @@
         function setViolationTimeFilter(filterType) {
             currentViolationTimeFilter = filterType;
 
-            // Mỗi lần chuyển tab Ngày / Tuần / Tháng / Năm, tự động reset về thời điểm hiện tại của máy
             const now = new Date();
             selectedFilterDate = getLocalISODate(now);
             selectedFilterWeek = getISOWeekString(now);
@@ -2406,7 +2294,6 @@
                 }
             });
 
-            // Hiển thị / Ẩn hộp chọn thời gian chi tiết
             const customPickerWrapper = document.getElementById('customTimePickerWrapper');
             const pickerDay = document.getElementById('pickerContainer-day');
             const pickerWeek = document.getElementById('pickerContainer-week');
@@ -2414,22 +2301,13 @@
             const pickerYear = document.getElementById('pickerContainer-year');
             const pickerLabel = document.getElementById('customPickerLabel');
 
-            if (customPickerWrapper) {
-                if (filterType === 'all') {
-                    customPickerWrapper.classList.add('hidden');
-                } else {
-                    customPickerWrapper.classList.remove('hidden');
-                }
-            }
-
+            if (customPickerWrapper) customPickerWrapper.classList.toggle('hidden', filterType === 'all');
             if (pickerDay) pickerDay.classList.toggle('hidden', filterType !== 'day');
             if (pickerWeek) pickerWeek.classList.toggle('hidden', filterType !== 'week');
             if (pickerMonth) pickerMonth.classList.toggle('hidden', filterType !== 'month');
             if (pickerYear) pickerYear.classList.toggle('hidden', filterType !== 'year');
 
-            if (filterType === 'week') {
-                handleCompositeWeekChange();
-            }
+            if (filterType === 'week') handleCompositeWeekChange();
 
             if (pickerLabel) {
                 const labels = {
@@ -2461,12 +2339,9 @@
             }
 
             renderStudentsList();
-            if (isTrackingViolationsOpen) {
-                renderTrackingViolatedStudents();
-            }
+            if (isTrackingViolationsOpen) renderTrackingViolatedStudents();
         }
 
-        // ================= DANH SÁCH HỌC SINH & VI PHẠM =================
         function renderStudentsList() {
             const container = document.getElementById('studentsCardsContainer');
             if (!container) return;
@@ -2486,12 +2361,10 @@
             }
 
             container.innerHTML = filteredStudents.map(student => {
-                // Đếm lỗi vi phạm theo mốc thời gian đang lọc
                 const activeVios = (student.violations || []).filter(v => isDateInViolationFilter(v.date, currentViolationTimeFilter));
                 const totalVioAllTime = (student.violations || []).length;
                 const joinedMovsCount = getStudentJoinedMovementsCount(student.id);
 
-                // Huy hiệu Vi phạm tô màu nổi bật (Gộp hiển thị vi phạm, bỏ dòng chữ tổng lỗi bên dưới tên)
                 let vioBadge = "";
                 if (totalVioAllTime === 0) {
                     vioBadge = `
@@ -2501,7 +2374,6 @@
                         </div>
                     `;
                 } else {
-                    // Nếu đang lọc theo mốc thời gian (Ngày/Tuần/Tháng/Năm) thì hiển thị số lỗi trong kỳ kèm tổng lỗi
                     let vioLabel = `${totalVioAllTime} Vi phạm`;
                     if (currentViolationTimeFilter !== 'all') {
                         vioLabel = `${activeVios.length}/${totalVioAllTime} Vi phạm`;
@@ -2514,7 +2386,6 @@
                     `;
                 }
 
-                // Huy hiệu Phong trào tô màu tím / indigo nổi bật
                 const movementBadge = `
                     <div class="px-3 py-1.5 rounded-2xl bg-gradient-to-r from-purple-600 to-indigo-600 text-white shadow-md shadow-purple-600/25 border border-purple-300 flex items-center gap-1.5">
                         <i class="fa-solid fa-award text-yellow-300 text-xs"></i>
@@ -2524,7 +2395,6 @@
 
                 return `
                     <div class="light-card p-4 sm:p-4.5 rounded-2xl border border-slate-200/90 hover:border-indigo-300 flex flex-col md:flex-row md:items-center justify-between gap-3.5 transition-all duration-200 shadow-sm">
-                        <!-- Họ và Tên học sinh (Gọn gàng, đã bỏ dòng tổng lỗi bên dưới) -->
                         <div class="flex items-center gap-3 overflow-hidden">
                             <div class="w-9 h-9 rounded-2xl bg-slate-100 border border-slate-200 text-indigo-600 flex items-center justify-center text-sm flex-shrink-0">
                                 <i class="fa-solid fa-user-graduate"></i>
@@ -2534,7 +2404,6 @@
                             </div>
                         </div>
 
-                        <!-- 2 Huy hiệu Phong Trào & Vi Phạm gộp chung cực kỳ nổi bật + Nút thao tác -->
                         <div class="flex items-center gap-2 flex-wrap sm:flex-nowrap justify-between sm:justify-end">
                             <div class="flex items-center gap-2">
                                 ${movementBadge}
@@ -2563,17 +2432,15 @@
             updateViolationStatsSummary();
         }
 
-        // ================= MODAL CHI TIẾT HỌC SINH (2 CỘT) =================
+        // ================= MODAL CHI TIẾT HỌC SINH =================
         function openStudentDetailModal(studentId) {
             currentDetailStudentId = studentId;
             const student = students.find(s => s.id === studentId);
             if (!student) return;
 
             document.getElementById('detailStudentName').innerText = student.name;
-
             renderStudentDetailViolations(student);
             renderStudentDetailMovements(student);
-
             document.getElementById('studentDetailModal').classList.remove('hidden');
         }
 
@@ -2767,9 +2634,7 @@
             saveStorageData();
             closeRecordViolationModal();
             renderStudentsList();
-            if (isTrackingViolationsOpen) {
-                renderTrackingViolatedStudents();
-            }
+            if (isTrackingViolationsOpen) renderTrackingViolatedStudents();
             showToast(`Đã ghi lỗi cho học sinh ${student.name}`, "success");
         }
 
@@ -2781,9 +2646,7 @@
             saveStorageData();
             renderStudentDetailViolations(student);
             renderStudentsList();
-            if (isTrackingViolationsOpen) {
-                renderTrackingViolatedStudents();
-            }
+            if (isTrackingViolationsOpen) renderTrackingViolatedStudents();
             showToast("Đã xóa vi phạm", "info");
         }
 
@@ -2795,14 +2658,12 @@
             return deadline < now;
         }
 
-        // Kiểm tra xem phong trào có đang trong trạng thái khẩn cấp (còn dưới 24 giờ / 1 ngày) hay không
         function getMovementUrgentStatus(deadlineStr) {
             if (!deadlineStr) return { isUrgent: false, hoursLeft: 0, label: "" };
             const deadline = new Date(deadlineStr);
             const now = new Date();
             const diffMs = deadline - now;
             
-            // Nếu đã hết hạn hoặc không có hạn
             if (diffMs <= 0) return { isUrgent: false, hoursLeft: 0, label: "" };
 
             const oneDayMs = 24 * 60 * 60 * 1000;
@@ -2837,7 +2698,6 @@
                 }
             });
 
-            // Sắp xếp: Càng sắp hết hạn xếp lên đầu, vô thời hạn xếp sau
             activeList.sort((a, b) => {
                 if (!a.deadline && !b.deadline) return 0;
                 if (!a.deadline) return 1;
@@ -2863,7 +2723,6 @@
             try {
                 const d = new Date(deadlineStr);
                 if (isNaN(d.getTime())) return "Vô thời hạn";
-                // Nếu chỉ có ngày (YYYY-MM-DD)
                 if (deadlineStr.length <= 10) {
                     return `Hạn: ${d.toLocaleDateString('vi-VN')}`;
                 }
@@ -2881,7 +2740,6 @@
             const urgentInfo = !isExpired ? getMovementUrgentStatus(m.deadline) : { isUrgent: false };
 
             if (isExpired) {
-                // Giao diện phong trào ĐÃ HẾT HẠN: Làm tối màu lại (Dark tone), tương phản cao, vẫn cho học sinh làm & mở link
                 return `
                     <div class="p-4 sm:p-5 rounded-2xl border border-slate-700 bg-slate-900/95 text-slate-100 flex flex-col gap-3 shadow-lg transition">
                         <div class="flex flex-col sm:flex-row sm:items-start justify-between gap-3">
@@ -2948,12 +2806,9 @@
                 `;
             }
 
-            // Giao diện phong trào ĐANG DIỄN RA
             if (urgentInfo.isUrgent) {
-                // GIAO DIỆN KHẨN CẤP (CÒN DƯỚI 1 NGÀY): Viền phát sáng nhấp nháy đỏ-cam, nền cảnh báo, huy hiệu GẤP
                 return `
                     <div class="urgent-card-glow p-4 sm:p-5 rounded-2xl border-2 border-rose-500 bg-gradient-to-r from-rose-50 via-amber-50/70 to-white flex flex-col gap-3 transition relative overflow-hidden">
-                        <!-- Ruy băng cảnh báo khẩn cấp góc trên -->
                         <div class="absolute -top-1 -right-1">
                             <span class="flex h-3 w-3">
                                 <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-rose-400 opacity-75"></span>
@@ -2964,14 +2819,12 @@
                         <div class="flex flex-col sm:flex-row sm:items-start justify-between gap-3">
                             <div class="space-y-2 flex-1">
                                 <div class="flex flex-col sm:flex-row sm:items-center gap-2 flex-wrap">
-                                    <!-- Tên phong trào nổi bật kèm icon còi cảnh báo -->
                                     <h4 class="text-base sm:text-lg font-black text-rose-950 tracking-tight leading-snug flex items-center gap-2">
                                         <i class="fa-solid fa-bell text-rose-600 animate-bounce"></i>
                                         <span>${m.title}</span>
                                     </h4>
                                     
                                     <div class="flex items-center gap-1.5 flex-wrap">
-                                        <!-- Huy hiệu đếm ngược khẩn cấp nhấp nháy -->
                                         <span class="urgent-badge-pulse px-3 py-1 rounded-xl text-xs font-black bg-gradient-to-r from-rose-600 to-red-600 text-white shadow-md shadow-rose-600/30 flex items-center gap-1.5 border border-rose-300">
                                             <i class="fa-solid fa-fire-flame-curved text-amber-300 animate-pulse"></i>
                                             <span>${urgentInfo.label}</span>
@@ -3035,13 +2888,11 @@
                 `;
             }
 
-            // Giao diện phong trào bình thường (chưa gấp)
             return `
                 <div class="light-card p-4 sm:p-5 rounded-2xl border border-purple-200 bg-white hover:border-purple-300 flex flex-col gap-3 shadow-sm transition">
                     <div class="flex flex-col sm:flex-row sm:items-start justify-between gap-3">
                         <div class="space-y-2 flex-1">
                             <div class="flex flex-col sm:flex-row sm:items-center gap-2 flex-wrap">
-                                <!-- Tên phong trào làm nổi bật to rõ, dày nét -->
                                 <h4 class="text-base sm:text-lg font-black text-slate-900 tracking-tight leading-snug">${m.title}</h4>
                                 
                                 <div class="flex items-center gap-1.5 flex-wrap">
@@ -3103,7 +2954,6 @@
             `;
         }
 
-        // Sao chép danh sách học sinh chưa tham gia phong trào (Admin)
         function copyNotJoinedStudents(movementId) {
             const m = movements.find(item => item.id === movementId);
             if (!m) return;
@@ -3120,7 +2970,6 @@
             const listText = notJoinedStudents.map(s => `${s.stt}. ${s.name}`).join('\n');
             const fullText = header + listText;
 
-            // Sử dụng textarea kết hợp execCommand copy để đảm bảo tương thích mọi môi trường iframe/web
             const dummyTextArea = document.createElement('textarea');
             dummyTextArea.value = fullText;
             dummyTextArea.setAttribute('readonly', '');
@@ -3134,7 +2983,6 @@
             showToast(`Đã sao chép danh sách ${notJoinedStudents.length} bạn chưa tham gia!`, "success");
         }
 
-        // Xem / Quản lý danh sách học sinh tham gia phong trào (Admin có thể Thêm/Bớt)
         function openMovementDetailModal(movementId) {
             currentDetailMovementId = movementId;
             const m = movements.find(item => item.id === movementId);
@@ -3218,16 +3066,12 @@
             renderStudentsList();
         }
 
-        // ================= TIỆN ÍCH CHỌN THỜI GIAN CHO PHONG TRÀO & HỌC TẬP =================
         function toggleMovDeadlineInputs() {
             const isNoLimit = document.getElementById('movNoDeadlineCheckbox').checked;
             const group = document.getElementById('movDeadlinePickersGroup');
             if (group) {
-                if (isNoLimit) {
-                    group.classList.add('opacity-40', 'pointer-events-none');
-                } else {
-                    group.classList.remove('opacity-40', 'pointer-events-none');
-                }
+                group.classList.toggle('opacity-40', isNoLimit);
+                group.classList.toggle('pointer-events-none', isNoLimit);
             }
         }
 
@@ -3239,7 +3083,6 @@
             setVal('movPickMonth', pad(d.getMonth() + 1));
             setVal('movPickYear', String(d.getFullYear()));
             setVal('movPickHour', pad(d.getHours()));
-            // Gần mốc 5 phút
             const m = Math.round(d.getMinutes() / 5) * 5;
             setVal('movPickMinute', pad(m >= 60 ? 55 : m));
         }
@@ -3296,6 +3139,8 @@
         }
 
         function getAcaSelectedDeadlineString() {
+            const isNoLimit = document.getElementById('acaNoDeadlineCheckbox').checked;
+            if (isNoLimit) return "";
             const day = document.getElementById('acaPickDay').value;
             const month = document.getElementById('acaPickMonth').value;
             const year = document.getElementById('acaPickYear').value;
@@ -3304,7 +3149,6 @@
             return `${year}-${month}-${day}T${hour}:${minute}`;
         }
 
-        // Tạo / Sửa phong trào mới (kèm storageId)
         function openCreateMovementModal() {
             document.getElementById('editMovementId').value = '';
             document.getElementById('movModalTitle').innerHTML = '<i class="fa-solid fa-award text-purple-600"></i><span>Tạo Phong Trào Mới</span>';
@@ -3313,7 +3157,6 @@
             document.getElementById('newMovDescInput').value = '';
             document.getElementById('newMovUrlInput').value = '';
             
-            // Mặc định thời gian hiện tại
             document.getElementById('movNoDeadlineCheckbox').checked = false;
             toggleMovDeadlineInputs();
             setMovDeadlinePickers(new Date());
@@ -3390,6 +3233,7 @@
             saveStorageData();
             closeCreateMovementModal();
             renderMovementsCards();
+            populateReportMovementsDropdown();
         }
 
         function deleteMovement(movementId) {
@@ -3468,53 +3312,9 @@
             const isNoLimit = document.getElementById('acaNoDeadlineCheckbox').checked;
             const group = document.getElementById('acaDeadlinePickersGroup');
             if (group) {
-                if (isNoLimit) {
-                    group.classList.add('opacity-40', 'pointer-events-none');
-                } else {
-                    group.classList.remove('opacity-40', 'pointer-events-none');
-                }
+                group.classList.toggle('opacity-40', isNoLimit);
+                group.classList.toggle('pointer-events-none', isNoLimit);
             }
-        }
-
-        function setAcaDeadlinePickers(dateObj) {
-            const pad = n => String(n).padStart(2, '0');
-            const d = dateObj || new Date();
-            const setVal = (id, val) => { const el = document.getElementById(id); if (el) el.value = val; };
-            setVal('acaPickDay', pad(d.getDate()));
-            setVal('acaPickMonth', pad(d.getMonth() + 1));
-            setVal('acaPickYear', String(d.getFullYear()));
-            setVal('acaPickHour', pad(d.getHours()));
-            const m = Math.round(d.getMinutes() / 5) * 5;
-            setVal('acaPickMinute', pad(m >= 60 ? 55 : m));
-        }
-
-        function setQuickAcaDeadline(type) {
-            document.getElementById('acaNoDeadlineCheckbox').checked = false;
-            toggleAcaDeadlineInputs();
-            const d = new Date();
-            if (type === 'todayEnd') {
-                d.setHours(23, 59, 0, 0);
-                setAcaDeadlinePickers(d);
-                document.getElementById('acaPickHour').value = "23";
-                document.getElementById('acaPickMinute').value = "59";
-            } else if (type === 'plus3Days') {
-                d.setDate(d.getDate() + 3);
-                d.setHours(22, 0, 0, 0);
-                setAcaDeadlinePickers(d);
-                document.getElementById('acaPickHour').value = "22";
-                document.getElementById('acaPickMinute').value = "00";
-            }
-        }
-
-        function getAcaSelectedDeadlineString() {
-            const isNoLimit = document.getElementById('acaNoDeadlineCheckbox').checked;
-            if (isNoLimit) return "";
-            const day = document.getElementById('acaPickDay').value;
-            const month = document.getElementById('acaPickMonth').value;
-            const year = document.getElementById('acaPickYear').value;
-            const hour = document.getElementById('acaPickHour').value;
-            const minute = document.getElementById('acaPickMinute').value;
-            return `${year}-${month}-${day}T${hour}:${minute}`;
         }
 
         function openCreateAcademicModal() {
@@ -3525,7 +3325,6 @@
             document.getElementById('newAcaUrlInput').value = '';
             document.getElementById('newAcaNoteInput').value = '';
             
-            // Mặc định không tích vô thời hạn, lấy thời điểm hiện tại của máy
             document.getElementById('acaNoDeadlineCheckbox').checked = false;
             toggleAcaDeadlineInputs();
             setAcaDeadlinePickers(new Date());
@@ -3618,7 +3417,6 @@
             }
         }
 
-        // Đóng dropdown khi bấm ra ngoài
         document.addEventListener('click', function (e) {
             const pickerBtn = document.getElementById('customMovementPickerBtn');
             const menu = document.getElementById('customMovementDropdownMenu');
@@ -3641,7 +3439,6 @@
             }
 
             let html = "";
-
             movements.forEach(m => {
                 const isSelected = currentVal === m.id;
                 const deadlineText = formatMovementDeadline(m.deadline);
@@ -3672,9 +3469,7 @@
             labelEl.className = "font-bold truncate text-slate-800";
             
             const icon = document.getElementById('customMovementPickerIcon');
-            if (icon) {
-                icon.className = "fa-solid fa-award text-purple-600";
-            }
+            if (icon) icon.className = "fa-solid fa-award text-purple-600";
 
             const menu = document.getElementById('customMovementDropdownMenu');
             if (menu) menu.classList.add('hidden');
@@ -3806,7 +3601,6 @@
             };
 
             reader.onload = function (e) {
-                // Nhận nguyên vẹn dữ liệu Base64 của mọi loại tệp mà không can thiệp nén
                 currentReportImageBase64 = e.target.result;
 
                 const fileKb = Math.round(file.size / 1024);
@@ -3816,7 +3610,6 @@
 
                 if (previewContainer) previewContainer.classList.remove('hidden');
 
-                // Nếu là file ảnh thông thường thì hiển thị ảnh xem trước
                 if (file.type && file.type.startsWith('image/') && !file.name.toLowerCase().endsWith('.heic')) {
                     if (previewImg) {
                         previewImg.src = currentReportImageBase64;
@@ -3824,7 +3617,6 @@
                     }
                     if (genericPreview) genericPreview.classList.add('hidden');
                 } else {
-                    // Đối với iPhone HEIC hoặc các tệp khác, hiển thị thẻ file trực quan
                     if (previewImg) previewImg.classList.add('hidden');
                     if (genericPreview) {
                         genericPreview.classList.remove('hidden');
@@ -3858,7 +3650,6 @@
         async function handleReportSubmit(e) {
             e.preventDefault();
 
-            // Chống tình trạng click dồn dập (Double Submit)
             if (isSubmittingReport) {
                 showToast("Báo cáo đang được xử lý, vui lòng chờ trong giây lát...", "info");
                 return;
@@ -3881,7 +3672,6 @@
                 return;
             }
 
-            // Kiểm tra xung đột: Phong trào có bị Admin xóa trong lúc mở form không?
             let chosenMovement = movements.find(m => m.id === movementId);
             if (!chosenMovement) {
                 showToast("Phong trào này không còn tồn tại hoặc đã bị xóa. Vui lòng chọn lại!", "error");
@@ -3891,8 +3681,6 @@
                 if (pLabel) pLabel.innerText = "-- Chọn phong trào cần nộp ảnh --";
                 return;
             }
-
-            // Vẫn cho phép học sinh nộp bài dù phong trào đã hết hạn (cho phép nộp muộn)
 
             let student = null;
             if (matchedId) {
@@ -3921,14 +3709,11 @@
             const submitBtnText = document.getElementById('submitReportBtnText');
             const submitIcon = document.getElementById('submitReportIcon');
 
-            // BẬT TRẠNG THÁI KHÓA FORM
             isSubmittingReport = true;
             submitBtn.disabled = true;
             submitBtn.classList.add('opacity-75', 'cursor-not-allowed');
             submitBtnText.innerText = "Đang gửi dữ liệu...";
             submitIcon.className = "fa-solid fa-spinner fa-spin";
-
-            let isSentToScript = false;
 
             if (appsScriptUrl) {
                 try {
@@ -3954,26 +3739,21 @@
                         headers: { "Content-Type": "application/json" },
                         body: JSON.stringify(payload)
                     });
-
-                    isSentToScript = true;
                 } catch (err) {
                     console.warn("Lỗi gửi dữ liệu tới Google Apps Script:", err);
                 }
             }
 
-            // Lưu trữ dữ liệu an toàn
             saveStorageData();
             renderMovementsCards();
             renderStudentsList();
 
-            // MỞ LẠI TRẠNG THÁI NÚT NỘP
             isSubmittingReport = false;
             submitBtn.disabled = false;
             submitBtn.classList.remove('opacity-75', 'cursor-not-allowed');
             submitBtnText.innerText = "Nộp Báo Cáo Ngay";
             submitIcon.className = "fa-solid fa-paper-plane";
 
-            // Reset form sau khi gửi thành công
             document.getElementById('reportSenderInput').value = '';
             document.getElementById('botMatchedStudentId').value = '';
             document.getElementById('reportMovementSelect').value = '';
