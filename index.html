@@ -1407,7 +1407,7 @@
 
         function populateStorageDropdowns() {
             const select = document.getElementById('newMovStorageSelect'); if (!select) return;
-            select.innerHTML = `<option value="">-- Mặc định --</option>` + storageFolders.map(s => `<option value="${s.id}">${s.name}</option>`).join('');
+            select.innerHTML = `<option value="">-- Để trống (Không nhận ảnh) --</option>` + storageFolders.map(s => `<option value="${s.id}">${s.name}</option>`).join('');
         }
 
         function openAppsScriptModal() { document.getElementById('appsScriptUrlInput').value = appsScriptUrl || ''; document.getElementById('appsScriptModal').classList.remove('hidden'); }
@@ -1978,8 +1978,9 @@
         function populateReportMovementsDropdown() {
             const menu = document.getElementById('customMovementDropdownMenu'); if (!menu) return;
             const currentVal = document.getElementById('reportMovementSelect')?.value || "";
-            const validMovements = movements.filter(m => !isMovementExpired(m.deadline));
-            if (validMovements.length === 0) { menu.innerHTML = `<div class="p-3 text-xs text-slate-400 italic text-center">Chưa có phong trào nào.</div>`; return; }
+            // Chỉ hiển thị phong trào chưa hết hạn VÀ bắt buộc phải có gắn Kho nộp ảnh (storageId)
+            const validMovements = movements.filter(m => !isMovementExpired(m.deadline) && m.storageId && m.storageId.trim() !== "");
+            if (validMovements.length === 0) { menu.innerHTML = `<div class="p-3 text-xs text-slate-400 italic text-center">Chưa có phong trào nào yêu cầu nộp ảnh.</div>`; return; }
             
             if (currentVal && !validMovements.find(m => m.id === currentVal)) {
                 document.getElementById('reportMovementSelect').value = '';
