@@ -1209,7 +1209,7 @@
                 url: "https://docs.google.com/forms",
                 storageId: "store_01",
                 deadline: "2026-11-20",
-                participantIds: ["hs_01", "hs_04", "hs_07", "hs_14"]
+                participantIds: []
             },
             {
                 id: "mov_02",
@@ -1218,7 +1218,7 @@
                 url: "",
                 storageId: "store_01",
                 deadline: "",
-                participantIds: ["hs_02", "hs_08", "hs_13"]
+                participantIds: []
             }
         ];
 
@@ -3406,14 +3406,37 @@
 
             const currentVal = document.getElementById('reportMovementSelect')?.value || "";
 
-            if (movements.length === 0) {
-                menu.innerHTML = `<div class="p-3 text-xs text-slate-400 italic text-center">Chưa có phong trào nào để chọn.</div>`;
+            // Chỉ lọc lấy các phong trào CHƯA hết hạn (đang diễn ra hoặc vô thời hạn)
+            const activeMovements = movements.filter(m => !isMovementExpired(m.deadline));
+
+            if (activeMovements.length === 0) {
+                menu.innerHTML = `<div class="p-3 text-xs text-slate-400 italic text-center">Hiện không có phong trào nào đang diễn ra để nộp ảnh.</div>`;
+                if (currentVal) {
+                    document.getElementById('reportMovementSelect').value = '';
+                    const labelEl = document.getElementById('customMovementPickerLabel');
+                    if (labelEl) {
+                        labelEl.innerText = "-- Chọn phong trào cần nộp ảnh --";
+                        labelEl.className = "font-medium truncate text-slate-500";
+                    }
+                }
                 return;
+            }
+
+            // Nếu phong trào đang được chọn trước đó đã hết hạn thì reset lại ô chọn
+            if (currentVal && !activeMovements.some(m => m.id === currentVal)) {
+                document.getElementById('reportMovementSelect').value = '';
+                const labelEl = document.getElementById('customMovementPickerLabel');
+                if (labelEl) {
+                    labelEl.innerText = "-- Chọn phong trào cần nộp ảnh --";
+                    labelEl.className = "font-medium truncate text-slate-500";
+                }
+                const icon = document.getElementById('customMovementPickerIcon');
+                if (icon) icon.className = "fa-solid fa-award text-slate-400";
             }
 
             let html = "";
 
-            movements.forEach(m => {
+            activeMovements.forEach(m => {
                 const isSelected = currentVal === m.id;
                 const deadlineText = formatMovementDeadline(m.deadline);
                 html += `
@@ -3650,6 +3673,13 @@
                 return;
             }
 
+            // Chặn nộp ảnh nếu phong trào đã hết hạn
+            if (isMovementExpired(chosenMovement.deadline)) {
+                showToast("Phong trào này đã hết hạn nhận ảnh minh chứng!", "error");
+                populateReportMovementsDropdown();
+                return;
+            }
+
             let student = null;
             if (matchedId) {
                 student = students.find(s => s.id === matchedId);
@@ -3665,11 +3695,12 @@
                 matchedStorage = storageFolders.find(s => s.id === chosenMovement.storageId);
             }
 
-            if (student) {
+            // CHỈ GHI NHẬN HỌC SINH VÀO ĐÚNG DUY NHẤT PHONG TRÀO ĐƯỢC CHỌN VÀ CHƯA HẾT HẠN
+            if (student && !isMovementExpired(chosenMovement.deadline)) {
                 if (!chosenMovement.participantIds) chosenMovement.participantIds = [];
                 if (!chosenMovement.participantIds.includes(student.id)) {
                     chosenMovement.participantIds.push(student.id);
-                    botMsg = `Bot đã tự động ghi nhận bạn ${student.name} vào phong trào!`;
+                    botMsg = `Bot đã ghi nhận bạn ${student.name} vào riêng phong trào "${chosenMovement.title}"!`;
                 }
             }
 
