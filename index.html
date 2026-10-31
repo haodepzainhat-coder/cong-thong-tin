@@ -139,11 +139,6 @@
                     <i class="fa-solid fa-code text-emerald-600"></i>
                     <span>Link Apps Script</span>
                 </button>
-                <button onclick="openChangePasswordModal()" 
-                    class="px-3.5 py-1.5 rounded-xl bg-white hover:bg-slate-50 text-amber-800 text-xs font-semibold border border-amber-200 flex items-center gap-1.5 shadow-sm transition">
-                    <i class="fa-solid fa-key text-amber-600"></i>
-                    <span>Đổi Mật Khẩu</span>
-                </button>
             </div>
         </div>
     </div>
@@ -211,7 +206,7 @@
                         <i class="fa-solid fa-cloud-arrow-up"></i>
                     </div>
                     <h3 class="text-xl sm:text-2xl font-black text-slate-900 group-hover:text-emerald-600 transition tracking-tight">Báo Cáo Minh Chứng</h3>
-                    <p class="text-xs sm:text-sm text-slate-600 font-bold mt-2 leading-relaxed">Nộp ảnh minh chứng từ điện thoại/máy tính với Bot tự động nhận diện tên học sinh và đối chiếu ổ lưu.</p>
+                    <p class="text-xs sm:text-sm text-slate-600 font-bold mt-2 leading-relaxed">Nộp ảnh minh chứng trực tiếp từ Thư viện ảnh / Camera với Bot tự động nhận diện tên học sinh.</p>
                     <div class="mt-6 flex items-center text-xs sm:text-sm font-black text-emerald-600 gap-2">
                         <span>Nộp ảnh minh chứng</span>
                         <i class="fa-solid fa-arrow-right text-xs group-hover:translate-x-2 transition duration-300"></i>
@@ -233,7 +228,7 @@
                 </div>
             </div>
 
-            <!-- Mục Riêng: Nút Mở "Theo Dõi Vi Phạm" -->
+            <!-- Nút Mở "Theo Dõi Vi Phạm" -->
             <div onclick="toggleTrackingViolationsSection()" 
                 class="light-card p-4 rounded-2xl border border-rose-200 bg-gradient-to-r from-rose-50/70 via-white to-pink-50/60 hover:border-rose-400 hover:shadow-md cursor-pointer transition flex items-center justify-between gap-3 group">
                 <div class="flex items-center gap-3">
@@ -261,7 +256,6 @@
                         <span>Chi Tiết Theo Dõi Vi Phạm</span>
                     </div>
 
-                    <!-- Thanh chọn chu kỳ thống kê -->
                     <div class="flex items-center p-1 rounded-2xl bg-white border border-rose-200 shadow-sm text-xs font-black overflow-x-auto custom-scrollbar">
                         <button onclick="setViolationTimeFilter('all')" id="vFilterBtn-all" 
                             class="px-2.5 py-1.5 rounded-xl transition whitespace-nowrap bg-rose-600 text-white shadow-sm">
@@ -286,7 +280,7 @@
                     </div>
                 </div>
 
-                <!-- BỘ CHỌN THỜI GIAN CỤ THỂ -->
+                <!-- BỘ CHỌN THỜI GIAN -->
                 <div id="customTimePickerWrapper" class="hidden p-2.5 rounded-2xl bg-white border border-rose-200 shadow-sm flex flex-wrap items-center justify-between gap-2.5">
                     <div class="flex items-center gap-2 text-xs font-black text-rose-800">
                         <i class="fa-solid fa-clock-rotate-left text-rose-600"></i>
@@ -340,7 +334,7 @@
                     </div>
                 </div>
 
-                <!-- Thẻ số liệu thống kê nhanh -->
+                <!-- Thẻ thống kê số liệu -->
                 <div class="grid grid-cols-2 sm:grid-cols-3 gap-2.5">
                     <div class="p-3 rounded-2xl bg-white border border-rose-100 shadow-sm flex items-center gap-3">
                         <div class="w-9 h-9 rounded-xl bg-rose-100 text-rose-600 flex items-center justify-center text-sm flex-shrink-0">
@@ -373,7 +367,7 @@
                     </div>
                 </div>
 
-                <!-- DANH SÁCH GOM TOÀN BỘ HỌC SINH VI PHẠM TRONG CHU KỲ -->
+                <!-- DANH SÁCH GOM HỌC SINH VI PHẠM -->
                 <div class="pt-2 space-y-2 border-t border-rose-200/70">
                     <div class="flex items-center justify-between">
                         <h5 class="text-xs font-black text-rose-800 uppercase tracking-wider flex items-center gap-1.5">
@@ -386,7 +380,6 @@
                     <div id="trackingViolatedStudentsList" class="space-y-2 max-h-80 overflow-y-auto custom-scrollbar pr-1"></div>
                 </div>
 
-                <!-- Nút Đóng Cuối Khung & Nút Xuất Excel nhanh cho Admin -->
                 <div class="flex items-center justify-between text-[11px] text-slate-500 font-bold pt-1 border-t border-rose-200/50">
                     <div id="adminQuickExportExcelBtn" class="hidden">
                         <button onclick="openExportExcelModal()" class="px-3 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-black text-xs shadow-sm transition flex items-center gap-1.5">
@@ -407,7 +400,7 @@
                     class="w-full bg-transparent text-xs sm:text-sm text-slate-800 font-bold placeholder-slate-400 focus:outline-none">
             </div>
 
-            <!-- Danh sách học sinh dạng Card riêng biệt -->
+            <!-- Danh sách học sinh -->
             <div id="studentsCardsContainer" class="space-y-2.5"></div>
         </section>
 
@@ -432,7 +425,6 @@
                 </div>
             </div>
 
-            <!-- Danh sách phong trào đang diễn ra -->
             <div class="space-y-3">
                 <h4 class="text-xs font-black uppercase tracking-wider text-slate-700 flex items-center gap-2">
                     <i class="fa-solid fa-fire text-amber-500"></i>
@@ -441,7 +433,6 @@
                 <div id="activeMovementsContainer" class="space-y-3"></div>
             </div>
 
-            <!-- Danh sách phong trào đã hết hạn -->
             <div class="pt-4 space-y-3">
                 <h4 class="text-xs font-black uppercase tracking-wider text-slate-500 flex items-center gap-2">
                     <i class="fa-solid fa-clock-rotate-left"></i>
@@ -472,7 +463,6 @@
                 </div>
             </div>
 
-            <!-- Danh sách bài tập -->
             <div id="academicTasksContainer" class="space-y-3"></div>
         </section>
 
@@ -489,7 +479,7 @@
                 </div>
             </div>
 
-            <!-- KHU VỰC QUẢN LÝ Ổ LƯU (Chỉ Admin thấy) -->
+            <!-- Quản lý ổ lưu (Chỉ Admin) -->
             <div id="adminStorageFoldersManager" class="hidden light-card p-4 sm:p-5 rounded-3xl border border-emerald-200 bg-emerald-50/40 space-y-3">
                 <div class="flex items-center justify-between flex-wrap gap-2">
                     <div class="flex items-center gap-2 text-emerald-800 font-bold text-xs sm:text-sm">
@@ -502,7 +492,7 @@
                         <span>Tạo Ổ Lưu Mới</span>
                     </button>
                 </div>
-                <p class="text-[11px] text-slate-500">Tạo sẵn các link ổ lưu / Drive để lúc tạo Phong Trào chọn gán vào. Học sinh nộp ảnh sẽ tự động được chuyển minh chứng về đúng ổ lưu tương ứng.</p>
+                <p class="text-[11px] text-slate-500">Tạo sẵn các link ổ lưu / Drive để lúc tạo Phong Trào chọn gán vào.</p>
                 <div id="storageFoldersListContainer" class="grid grid-cols-1 sm:grid-cols-2 gap-2.5 pt-1"></div>
             </div>
 
@@ -510,10 +500,11 @@
             <div class="light-card p-5 sm:p-7 rounded-3xl border border-slate-200 max-w-xl mx-auto space-y-5">
                 <div class="space-y-1 text-center">
                     <h3 class="text-base sm:text-lg font-bold text-slate-800">Tải Lên Ảnh Minh Chứng</h3>
-                    <p class="text-xs text-slate-500">Chụp từ máy ảnh hoặc tải ảnh từ thư viện (Không giới hạn dung lượng)</p>
+                    <p class="text-xs text-slate-500">Chọn ảnh trực tiếp từ Thư viện ảnh hoặc Camera của điện thoại</p>
                 </div>
 
                 <form onsubmit="handleReportSubmit(event)" class="space-y-4">
+                    <!-- Nhập Tên & Bot Gợi Ý -->
                     <div class="space-y-1.5">
                         <label class="block text-xs font-bold text-slate-700">
                             Họ Và Tên Học Sinh <span class="text-rose-500">*</span>
@@ -546,25 +537,24 @@
                             class="hidden absolute z-30 left-0 right-0 mt-1.5 p-2 rounded-2xl bg-white border border-slate-200 shadow-xl max-h-60 overflow-y-auto custom-scrollbar space-y-2"></div>
                     </div>
 
-                    <!-- Chọn hoặc Chụp Ảnh -->
+                    <!-- Chỉ nhận ảnh từ thư viện hoặc chụp camera (accept="image/*") -->
                     <div class="space-y-1.5">
                         <label class="block text-xs font-bold text-slate-700">
-                            Ảnh Minh Chứng <span class="text-rose-500">*</span>
+                            Ảnh Chụp Minh Chứng <span class="text-rose-500">*</span>
                         </label>
                         <div id="imageUploadArea" class="border-2 border-dashed border-slate-300 hover:border-emerald-500 rounded-2xl p-4 text-center cursor-pointer transition bg-slate-50 hover:bg-emerald-50/30 relative">
-                            <!-- Chặn file tài liệu, accept="image/*" để mở thẳng Thư viện ảnh trên điện thoại -->
                             <input type="file" id="reportFileInput" accept="image/*" onchange="handleImageSelection(event)" class="absolute inset-0 w-full h-full opacity-0 cursor-pointer">
                             <div id="imageUploadPlaceholder" class="space-y-2">
                                 <div class="w-10 h-10 rounded-full bg-emerald-100 text-emerald-600 mx-auto flex items-center justify-center border border-emerald-200">
                                     <i class="fa-solid fa-camera text-base"></i>
                                 </div>
-                                <div class="text-xs text-slate-700 font-semibold">Chạm để chọn ảnh từ thư viện hoặc chụp ảnh mới</div>
-                                <div class="text-[11px] text-slate-500">Chỉ nhận các định dạng ảnh (JPG, PNG, HEIC, WEBP,...)</div>
+                                <div class="text-xs text-slate-700 font-semibold">Chạm để mở Kho ảnh hoặc Chụp ảnh mới</div>
+                                <div class="text-[11px] text-slate-500">Chỉ chấp nhận các tệp hình ảnh (JPG, PNG, HEIC,...)</div>
                             </div>
                             <div id="imagePreviewContainer" class="hidden relative">
-                                <img id="imagePreview" src="" alt="Minh chứng" class="max-h-48 rounded-xl mx-auto shadow-md border border-slate-200 object-contain">
+                                <img id="imagePreview" src="" alt="Minh chứng" class="max-h-48 rounded-xl mx-auto shadow-md border border-slate-200">
                                 <div id="imageFileSizeBadge" class="mt-2 inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-black bg-emerald-100 text-emerald-800 border border-emerald-200">
-                                    <i class="fa-regular fa-image"></i>
+                                    <i class="fa-solid fa-image"></i>
                                     <span id="imageFileSizeText">0 KB</span>
                                 </div>
                                 <button type="button" onclick="cancelImageSelection(event)" class="absolute top-1 right-1 w-7 h-7 rounded-full bg-rose-600 hover:bg-rose-500 text-white flex items-center justify-center text-xs shadow-md">
@@ -611,7 +601,7 @@
         </div>
     </div>
 
-    <!-- Modal 2: Xác Thực Mật Khẩu Admin -->
+    <!-- Modal 2: Xác Thực Mật Khẩu Admin (Không hiển thị bất kỳ gợi ý nào) -->
     <div id="adminPasswordModal" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-sm p-4">
         <div class="light-card w-full max-w-sm rounded-3xl p-6 shadow-2xl space-y-4">
             <div class="flex items-center justify-between">
@@ -625,7 +615,7 @@
             </div>
             <div>
                 <label class="block text-[11px] font-bold text-slate-600 mb-1">Nhập Mật Khẩu Admin</label>
-                <input type="password" id="adminPasswordInput" placeholder="Mặc định: admin123"
+                <input type="password" id="adminPasswordInput" placeholder="Nhập mật khẩu..."
                     onkeydown="if(event.key === 'Enter') verifyAdminPassword()"
                     class="w-full px-3.5 py-2.5 rounded-xl bg-slate-50 border border-slate-300 text-xs text-slate-800 focus:outline-none focus:border-amber-600 focus:bg-white shadow-sm">
             </div>
@@ -636,65 +626,7 @@
         </div>
     </div>
 
-    <!-- Modal 3: Đổi Mật Khẩu Admin -->
-    <div id="changePasswordModal" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-sm px-4">
-        <div class="light-card w-full max-w-sm rounded-3xl p-6 shadow-2xl space-y-4">
-            <div class="flex items-center justify-between">
-                <div class="flex items-center gap-2 text-amber-700 font-bold text-sm">
-                    <i class="fa-solid fa-key"></i>
-                    <span>Đổi Mật Khẩu Admin</span>
-                </div>
-                <button onclick="closeChangePasswordModal()" class="w-7 h-7 rounded-full bg-slate-100 text-slate-500 hover:text-slate-800 flex items-center justify-center text-xs">
-                    <i class="fa-solid fa-xmark"></i>
-                </button>
-            </div>
-            <div class="space-y-2.5">
-                <div>
-                    <label class="block text-[11px] font-bold text-slate-600 mb-1">Mật khẩu hiện tại</label>
-                    <input type="password" id="currentPassInput" class="w-full px-3 py-2 rounded-xl bg-slate-50 border border-slate-300 text-xs text-slate-800 focus:outline-none focus:border-amber-600 focus:bg-white">
-                </div>
-                <div>
-                    <label class="block text-[11px] font-bold text-slate-600 mb-1">Mật khẩu mới</label>
-                    <input type="password" id="newPassInput" class="w-full px-3 py-2 rounded-xl bg-slate-50 border border-slate-300 text-xs text-slate-800 focus:outline-none focus:border-amber-600 focus:bg-white">
-                </div>
-                <div>
-                    <label class="block text-[11px] font-bold text-slate-600 mb-1">Xác nhận mật khẩu mới</label>
-                    <input type="password" id="confirmPassInput" class="w-full px-3 py-2 rounded-xl bg-slate-50 border border-slate-300 text-xs text-slate-800 focus:outline-none focus:border-amber-600 focus:bg-white">
-                </div>
-            </div>
-            <div class="flex gap-2 pt-2">
-                <button onclick="closeChangePasswordModal()" class="w-1/2 py-2 rounded-xl bg-slate-100 text-slate-600 text-xs font-semibold hover:bg-slate-200">Hủy</button>
-                <button onclick="saveNewAdminPassword()" class="w-1/2 py-2 rounded-xl bg-amber-500 hover:bg-amber-600 text-slate-900 font-bold text-xs shadow-sm">Lưu Mật Khẩu</button>
-            </div>
-        </div>
-    </div>
-
-    <!-- Modal 4: Cấu Hình Link Apps Script -->
-    <div id="appsScriptModal" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-sm px-4">
-        <div class="light-card w-full max-w-md rounded-3xl p-6 shadow-2xl space-y-4">
-            <div class="flex items-center justify-between">
-                <div class="flex items-center gap-2 text-emerald-700 font-bold text-sm">
-                    <i class="fa-solid fa-code"></i>
-                    <span>Link Google Apps Script (Web App)</span>
-                </div>
-                <button onclick="closeAppsScriptModal()" class="w-7 h-7 rounded-full bg-slate-100 text-slate-500 hover:text-slate-800 flex items-center justify-center text-xs">
-                    <i class="fa-solid fa-xmark"></i>
-                </button>
-            </div>
-            <p class="text-xs text-slate-500">Dán URL Web App triển khai từ Google Apps Script (kết thúc bằng <code class="text-emerald-700 bg-emerald-50 px-1 py-0.5 rounded">/exec</code>) để ảnh và dữ liệu nộp được đẩy trực tiếp về script của bạn.</p>
-            <div>
-                <label class="block text-[11px] font-bold text-slate-600 mb-1">URL Web App Apps Script</label>
-                <input type="url" id="appsScriptUrlInput" placeholder="https://script.google.com/macros/s/.../exec"
-                    class="w-full px-3.5 py-2.5 rounded-xl bg-slate-50 border border-slate-300 text-xs text-slate-800 focus:outline-none focus:border-emerald-600 focus:bg-white shadow-sm">
-            </div>
-            <div class="flex gap-2 pt-2">
-                <button onclick="closeAppsScriptModal()" class="w-1/2 py-2 rounded-xl bg-slate-100 text-slate-600 text-xs font-semibold hover:bg-slate-200">Hủy</button>
-                <button onclick="saveAppsScriptUrl()" class="w-1/2 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs shadow-sm">Lưu Cấu Hình</button>
-            </div>
-        </div>
-    </div>
-
-    <!-- Modal: Tạo / Sửa Ổ Lưu / Kho Minh Chứng (Admin) -->
+    <!-- Modal: Tạo / Sửa Ổ Lưu Minh Chứng (Admin) -->
     <div id="createStorageModal" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-sm p-4">
         <div class="light-card w-full max-w-md rounded-3xl p-5 sm:p-6 shadow-2xl space-y-4">
             <div class="flex items-center justify-between">
@@ -710,7 +642,7 @@
             <div class="space-y-3">
                 <div>
                     <label class="block text-[11px] font-bold text-slate-600 mb-1">Tên Ổ Lưu / Thư Mục <span class="text-rose-500">*</span></label>
-                    <input type="text" id="newStorageNameInput" placeholder="Ví dụ: Ổ Lưu Phong Trào 20/11, Drive Văn Nghệ..."
+                    <input type="text" id="newStorageNameInput" placeholder="Ví dụ: Ổ Lưu Phong Trào 20/11..."
                         class="w-full px-3 py-2 rounded-xl bg-slate-50 border border-slate-300 text-xs text-slate-800 focus:outline-none focus:border-emerald-600 focus:bg-white">
                 </div>
                 <div>
@@ -763,7 +695,7 @@
                 </div>
                 <div>
                     <label class="block text-[11px] font-bold text-slate-600 mb-1">
-                        Gán Vào Ổ Lưu / Kho Nộp Ảnh <span class="text-emerald-600">(Tự động đối chiếu)</span>
+                        Gán Vào Ổ Lưu / Kho Nộp Ảnh
                     </label>
                     <select id="newMovStorageSelect" 
                         class="w-full px-3 py-2 rounded-xl bg-slate-50 border border-slate-300 text-xs text-slate-800 focus:outline-none focus:border-emerald-600 focus:bg-white">
@@ -898,6 +830,31 @@
         </div>
     </div>
 
+    <!-- Modal: Cấu Hình Link Apps Script -->
+    <div id="appsScriptModal" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-sm px-4">
+        <div class="light-card w-full max-w-md rounded-3xl p-6 shadow-2xl space-y-4">
+            <div class="flex items-center justify-between">
+                <div class="flex items-center gap-2 text-emerald-700 font-bold text-sm">
+                    <i class="fa-solid fa-code"></i>
+                    <span>Link Google Apps Script (Web App)</span>
+                </div>
+                <button onclick="closeAppsScriptModal()" class="w-7 h-7 rounded-full bg-slate-100 text-slate-500 hover:text-slate-800 flex items-center justify-center text-xs">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+            <p class="text-xs text-slate-500">Dán URL Web App triển khai từ Google Apps Script (kết thúc bằng <code class="text-emerald-700 bg-emerald-50 px-1 py-0.5 rounded">/exec</code>) để ảnh và dữ liệu nộp được đẩy trực tiếp về Sheet của bạn.</p>
+            <div>
+                <label class="block text-[11px] font-bold text-slate-600 mb-1">URL Web App Apps Script</label>
+                <input type="url" id="appsScriptUrlInput" placeholder="https://script.google.com/macros/s/.../exec"
+                    class="w-full px-3.5 py-2.5 rounded-xl bg-slate-50 border border-slate-300 text-xs text-slate-800 focus:outline-none focus:border-emerald-600 focus:bg-white shadow-sm">
+            </div>
+            <div class="flex gap-2 pt-2">
+                <button onclick="closeAppsScriptModal()" class="w-1/2 py-2 rounded-xl bg-slate-100 text-slate-600 text-xs font-semibold hover:bg-slate-200">Hủy</button>
+                <button onclick="saveAppsScriptUrl()" class="w-1/2 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs shadow-sm">Lưu Cấu Hình</button>
+            </div>
+        </div>
+    </div>
+
     <!-- Modal: Xuất Báo Cáo Excel -->
     <div id="exportExcelModal" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-sm p-4">
         <div class="light-card w-full max-w-md rounded-3xl p-5 sm:p-6 shadow-2xl space-y-4">
@@ -936,6 +893,7 @@
                     </button>
                 </div>
 
+                <!-- Tùy chọn Theo Tuần -->
                 <div id="excelOptionContainer-week" class="p-3.5 rounded-2xl bg-slate-50 border border-slate-200 space-y-2">
                     <div class="flex items-center justify-between">
                         <span class="text-xs font-black text-slate-700">Chọn Tuần Cần Xuất</span>
@@ -947,6 +905,7 @@
                     </div>
                 </div>
 
+                <!-- Tùy chọn Theo Tháng -->
                 <div id="excelOptionContainer-month" class="hidden p-3.5 rounded-2xl bg-slate-50 border border-slate-200 space-y-2">
                     <span class="text-xs font-black text-slate-700 block">Chọn Tháng & Năm Cần Xuất</span>
                     <div class="grid grid-cols-2 gap-2">
@@ -984,7 +943,7 @@
         </div>
     </div>
 
-    <!-- Modal 5: Xem Chi Tiết Học Sinh (2 Cột: Lỗi Vi Phạm & Phong Trào) -->
+    <!-- Modal: Xem Chi Tiết Học Sinh (2 Cột) -->
     <div id="studentDetailModal" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-sm p-4">
         <div class="light-card w-full max-w-3xl rounded-3xl shadow-2xl border-slate-200 overflow-hidden flex flex-col max-h-[90vh]">
             <div class="p-4 sm:p-5 border-b border-slate-200 flex items-center justify-between bg-slate-50">
@@ -993,7 +952,7 @@
                         <i class="fa-solid fa-user-graduate"></i>
                     </div>
                     <div>
-                        <h3 id="detailStudentName" class="text-base sm:text-lg font-black text-slate-900">Học Sinh</h3>
+                        <h3 id="detailStudentName" class="text-base sm:text-lg font-black text-slate-900">Lê Duy Anh</h3>
                         <p class="text-[11px] text-slate-500 font-bold">Hồ sơ kỷ luật & hoạt động phong trào</p>
                     </div>
                 </div>
@@ -1041,7 +1000,7 @@
         </div>
     </div>
 
-    <!-- Modal 6: Ghi Lỗi Vi Phạm (Admin) -->
+    <!-- Modal: Ghi Lỗi Vi Phạm (Admin) -->
     <div id="recordViolationModal" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-sm p-4">
         <div class="light-card w-full max-w-lg rounded-3xl shadow-2xl p-5 sm:p-6 space-y-4 max-h-[90vh] flex flex-col">
             <div class="flex items-center justify-between">
@@ -1097,7 +1056,7 @@
         </div>
     </div>
 
-    <!-- Modal 7: Chi Tiết Phong Trào -->
+    <!-- Modal: Chi Tiết Phong Trào -->
     <div id="movementDetailModal" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-sm p-4">
         <div class="light-card w-full max-w-3xl rounded-3xl shadow-2xl p-5 sm:p-6 space-y-4 max-h-[90vh] flex flex-col">
             <div class="flex items-center justify-between border-b border-slate-200 pb-3">
@@ -1111,7 +1070,6 @@
             </div>
 
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 flex-1 overflow-y-auto custom-scrollbar">
-                <!-- Cột Đã Tham Gia -->
                 <div class="space-y-2 border border-emerald-200 rounded-2xl p-3 bg-emerald-50/50">
                     <div class="flex items-center justify-between pb-1 border-b border-emerald-200">
                         <span class="text-xs font-bold text-emerald-800">Đã Tham Gia (<span id="movJoinedCount">0</span>)</span>
@@ -1119,7 +1077,6 @@
                     <div id="movJoinedList" class="space-y-1.5 max-h-72 overflow-y-auto custom-scrollbar pr-1 text-xs"></div>
                 </div>
 
-                <!-- Cột Chưa Tham Gia -->
                 <div class="space-y-2 border border-slate-200 rounded-2xl p-3 bg-slate-50">
                     <div class="flex items-center justify-between pb-1 border-b border-slate-200">
                         <span class="text-xs font-bold text-slate-600">Chưa Tham Gia (<span id="movNotJoinedCount">0</span>)</span>
@@ -1138,11 +1095,8 @@
         </div>
     </div>
 
-    <!-- ================= JAVASCRIPT TOÀN BỘ HỆ THỐNG ================= -->
+    <!-- ================= JAVASCRIPT ================= -->
     <script>
-        // CẤU HÌNH CỐ ĐỊNH LINK GOOGLE APPS SCRIPT ĐỂ TỰ ĐỘNG ĐỒNG BỘ MỌI THIẾT BỊ
-        const DEFAULT_APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwpZiuet9torsA0NXfYzFML8k8loifWVrVR7n38ZEcyWtrrMsrbZS3VwixQOFh35khm/exec";
-
         const DEFAULT_STUDENTS_LIST = [
             { id: "hs_01", stt: 1, name: "Lê Duy Anh", violations: [] },
             { id: "hs_02", stt: 2, name: "Lê Thị Thùy Anh", violations: [] },
@@ -1280,8 +1234,13 @@
 
         // ================= TRẠNG THÁI TOÀN CỤC =================
         let currentUserRole = "student";
-        let adminPassword = "admin123";
-        let appsScriptUrl = DEFAULT_APPS_SCRIPT_URL;
+        
+        // MẬT KHẨU ADMIN CỐ ĐỊNH DUY NHẤT (Không cho phép đổi, không hiển thị gợi ý)
+        const ADMIN_FIXED_PASSWORD = "Boiboi2021@";
+
+        // URL Web App Google Apps Script mặc định kết nối dữ liệu đám mây
+        let appsScriptUrl = "https://script.google.com/macros/s/AKfycbwpZiuet9torsA0NXfYzFML8k8loifWVrVR7n38ZEcyWtrrMsrbZS3VwixQOFh35khm/exec";
+
         let students = [];
         let movements = [];
         let academicTasks = [];
@@ -1401,24 +1360,39 @@
                             src: "https://placehold.co/192x192/4f46e5/ffffff.png?text=LỚP",
                             sizes: "192x192",
                             type: "image/png"
+                        },
+                        {
+                            src: "https://placehold.co/512x512/4f46e5/ffffff.png?text=LỚP",
+                            sizes: "512x512",
+                            type: "image/png"
                         }
                     ]
                 };
 
-                const blob = new Blob([JSON.stringify(manifestObj)], { type: 'application/json' });
+                const stringManifest = JSON.stringify(manifestObj);
+                const blob = new Blob([stringManifest], { type: 'application/json' });
+                const manifestURL = URL.createObjectURL(blob);
                 const manifestLink = document.createElement('link');
                 manifestLink.rel = 'manifest';
-                manifestLink.href = URL.createObjectURL(blob);
+                manifestLink.href = manifestURL;
                 document.head.appendChild(manifestLink);
 
                 if ('serviceWorker' in navigator) {
-                    const swBlob = new Blob([`self.addEventListener('fetch', ()=>{});`], { type: 'application/javascript' });
-                    navigator.serviceWorker.register(URL.createObjectURL(swBlob)).catch(() => {});
+                    const swCode = `
+                        self.addEventListener('install', (e) => { self.skipWaiting(); });
+                        self.addEventListener('activate', (e) => { e.waitUntil(self.clients.claim()); });
+                        self.addEventListener('fetch', (e) => { return; });
+                    `;
+                    const swBlob = new Blob([swCode], { type: 'application/javascript' });
+                    const swUrl = URL.createObjectURL(swBlob);
+                    navigator.serviceWorker.register(swUrl).catch(() => {});
                 }
-            } catch (err) {}
+            } catch (err) {
+                console.log("PWA init note:", err);
+            }
         }
 
-        // ================= KHỞI TẠO HỆ THỐNG =================
+        // ================= KHỞI TẠO =================
         window.onload = function () {
             loadStorageData();
             updateRoleUI();
@@ -1471,13 +1445,11 @@
                 if (resJson && resJson.status === "success" && resJson.data) {
                     const cloudData = resJson.data;
 
-                    if (cloudData.adminPassword) adminPassword = cloudData.adminPassword;
                     if (cloudData.students && cloudData.students.length > 0) students = cloudData.students;
                     if (cloudData.movements && cloudData.movements.length > 0) movements = cloudData.movements;
                     if (cloudData.academicTasks && cloudData.academicTasks.length > 0) academicTasks = cloudData.academicTasks;
                     if (cloudData.storageFolders && cloudData.storageFolders.length > 0) storageFolders = cloudData.storageFolders;
 
-                    localStorage.setItem("cct_admin_pass", adminPassword);
                     localStorage.setItem("cct_students", JSON.stringify(students));
                     localStorage.setItem("cct_movements", JSON.stringify(movements));
                     localStorage.setItem("cct_academics", JSON.stringify(academicTasks));
@@ -1508,7 +1480,6 @@
             const payload = {
                 action: "syncAllData",
                 data: {
-                    adminPassword: adminPassword,
                     students: students,
                     movements: movements,
                     academicTasks: academicTasks,
@@ -1534,7 +1505,7 @@
         async function syncDataWithGoogleSheet(isManual = true) {
             if (!appsScriptUrl) {
                 openAppsScriptModal();
-                showToast("Vui lòng kiểm tra Link Google Apps Script!", "info");
+                showToast("Vui lòng dán Link Google Apps Script trước để kết nối Sheet!", "info");
                 return;
             }
             await pushDataToGoogleSheet(false);
@@ -1542,16 +1513,8 @@
 
         function loadStorageData() {
             try {
-                const savedPass = localStorage.getItem("cct_admin_pass");
-                if (savedPass) adminPassword = savedPass;
-
                 const savedUrl = localStorage.getItem("cct_apps_script_url");
-                if (savedUrl) {
-                    appsScriptUrl = savedUrl;
-                } else {
-                    appsScriptUrl = DEFAULT_APPS_SCRIPT_URL;
-                    localStorage.setItem("cct_apps_script_url", appsScriptUrl);
-                }
+                if (savedUrl) appsScriptUrl = savedUrl;
 
                 const savedStudents = localStorage.getItem("cct_students");
                 students = savedStudents ? JSON.parse(savedStudents) : DEFAULT_STUDENTS_LIST;
@@ -1570,23 +1533,6 @@
                 movements = DEFAULT_MOVEMENTS;
                 academicTasks = DEFAULT_ACADEMICS;
                 storageFolders = DEFAULT_STORAGE_FOLDERS;
-            }
-        }
-
-        function saveStorageData() {
-            try {
-                localStorage.setItem("cct_admin_pass", adminPassword);
-                localStorage.setItem("cct_apps_script_url", appsScriptUrl);
-                localStorage.setItem("cct_students", JSON.stringify(students));
-                localStorage.setItem("cct_movements", JSON.stringify(movements));
-                localStorage.setItem("cct_academics", JSON.stringify(academicTasks));
-                localStorage.setItem("cct_storage_folders", JSON.stringify(storageFolders));
-
-                if (currentUserRole === 'admin' && appsScriptUrl) {
-                    pushDataToGoogleSheet(true);
-                }
-            } catch (e) {
-                console.error("Lỗi lưu dữ liệu:", e);
             }
         }
 
@@ -1703,6 +1649,22 @@
             }
 
             showToast("Đã đồng bộ về thời điểm hiện tại!", "info");
+        }
+
+        function saveStorageData() {
+            try {
+                localStorage.setItem("cct_apps_script_url", appsScriptUrl);
+                localStorage.setItem("cct_students", JSON.stringify(students));
+                localStorage.setItem("cct_movements", JSON.stringify(movements));
+                localStorage.setItem("cct_academics", JSON.stringify(academicTasks));
+                localStorage.setItem("cct_storage_folders", JSON.stringify(storageFolders));
+
+                if (currentUserRole === 'admin' && appsScriptUrl) {
+                    pushDataToGoogleSheet(true);
+                }
+            } catch (e) {
+                console.error("Lỗi lưu dữ liệu:", e);
+            }
         }
 
         // ================= QUẢN LÝ Ổ LƯU (ADMIN) =================
@@ -1837,7 +1799,7 @@
 
         function saveAppsScriptUrl() {
             const url = document.getElementById('appsScriptUrlInput').value.trim();
-            appsScriptUrl = url || DEFAULT_APPS_SCRIPT_URL;
+            appsScriptUrl = url;
             localStorage.setItem("cct_apps_script_url", appsScriptUrl);
             closeAppsScriptModal();
             showToast("Đã lưu Link Google Apps Script! Đang kết nối dữ liệu...", "success");
@@ -1868,7 +1830,7 @@
 
         function verifyAdminPassword() {
             const inputVal = document.getElementById('adminPasswordInput').value;
-            if (inputVal === adminPassword) {
+            if (inputVal === ADMIN_FIXED_PASSWORD) {
                 currentUserRole = "admin";
                 closeAdminPasswordModal();
                 updateRoleUI();
@@ -1911,7 +1873,7 @@
             renderStorageFolders();
         }
 
-        // ================= XUẤT FILE EXCEL CHO ADMIN =================
+        // ================= QUẢN LÝ XUẤT FILE EXCEL CHO ADMIN =================
         let excelExportMode = "week";
 
         function openExportExcelModal() {
@@ -2008,8 +1970,12 @@
             rows.push([]);
 
             const colHeaders = ["STT", "Họ và Tên"];
-            if (incViolations) colHeaders.push("Tổng Lỗi Trong Kỳ", "Chi Tiết Lỗi Vi Phạm (Buổi | Ngày | Tên lỗi | Ghi chú)");
-            if (incMovements) colHeaders.push("Số Phong Trào Tham Gia", "Danh Sách Phong Trào Đã Tham Gia");
+            if (incViolations) {
+                colHeaders.push("Tổng Lỗi Trong Kỳ", "Chi Tiết Lỗi Vi Phạm (Buổi | Ngày | Tên lỗi | Ghi chú)");
+            }
+            if (incMovements) {
+                colHeaders.push("Số Phong Trào Tham Gia", "Danh Sách Phong Trào Đã Tham Gia");
+            }
             rows.push(colHeaders.map(c => `"${c}"`));
 
             let exportedCount = 0;
@@ -2018,7 +1984,9 @@
                 const viosInPeriod = (s.violations || []).filter(v => filterChecker(v.date));
                 const joinedMovs = movements.filter(m => m.participantIds && m.participantIds.includes(s.id));
 
-                if (onlyViolated && viosInPeriod.length === 0) return;
+                if (onlyViolated && viosInPeriod.length === 0) {
+                    return;
+                }
 
                 exportedCount++;
                 const rowData = [s.stt, `"${s.name}"`];
@@ -2069,45 +2037,6 @@
 
             closeExportExcelModal();
             showToast(`Đã xuất báo cáo ${periodTitle} thành công!`, "success");
-        }
-
-        // ================= ĐỔI MẬT KHẨU ADMIN =================
-        function openChangePasswordModal() {
-            const currInput = document.getElementById('currentPassInput');
-            const newInput = document.getElementById('newPassInput');
-            const confInput = document.getElementById('confirmPassInput');
-            if (currInput) currInput.value = '';
-            if (newInput) newInput.value = '';
-            if (confInput) confInput.value = '';
-            document.getElementById('changePasswordModal').classList.remove('hidden');
-        }
-
-        function closeChangePasswordModal() {
-            document.getElementById('changePasswordModal').classList.add('hidden');
-        }
-
-        function saveNewAdminPassword() {
-            const curr = (document.getElementById('currentPassInput')?.value || '').trim();
-            const newP = (document.getElementById('newPassInput')?.value || '').trim();
-            const conf = (document.getElementById('confirmPassInput')?.value || '').trim();
-
-            if (String(curr) !== String(adminPassword).trim()) {
-                showToast("Mật khẩu hiện tại không đúng! (Mặc định: admin123)", "error");
-                return;
-            }
-            if (!newP || newP.length < 4) {
-                showToast("Mật khẩu mới phải từ 4 ký tự trở lên!", "error");
-                return;
-            }
-            if (newP !== conf) {
-                showToast("Mật khẩu xác nhận không trùng khớp!", "error");
-                return;
-            }
-
-            adminPassword = newP;
-            saveStorageData();
-            closeChangePasswordModal();
-            showToast("Đổi mật khẩu Admin thành công và đã lưu!", "success");
         }
 
         // ================= ĐIỀU HƯỚNG MÀN HÌNH =================
@@ -2273,10 +2202,22 @@
             const targetDate = new Date(dateStr);
             if (isNaN(targetDate.getTime())) return true;
 
-            if (filter === 'day') return dateStr === selectedFilterDate;
-            if (filter === 'week') return getISOWeekString(targetDate) === selectedFilterWeek;
-            if (filter === 'month') return dateStr.slice(0, 7) === selectedFilterMonth;
-            if (filter === 'year') return targetDate.getFullYear() === Number(selectedFilterYear);
+            if (filter === 'day') {
+                return dateStr === selectedFilterDate;
+            }
+
+            if (filter === 'week') {
+                return getISOWeekString(targetDate) === selectedFilterWeek;
+            }
+
+            if (filter === 'month') {
+                const targetMonth = dateStr.slice(0, 7);
+                return targetMonth === selectedFilterMonth;
+            }
+
+            if (filter === 'year') {
+                return targetDate.getFullYear() === Number(selectedFilterYear);
+            }
 
             return true;
         }
@@ -2309,13 +2250,22 @@
             const pickerYear = document.getElementById('pickerContainer-year');
             const pickerLabel = document.getElementById('customPickerLabel');
 
-            if (customPickerWrapper) customPickerWrapper.classList.toggle('hidden', filterType === 'all');
+            if (customPickerWrapper) {
+                if (filterType === 'all') {
+                    customPickerWrapper.classList.add('hidden');
+                } else {
+                    customPickerWrapper.classList.remove('hidden');
+                }
+            }
+
             if (pickerDay) pickerDay.classList.toggle('hidden', filterType !== 'day');
             if (pickerWeek) pickerWeek.classList.toggle('hidden', filterType !== 'week');
             if (pickerMonth) pickerMonth.classList.toggle('hidden', filterType !== 'month');
             if (pickerYear) pickerYear.classList.toggle('hidden', filterType !== 'year');
 
-            if (filterType === 'week') handleCompositeWeekChange();
+            if (filterType === 'week') {
+                handleCompositeWeekChange();
+            }
 
             if (pickerLabel) {
                 const labels = {
@@ -2347,9 +2297,12 @@
             }
 
             renderStudentsList();
-            if (isTrackingViolationsOpen) renderTrackingViolatedStudents();
+            if (isTrackingViolationsOpen) {
+                renderTrackingViolatedStudents();
+            }
         }
 
+        // ================= DANH SÁCH HỌC SINH & VI PHẠM =================
         function renderStudentsList() {
             const container = document.getElementById('studentsCardsContainer');
             if (!container) return;
@@ -2440,15 +2393,17 @@
             updateViolationStatsSummary();
         }
 
-        // ================= MODAL CHI TIẾT HỌC SINH =================
+        // ================= MODAL CHI TIẾT HỌC SINH (2 CỘT) =================
         function openStudentDetailModal(studentId) {
             currentDetailStudentId = studentId;
             const student = students.find(s => s.id === studentId);
             if (!student) return;
 
             document.getElementById('detailStudentName').innerText = student.name;
+
             renderStudentDetailViolations(student);
             renderStudentDetailMovements(student);
+
             document.getElementById('studentDetailModal').classList.remove('hidden');
         }
 
@@ -2642,7 +2597,9 @@
             saveStorageData();
             closeRecordViolationModal();
             renderStudentsList();
-            if (isTrackingViolationsOpen) renderTrackingViolatedStudents();
+            if (isTrackingViolationsOpen) {
+                renderTrackingViolatedStudents();
+            }
             showToast(`Đã ghi lỗi cho học sinh ${student.name}`, "success");
         }
 
@@ -2654,7 +2611,9 @@
             saveStorageData();
             renderStudentDetailViolations(student);
             renderStudentsList();
-            if (isTrackingViolationsOpen) renderTrackingViolatedStudents();
+            if (isTrackingViolationsOpen) {
+                renderTrackingViolatedStudents();
+            }
             showToast("Đã xóa vi phạm", "info");
         }
 
@@ -3074,12 +3033,16 @@
             renderStudentsList();
         }
 
+        // ================= TIỆN ÍCH CHỌN THỜI GIAN =================
         function toggleMovDeadlineInputs() {
             const isNoLimit = document.getElementById('movNoDeadlineCheckbox').checked;
             const group = document.getElementById('movDeadlinePickersGroup');
             if (group) {
-                group.classList.toggle('opacity-40', isNoLimit);
-                group.classList.toggle('pointer-events-none', isNoLimit);
+                if (isNoLimit) {
+                    group.classList.add('opacity-40', 'pointer-events-none');
+                } else {
+                    group.classList.remove('opacity-40', 'pointer-events-none');
+                }
             }
         }
 
@@ -3118,7 +3081,44 @@
             return `${year}-${month}-${day}T${hour}:${minute}`;
         }
 
-        // Bỏ đoạn khai báo lặp lại setAcaDeadlinePickers / setQuickAcaDeadline ở đây
+        function setAcaDeadlinePickers(dateObj) {
+            const pad = n => String(n).padStart(2, '0');
+            const d = dateObj || new Date();
+            const setVal = (id, val) => { const el = document.getElementById(id); if (el) el.value = val; };
+            setVal('acaPickDay', pad(d.getDate()));
+            setVal('acaPickMonth', pad(d.getMonth() + 1));
+            setVal('acaPickYear', String(d.getFullYear()));
+            setVal('acaPickHour', pad(d.getHours()));
+            const m = Math.round(d.getMinutes() / 5) * 5;
+            setVal('acaPickMinute', pad(m >= 60 ? 55 : m));
+        }
+
+        function setQuickAcaDeadline(type) {
+            const d = new Date();
+            if (type === 'todayEnd') {
+                d.setHours(23, 59, 0, 0);
+                setAcaDeadlinePickers(d);
+                document.getElementById('acaPickHour').value = "23";
+                document.getElementById('acaPickMinute').value = "59";
+            } else if (type === 'plus3Days') {
+                d.setDate(d.getDate() + 3);
+                d.setHours(22, 0, 0, 0);
+                setAcaDeadlinePickers(d);
+                document.getElementById('acaPickHour').value = "22";
+                document.getElementById('acaPickMinute').value = "00";
+            }
+        }
+
+        function getAcaSelectedDeadlineString() {
+            const isNoLimit = document.getElementById('acaNoDeadlineCheckbox').checked;
+            if (isNoLimit) return "";
+            const day = document.getElementById('acaPickDay').value;
+            const month = document.getElementById('acaPickMonth').value;
+            const year = document.getElementById('acaPickYear').value;
+            const hour = document.getElementById('acaPickHour').value;
+            const minute = document.getElementById('acaPickMinute').value;
+            return `${year}-${month}-${day}T${hour}:${minute}`;
+        }
 
         function openCreateMovementModal() {
             document.getElementById('editMovementId').value = '';
@@ -3204,7 +3204,6 @@
             saveStorageData();
             closeCreateMovementModal();
             renderMovementsCards();
-            populateReportMovementsDropdown();
         }
 
         function deleteMovement(movementId) {
@@ -3283,50 +3282,12 @@
             const isNoLimit = document.getElementById('acaNoDeadlineCheckbox').checked;
             const group = document.getElementById('acaDeadlinePickersGroup');
             if (group) {
-                group.classList.toggle('opacity-40', isNoLimit);
-                group.classList.toggle('pointer-events-none', isNoLimit);
+                if (isNoLimit) {
+                    group.classList.add('opacity-40', 'pointer-events-none');
+                } else {
+                    group.classList.remove('opacity-40', 'pointer-events-none');
+                }
             }
-        }
-
-        function setAcaDeadlinePickers(dateObj) {
-            const pad = n => String(n).padStart(2, '0');
-            const d = dateObj || new Date();
-            const setVal = (id, val) => { const el = document.getElementById(id); if (el) el.value = val; };
-            setVal('acaPickDay', pad(d.getDate()));
-            setVal('acaPickMonth', pad(d.getMonth() + 1));
-            setVal('acaPickYear', String(d.getFullYear()));
-            setVal('acaPickHour', pad(d.getHours()));
-            const m = Math.round(d.getMinutes() / 5) * 5;
-            setVal('acaPickMinute', pad(m >= 60 ? 55 : m));
-        }
-
-        function setQuickAcaDeadline(type) {
-            document.getElementById('acaNoDeadlineCheckbox').checked = false;
-            toggleAcaDeadlineInputs();
-            const d = new Date();
-            if (type === 'todayEnd') {
-                d.setHours(23, 59, 0, 0);
-                setAcaDeadlinePickers(d);
-                document.getElementById('acaPickHour').value = "23";
-                document.getElementById('acaPickMinute').value = "59";
-            } else if (type === 'plus3Days') {
-                d.setDate(d.getDate() + 3);
-                d.setHours(22, 0, 0, 0);
-                setAcaDeadlinePickers(d);
-                document.getElementById('acaPickHour').value = "22";
-                document.getElementById('acaPickMinute').value = "00";
-            }
-        }
-
-        function getAcaSelectedDeadlineString() {
-            const isNoLimit = document.getElementById('acaNoDeadlineCheckbox').checked;
-            if (isNoLimit) return "";
-            const day = document.getElementById('acaPickDay').value;
-            const month = document.getElementById('acaPickMonth').value;
-            const year = document.getElementById('acaPickYear').value;
-            const hour = document.getElementById('acaPickHour').value;
-            const minute = document.getElementById('acaPickMinute').value;
-            return `${year}-${month}-${day}T${hour}:${minute}`;
         }
 
         function openCreateAcademicModal() {
@@ -3451,6 +3412,7 @@
             }
 
             let html = "";
+
             movements.forEach(m => {
                 const isSelected = currentVal === m.id;
                 const deadlineText = formatMovementDeadline(m.deadline);
@@ -3481,7 +3443,9 @@
             labelEl.className = "font-bold truncate text-slate-800";
             
             const icon = document.getElementById('customMovementPickerIcon');
-            if (icon) icon.className = "fa-solid fa-award text-purple-600";
+            if (icon) {
+                icon.className = "fa-solid fa-award text-purple-600";
+            }
 
             const menu = document.getElementById('customMovementDropdownMenu');
             if (menu) menu.classList.add('hidden');
@@ -3489,7 +3453,6 @@
             if (arrow) arrow.classList.remove('rotate-180');
 
             populateReportMovementsDropdown();
-            handleMovementSelectionChange();
         }
 
         function removeVietnameseTones(str) {
@@ -3594,17 +3557,14 @@
             const file = event.target.files[0];
             if (!file) return;
 
-            // Kiểm tra định dạng: Chỉ cho phép ảnh (bao gồm HEIC từ iPhone)
-            const isImage = (file.type && file.type.startsWith('image/')) || 
-                            /\.(jpe?g|png|webp|heic|heif|gif|bmp|svg)$/i.test(file.name || '');
-
+            const isImage = file.type && file.type.startsWith('image/') || /\.(jpg|jpeg|png|heic|heif|webp|gif)$/i.test(file.name);
             if (!isImage) {
-                showToast("Vui lòng chỉ chọn ảnh chụp minh chứng, không gửi file tài liệu!", "error");
+                showToast("Vui lòng chỉ chọn ảnh chụp minh chứng, không gửi file khác!", "error");
                 cancelImageSelection();
                 return;
             }
 
-            currentReportFileName = file.name || "minhchung.jpg";
+            currentReportFileName = file.name || "anh_minh_chung.jpg";
             currentReportFileType = file.type || "image/jpeg";
 
             const placeholder = document.getElementById('imageUploadPlaceholder');
@@ -3616,7 +3576,7 @@
 
             const reader = new FileReader();
             reader.onerror = function() {
-                showToast("Không thể đọc ảnh này, vui lòng thử lại!", "error");
+                showToast("Không thể đọc tệp ảnh này, vui lòng thử lại!", "error");
                 cancelImageSelection();
             };
 
@@ -3628,11 +3588,11 @@
                     sizeText.innerText = `${currentReportFileName} (${fileKb} KB)`;
                 }
 
+                if (previewContainer) previewContainer.classList.remove('hidden');
                 if (previewImg) {
                     previewImg.src = currentReportImageBase64;
                     previewImg.classList.remove('hidden');
                 }
-                if (previewContainer) previewContainer.classList.remove('hidden');
             };
 
             reader.readAsDataURL(file);
@@ -3651,10 +3611,7 @@
             const previewImg = document.getElementById('imagePreview');
 
             if (previewContainer) previewContainer.classList.add('hidden');
-            if (previewImg) {
-                previewImg.src = '';
-                previewImg.classList.remove('hidden');
-            }
+            if (previewImg) previewImg.classList.remove('hidden');
             if (placeholder) placeholder.classList.remove('hidden');
         }
 
