@@ -3107,44 +3107,7 @@
             return `${year}-${month}-${day}T${hour}:${minute}`;
         }
 
-        function setAcaDeadlinePickers(dateObj) {
-            const pad = n => String(n).padStart(2, '0');
-            const d = dateObj || new Date();
-            const setVal = (id, val) => { const el = document.getElementById(id); if (el) el.value = val; };
-            setVal('acaPickDay', pad(d.getDate()));
-            setVal('acaPickMonth', pad(d.getMonth() + 1));
-            setVal('acaPickYear', String(d.getFullYear()));
-            setVal('acaPickHour', pad(d.getHours()));
-            const m = Math.round(d.getMinutes() / 5) * 5;
-            setVal('acaPickMinute', pad(m >= 60 ? 55 : m));
-        }
-
-        function setQuickAcaDeadline(type) {
-            const d = new Date();
-            if (type === 'todayEnd') {
-                d.setHours(23, 59, 0, 0);
-                setAcaDeadlinePickers(d);
-                document.getElementById('acaPickHour').value = "23";
-                document.getElementById('acaPickMinute').value = "59";
-            } else if (type === 'plus3Days') {
-                d.setDate(d.getDate() + 3);
-                d.setHours(22, 0, 0, 0);
-                setAcaDeadlinePickers(d);
-                document.getElementById('acaPickHour').value = "22";
-                document.getElementById('acaPickMinute').value = "00";
-            }
-        }
-
-        function getAcaSelectedDeadlineString() {
-            const isNoLimit = document.getElementById('acaNoDeadlineCheckbox').checked;
-            if (isNoLimit) return "";
-            const day = document.getElementById('acaPickDay').value;
-            const month = document.getElementById('acaPickMonth').value;
-            const year = document.getElementById('acaPickYear').value;
-            const hour = document.getElementById('acaPickHour').value;
-            const minute = document.getElementById('acaPickMinute').value;
-            return `${year}-${month}-${day}T${hour}:${minute}`;
-        }
+        // Bỏ đoạn khai báo lặp lại setAcaDeadlinePickers / setQuickAcaDeadline ở đây
 
         function openCreateMovementModal() {
             document.getElementById('editMovementId').value = '';
@@ -3312,6 +3275,47 @@
                 group.classList.toggle('opacity-40', isNoLimit);
                 group.classList.toggle('pointer-events-none', isNoLimit);
             }
+        }
+
+        function setAcaDeadlinePickers(dateObj) {
+            const pad = n => String(n).padStart(2, '0');
+            const d = dateObj || new Date();
+            const setVal = (id, val) => { const el = document.getElementById(id); if (el) el.value = val; };
+            setVal('acaPickDay', pad(d.getDate()));
+            setVal('acaPickMonth', pad(d.getMonth() + 1));
+            setVal('acaPickYear', String(d.getFullYear()));
+            setVal('acaPickHour', pad(d.getHours()));
+            const m = Math.round(d.getMinutes() / 5) * 5;
+            setVal('acaPickMinute', pad(m >= 60 ? 55 : m));
+        }
+
+        function setQuickAcaDeadline(type) {
+            document.getElementById('acaNoDeadlineCheckbox').checked = false;
+            toggleAcaDeadlineInputs();
+            const d = new Date();
+            if (type === 'todayEnd') {
+                d.setHours(23, 59, 0, 0);
+                setAcaDeadlinePickers(d);
+                document.getElementById('acaPickHour').value = "23";
+                document.getElementById('acaPickMinute').value = "59";
+            } else if (type === 'plus3Days') {
+                d.setDate(d.getDate() + 3);
+                d.setHours(22, 0, 0, 0);
+                setAcaDeadlinePickers(d);
+                document.getElementById('acaPickHour').value = "22";
+                document.getElementById('acaPickMinute').value = "00";
+            }
+        }
+
+        function getAcaSelectedDeadlineString() {
+            const isNoLimit = document.getElementById('acaNoDeadlineCheckbox').checked;
+            if (isNoLimit) return "";
+            const day = document.getElementById('acaPickDay').value;
+            const month = document.getElementById('acaPickMonth').value;
+            const year = document.getElementById('acaPickYear').value;
+            const hour = document.getElementById('acaPickHour').value;
+            const minute = document.getElementById('acaPickMinute').value;
+            return `${year}-${month}-${day}T${hour}:${minute}`;
         }
 
         function openCreateAcademicModal() {
