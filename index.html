@@ -549,25 +549,22 @@
                     <!-- Chọn hoặc Chụp Ảnh -->
                     <div class="space-y-1.5">
                         <label class="block text-xs font-bold text-slate-700">
-                            Tệp / Ảnh Minh Chứng <span class="text-rose-500">*</span>
+                            Ảnh Minh Chứng <span class="text-rose-500">*</span>
                         </label>
                         <div id="imageUploadArea" class="border-2 border-dashed border-slate-300 hover:border-emerald-500 rounded-2xl p-4 text-center cursor-pointer transition bg-slate-50 hover:bg-emerald-50/30 relative">
-                            <input type="file" id="reportFileInput" onchange="handleImageSelection(event)" class="absolute inset-0 w-full h-full opacity-0 cursor-pointer">
+                            <!-- Chặn file tài liệu, accept="image/*" để mở thẳng Thư viện ảnh trên điện thoại -->
+                            <input type="file" id="reportFileInput" accept="image/*" onchange="handleImageSelection(event)" class="absolute inset-0 w-full h-full opacity-0 cursor-pointer">
                             <div id="imageUploadPlaceholder" class="space-y-2">
                                 <div class="w-10 h-10 rounded-full bg-emerald-100 text-emerald-600 mx-auto flex items-center justify-center border border-emerald-200">
-                                    <i class="fa-solid fa-cloud-arrow-up text-base"></i>
+                                    <i class="fa-solid fa-camera text-base"></i>
                                 </div>
-                                <div class="text-xs text-slate-700 font-semibold">Chạm để chụp ảnh hoặc chọn tệp từ thiết bị</div>
-                                <div class="text-[11px] text-slate-500">Hỗ trợ mọi định dạng tệp (ảnh, tài liệu, iPhone HEIC,...)</div>
+                                <div class="text-xs text-slate-700 font-semibold">Chạm để chọn ảnh từ thư viện hoặc chụp ảnh mới</div>
+                                <div class="text-[11px] text-slate-500">Chỉ nhận các định dạng ảnh (JPG, PNG, HEIC, WEBP,...)</div>
                             </div>
                             <div id="imagePreviewContainer" class="hidden relative">
-                                <img id="imagePreview" src="" alt="Minh chứng" class="max-h-48 rounded-xl mx-auto shadow-md border border-slate-200">
-                                <div id="fileGenericPreview" class="hidden py-4 flex flex-col items-center justify-center gap-1.5">
-                                    <i class="fa-solid fa-file-lines text-4xl text-emerald-600"></i>
-                                    <span id="fileGenericName" class="text-xs font-bold text-slate-800 max-w-xs truncate"></span>
-                                </div>
+                                <img id="imagePreview" src="" alt="Minh chứng" class="max-h-48 rounded-xl mx-auto shadow-md border border-slate-200 object-contain">
                                 <div id="imageFileSizeBadge" class="mt-2 inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-black bg-emerald-100 text-emerald-800 border border-emerald-200">
-                                    <i class="fa-solid fa-paperclip"></i>
+                                    <i class="fa-regular fa-image"></i>
                                     <span id="imageFileSizeText">0 KB</span>
                                 </div>
                                 <button type="button" onclick="cancelImageSelection(event)" class="absolute top-1 right-1 w-7 h-7 rounded-full bg-rose-600 hover:bg-rose-500 text-white flex items-center justify-center text-xs shadow-md">
@@ -3582,21 +3579,29 @@
             const file = event.target.files[0];
             if (!file) return;
 
-            currentReportFileName = file.name || "file_minh_chung";
-            currentReportFileType = file.type || "application/octet-stream";
+            // Kiểm tra định dạng: Chỉ cho phép ảnh (bao gồm HEIC từ iPhone)
+            const isImage = (file.type && file.type.startsWith('image/')) || 
+                            /\.(jpe?g|png|webp|heic|heif|gif|bmp|svg)$/i.test(file.name || '');
+
+            if (!isImage) {
+                showToast("Vui lòng chỉ chọn ảnh chụp minh chứng, không gửi file tài liệu!", "error");
+                cancelImageSelection();
+                return;
+            }
+
+            currentReportFileName = file.name || "minhchung.jpg";
+            currentReportFileType = file.type || "image/jpeg";
 
             const placeholder = document.getElementById('imageUploadPlaceholder');
             const previewContainer = document.getElementById('imagePreviewContainer');
             const previewImg = document.getElementById('imagePreview');
-            const genericPreview = document.getElementById('fileGenericPreview');
-            const genericName = document.getElementById('fileGenericName');
             const sizeText = document.getElementById('imageFileSizeText');
 
             if (placeholder) placeholder.classList.add('hidden');
 
             const reader = new FileReader();
             reader.onerror = function() {
-                showToast("Không thể đọc tệp này, vui lòng thử lại!", "error");
+                showToast("Không thể đọc ảnh này, vui lòng thử lại!", "error");
                 cancelImageSelection();
             };
 
@@ -3608,21 +3613,11 @@
                     sizeText.innerText = `${currentReportFileName} (${fileKb} KB)`;
                 }
 
-                if (previewContainer) previewContainer.classList.remove('hidden');
-
-                if (file.type && file.type.startsWith('image/') && !file.name.toLowerCase().endsWith('.heic')) {
-                    if (previewImg) {
-                        previewImg.src = currentReportImageBase64;
-                        previewImg.classList.remove('hidden');
-                    }
-                    if (genericPreview) genericPreview.classList.add('hidden');
-                } else {
-                    if (previewImg) previewImg.classList.add('hidden');
-                    if (genericPreview) {
-                        genericPreview.classList.remove('hidden');
-                        if (genericName) genericName.innerText = currentReportFileName;
-                    }
+                if (previewImg) {
+                    previewImg.src = currentReportImageBase64;
+                    previewImg.classList.remove('hidden');
                 }
+                if (previewContainer) previewContainer.classList.remove('hidden');
             };
 
             reader.readAsDataURL(file);
@@ -3639,11 +3634,12 @@
             const previewContainer = document.getElementById('imagePreviewContainer');
             const placeholder = document.getElementById('imageUploadPlaceholder');
             const previewImg = document.getElementById('imagePreview');
-            const genericPreview = document.getElementById('fileGenericPreview');
 
             if (previewContainer) previewContainer.classList.add('hidden');
-            if (previewImg) previewImg.classList.remove('hidden');
-            if (genericPreview) genericPreview.classList.add('hidden');
+            if (previewImg) {
+                previewImg.src = '';
+                previewImg.classList.remove('hidden');
+            }
             if (placeholder) placeholder.classList.remove('hidden');
         }
 
@@ -3668,7 +3664,7 @@
                 return;
             }
             if (!currentReportImageBase64) {
-                showToast("Vui lòng chọn tệp hoặc ảnh minh chứng!", "error");
+                showToast("Vui lòng chọn ảnh chụp minh chứng!", "error");
                 return;
             }
 
