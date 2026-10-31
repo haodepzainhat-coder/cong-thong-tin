@@ -2071,17 +2071,28 @@
             showToast(`Đã xuất báo cáo ${periodTitle} thành công!`, "success");
         }
 
+        // ================= ĐỔI MẬT KHẨU ADMIN =================
+        function openChangePasswordModal() {
+            const currInput = document.getElementById('currentPassInput');
+            const newInput = document.getElementById('newPassInput');
+            const confInput = document.getElementById('confirmPassInput');
+            if (currInput) currInput.value = '';
+            if (newInput) newInput.value = '';
+            if (confInput) confInput.value = '';
+            document.getElementById('changePasswordModal').classList.remove('hidden');
+        }
+
         function closeChangePasswordModal() {
             document.getElementById('changePasswordModal').classList.add('hidden');
         }
 
         function saveNewAdminPassword() {
-            const curr = document.getElementById('currentPassInput').value;
-            const newP = document.getElementById('newPassInput').value;
-            const conf = document.getElementById('confirmPassInput').value;
+            const curr = (document.getElementById('currentPassInput')?.value || '').trim();
+            const newP = (document.getElementById('newPassInput')?.value || '').trim();
+            const conf = (document.getElementById('confirmPassInput')?.value || '').trim();
 
-            if (curr !== adminPassword) {
-                showToast("Mật khẩu hiện tại không đúng!", "error");
+            if (String(curr) !== String(adminPassword).trim()) {
+                showToast("Mật khẩu hiện tại không đúng! (Mặc định: admin123)", "error");
                 return;
             }
             if (!newP || newP.length < 4) {
@@ -2096,7 +2107,7 @@
             adminPassword = newP;
             saveStorageData();
             closeChangePasswordModal();
-            showToast("Đổi mật khẩu Admin thành công!", "success");
+            showToast("Đổi mật khẩu Admin thành công và đã lưu!", "success");
         }
 
         // ================= ĐIỀU HƯỚNG MÀN HÌNH =================
