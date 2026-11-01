@@ -2442,7 +2442,7 @@
             if (!file.type.startsWith('image/')) {
                 showToast("Vui lòng chỉ chọn tệp hình ảnh, không gửi tài liệu!", "error"); cancelImageSelection(); return;
             }
-            // Lấy đúng phần đuôi mở rộng của tệp gốc (vd: .jpg, .png, .jpeg, .webp...)
+            // Lấy đúng phần đuôi mở rộng của tệp gốc (vd: jpg, png, webp...)
             let fileExt = "jpg";
             if (file.name && file.name.lastIndexOf(".") !== -1) {
                 fileExt = file.name.substring(file.name.lastIndexOf(".") + 1).toLowerCase();
@@ -2450,8 +2450,8 @@
                 fileExt = file.type.split("/")[1].toLowerCase().replace("jpeg", "jpg");
             }
 
-            currentReportFileName = file.name || "file_minh_chung"; 
-            currentReportFileType = file.type || "application/octet-stream";
+            currentReportFileName = file.name || "minhchung.jpg"; 
+            currentReportFileType = file.type || "image/jpeg";
             currentReportFileExt = fileExt;
 
             document.getElementById('imageUploadPlaceholder').classList.add('hidden');
@@ -2496,8 +2496,9 @@
                 if (!chosenMovement.participantIds.includes(student.id)) { chosenMovement.participantIds.push(student.id); botMsg = `Đã tự động cập nhật bạn ${student.name} vào danh sách!`; }
             }
 
-            // Định dạng tên file sạch sẽ: CHỈ HỌ VÀ TÊN + ĐUÔI TỆP (Vd: "Đoàn Minh Hào.jpg")
-            const officialStudentName = (student ? student.name : senderName).trim();
+            // Lọc sạch tên: chỉ lấy tên chuẩn của học sinh, không cho kèm STT hay số lạ
+            let officialStudentName = (student ? student.name : senderName).trim();
+            officialStudentName = officialStudentName.replace(/^\d+[\s._-]+/, "").trim();
             const cleanExtension = (typeof currentReportFileExt !== 'undefined' && currentReportFileExt) ? currentReportFileExt : "jpg";
             const finalCleanFileName = `${officialStudentName}.${cleanExtension}`;
 
@@ -2529,7 +2530,7 @@
                             storageName: matchedStorage ? matchedStorage.name : "Ổ mặc định", 
                             storageUrl: matchedStorage ? matchedStorage.url : "", 
                             fileName: finalCleanFileName, 
-                            fileType: currentReportFileType, 
+                            fileType: currentReportFileType || "image/jpeg", 
                             imageBase64: currentReportImageBase64, 
                             timestamp: new Date().toISOString() 
                         })
