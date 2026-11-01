@@ -1158,12 +1158,31 @@
         let uploadAbortController = null;
         let pendingLeaveAction = null;
 
-        // Cảnh báo trình duyệt khi tắt tab / reload lúc đang nộp ảnh
+        // BẮT BUỘC KHÓA TRÌNH DUYỆT KHI ĐÓNG TAB / TẮT APP
         window.addEventListener('beforeunload', function (e) {
             if (isSubmittingReport) {
+                // Tiêu chuẩn HTML5 bắt buộc để Chrome/Safari/Edge bật hộp thoại cảnh báo đóng tab
                 e.preventDefault();
-                e.returnValue = 'Ảnh đang được tải lên! Nếu bạn rời đi, minh chứng sẽ không được lưu.';
-                return e.returnValue;
+                e.returnValue = ''; // Bắt buộc phải có để kích hoạt bảng chặn của trình duyệt
+                return '';
+            }
+        });
+
+        // Bổ sung chặn phím tắt đóng nhanh (F5, Ctrl+R, Ctrl+W nếu người dùng bấm trên máy tính)
+        window.addEventListener('keydown', function (e) {
+            if (isSubmittingReport) {
+                if ((e.key === 'F5') || (e.ctrlKey && (e.key === 'r' || e.key === 'R' || e.key === 'w' || e.key === 'W'))) {
+                    e.preventDefault();
+                    document.getElementById('abortUploadWarningModal').classList.remove('hidden');
+                }
+            }
+        });
+
+        // Khóa lịch sử trình duyệt (Chặn nút Back trên điện thoại)
+        window.addEventListener('popstate', function (e) {
+            if (isSubmittingReport) {
+                history.pushState(null, document.title, location.href);
+                document.getElementById('abortUploadWarningModal').classList.remove('hidden');
             }
         });
 
@@ -2478,7 +2497,7 @@
             }
 
             // Định dạng tên file sạch sẽ: CHỈ HỌ VÀ TÊN + ĐUÔI TỆP (Vd: "Đoàn Minh Hào.jpg")
-            const officialStudentName = student ? student.name : senderName;
+            const officialStudentName = (student ? student.name : senderName).trim();
             const cleanExtension = (typeof currentReportFileExt !== 'undefined' && currentReportFileExt) ? currentReportFileExt : "jpg";
             const finalCleanFileName = `${officialStudentName}.${cleanExtension}`;
 
@@ -2488,6 +2507,9 @@
             submitBtn.classList.add('opacity-75', 'cursor-not-allowed'); 
             submitBtnText.innerText = "Đang gửi dữ liệu..."; 
             submitIcon.className = "fa-solid fa-spinner fa-spin";
+
+            // Đẩy 1 trạng thái ảo vào history để chặn nút "Back" trên điện thoại
+            history.pushState(null, document.title, location.href);
 
             uploadAbortController = new AbortController();
 
