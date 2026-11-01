@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Cổng Thông Tin Quản Lý Học Sinh</title>
-    <!-- Cấu hình PWA (Biến Web thành App trên điện thoại & máy tính) -->
+    <!-- Cấu hình PWA -->
     <meta name="theme-color" content="#4f46e5">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -86,6 +86,72 @@
         .urgent-badge-pulse {
             animation: urgentBadgePulse 1.2s infinite ease-in-out;
         }
+
+        /* --- BỘ HOẠT ẢNH CHUYỂN MỤC & TƯƠNG TÁC MƯỢT MÀ --- */
+        @keyframes fadeSlideIn {
+            0% {
+                opacity: 0;
+                transform: translateY(14px);
+            }
+            100% {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        @keyframes modalPopIn {
+            0% {
+                opacity: 0;
+                transform: scale(0.94) translateY(12px);
+            }
+            100% {
+                opacity: 1;
+                transform: scale(1) translateY(0);
+            }
+        }
+        @keyframes fadeInBackdrop {
+            0% { opacity: 0; }
+            100% { opacity: 1; }
+        }
+        @keyframes dropdownSlideDown {
+            0% {
+                opacity: 0;
+                transform: translateY(-8px);
+            }
+            100% {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .animate-section-in {
+            animation: fadeSlideIn 0.32s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+            will-change: transform, opacity;
+        }
+
+        /* Tự động áp dụng hoạt ảnh mềm mại khi mở bất kỳ Modal nào */
+        .fixed.z-50:not(.hidden) {
+            animation: fadeInBackdrop 0.22s ease-out forwards;
+        }
+        .fixed.z-50:not(.hidden) > .light-card {
+            animation: modalPopIn 0.26s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+            will-change: transform, opacity;
+        }
+
+        /* Hoạt ảnh thả menu chọn phong trào */
+        #customMovementDropdownMenu:not(.hidden) {
+            animation: dropdownSlideDown 0.2s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+        }
+
+        /* Hiệu ứng nhấc nhẹ và độ nảy tinh tế cho thẻ và nút */
+        .interactive-lift {
+            transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.25s ease, border-color 0.2s ease;
+        }
+        .interactive-lift:hover {
+            transform: translateY(-3px);
+        }
+        .interactive-lift:active {
+            transform: translateY(0) scale(0.99);
+        }
     </style>
 </head>
 <body class="light-mesh-bg custom-scrollbar selection:bg-indigo-600 selection:text-white">
@@ -103,7 +169,21 @@
             </div>
         </div>
 
-        <div class="flex items-center gap-3">
+        <div class="flex items-center gap-2 sm:gap-3">
+            <!-- Huy hiệu trạng thái kết nối Sheet (Ngang hàng với nút Tải lại) -->
+            <div id="headerSyncStatusBadge" class="inline-flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 rounded-2xl text-[11px] font-black bg-amber-50 text-amber-800 border border-amber-200 shadow-sm transition-all duration-300">
+                <span class="w-2 h-2 rounded-full bg-amber-500 animate-ping"></span>
+                <span id="headerSyncStatusText" class="truncate max-w-[85px] sm:max-w-none">Đang kết nối...</span>
+            </div>
+
+            <!-- Nút Tải Lại Trang Nhanh -->
+            <button id="quickReloadBtn" onclick="handleQuickReloadPage(this)" title="Tải lại trang và cập nhật dữ liệu mới nhất"
+                class="px-2.5 sm:px-3 py-2 rounded-2xl bg-slate-100 hover:bg-indigo-50 text-slate-700 hover:text-indigo-600 border border-slate-300 transition-all duration-200 flex items-center gap-1.5 text-xs font-bold active:scale-95 shadow-sm">
+                <i class="fa-solid fa-arrows-rotate text-xs"></i>
+                <span class="hidden sm:inline">Tải lại</span>
+            </button>
+
+            <!-- Nút Đổi Vai Trò -->
             <button id="roleSwitchBtn" onclick="openRoleModal()" title="Nhấp để chuyển đổi vai trò"
                 class="w-10 h-10 rounded-2xl flex items-center justify-center transition-all duration-300 transform active:scale-95 shadow-sm border">
                 <i id="roleIcon" class="fa-solid fa-user-graduate text-base"></i>
@@ -156,7 +236,7 @@
             </div>
 
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-5">
-                <div onclick="switchSection('violations')" class="light-card p-7 sm:p-8 rounded-3xl border border-slate-200/90 hover:border-rose-400 hover:shadow-2xl hover:shadow-rose-500/10 transition-all duration-300 cursor-pointer group active:scale-[0.98]">
+                <div onclick="switchSection('violations')" class="interactive-lift light-card p-7 sm:p-8 rounded-3xl border border-slate-200/90 hover:border-rose-400 hover:shadow-2xl hover:shadow-rose-500/10 cursor-pointer group">
                     <div class="w-14 h-14 rounded-2xl bg-gradient-to-tr from-rose-500 to-pink-500 text-white flex items-center justify-center text-2xl mb-5 shadow-lg shadow-rose-500/25 group-hover:scale-110 transition duration-300">
                         <i class="fa-solid fa-triangle-exclamation"></i>
                     </div>
@@ -168,7 +248,7 @@
                     </div>
                 </div>
 
-                <div onclick="switchSection('activities')" class="light-card p-7 sm:p-8 rounded-3xl border border-slate-200/90 hover:border-purple-400 hover:shadow-2xl hover:shadow-purple-500/10 transition-all duration-300 cursor-pointer group active:scale-[0.98]">
+                <div onclick="switchSection('activities')" class="interactive-lift light-card p-7 sm:p-8 rounded-3xl border border-slate-200/90 hover:border-purple-400 hover:shadow-2xl hover:shadow-purple-500/10 cursor-pointer group">
                     <div class="w-14 h-14 rounded-2xl bg-gradient-to-tr from-purple-600 to-indigo-600 text-white flex items-center justify-center text-2xl mb-5 shadow-lg shadow-purple-500/25 group-hover:scale-110 transition duration-300">
                         <i class="fa-solid fa-award"></i>
                     </div>
@@ -180,7 +260,7 @@
                     </div>
                 </div>
 
-                <div onclick="switchSection('academic')" class="light-card p-7 sm:p-8 rounded-3xl border border-slate-200/90 hover:border-sky-400 hover:shadow-2xl hover:shadow-sky-500/10 transition-all duration-300 cursor-pointer group active:scale-[0.98]">
+                <div onclick="switchSection('academic')" class="interactive-lift light-card p-7 sm:p-8 rounded-3xl border border-slate-200/90 hover:border-sky-400 hover:shadow-2xl hover:shadow-sky-500/10 cursor-pointer group">
                     <div class="w-14 h-14 rounded-2xl bg-gradient-to-tr from-sky-500 to-blue-600 text-white flex items-center justify-center text-2xl mb-5 shadow-lg shadow-sky-500/25 group-hover:scale-110 transition duration-300">
                         <i class="fa-solid fa-book-open"></i>
                     </div>
@@ -192,7 +272,7 @@
                     </div>
                 </div>
 
-                <div onclick="switchSection('reports')" class="light-card p-7 sm:p-8 rounded-3xl border border-slate-200/90 hover:border-emerald-400 hover:shadow-2xl hover:shadow-emerald-500/10 transition-all duration-300 cursor-pointer group active:scale-[0.98]">
+                <div onclick="switchSection('reports')" class="interactive-lift light-card p-7 sm:p-8 rounded-3xl border border-slate-200/90 hover:border-emerald-400 hover:shadow-2xl hover:shadow-emerald-500/10 cursor-pointer group">
                     <div class="w-14 h-14 rounded-2xl bg-gradient-to-tr from-emerald-500 to-teal-600 text-white flex items-center justify-center text-2xl mb-5 shadow-lg shadow-emerald-500/25 group-hover:scale-110 transition duration-300">
                         <i class="fa-solid fa-cloud-arrow-up"></i>
                     </div>
@@ -344,10 +424,17 @@
                 </div>
             </div>
 
-            <div class="light-card p-3 rounded-2xl flex items-center gap-2.5">
+            <!-- Khung tìm kiếm có nút 'x' xóa nhanh -->
+            <div class="light-card p-3 rounded-2xl flex items-center gap-2.5 relative">
                 <i class="fa-solid fa-magnifying-glass text-slate-400 text-sm ml-2"></i>
-                <input type="text" id="studentSearchInput" oninput="renderStudentsList()" placeholder="Tìm kiếm học sinh theo họ tên..." 
-                    class="w-full bg-transparent text-xs sm:text-sm text-slate-800 font-bold placeholder-slate-400 focus:outline-none">
+                <input type="text" id="studentSearchInput" oninput="handleSearchStudentInput()" placeholder="Tìm kiếm học sinh theo họ tên..." 
+                    class="w-full bg-transparent text-xs sm:text-sm text-slate-800 font-bold placeholder-slate-400 focus:outline-none pr-8">
+                <!-- Nút 'x' xóa nhanh -->
+                <button type="button" id="clearStudentSearchBtn" onclick="clearStudentSearch()" 
+                    class="hidden absolute right-3 w-6 h-6 rounded-full bg-slate-200 hover:bg-slate-300 text-slate-600 flex items-center justify-center text-xs transition duration-150 active:scale-90"
+                    title="Xóa nhanh từ khóa">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
             </div>
 
             <div id="studentsCardsContainer" class="space-y-2.5"></div>
@@ -499,6 +586,14 @@
                         </div>
                     </div>
 
+                    <!-- Dòng nhắc nhở đưa lên trên nút nộp -->
+                    <div class="p-2.5 rounded-xl bg-amber-50/80 border border-amber-200 text-center">
+                        <p class="text-[11px] text-amber-800 font-bold flex items-center justify-center gap-1.5">
+                            <i class="fa-regular fa-lightbulb text-amber-600 text-xs"></i>
+                            <span>Sau khi nộp, hãy bấm nút <b>Tải lại</b> ở góc trên để thấy phong trào cập nhật bạn nhé!</span>
+                        </p>
+                    </div>
+
                     <button type="submit" id="submitReportBtn" class="w-full py-3.5 rounded-2xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white font-black text-xs sm:text-sm tracking-wide shadow-lg shadow-emerald-600/25 transition duration-200 flex items-center justify-center gap-2 transform active:scale-[0.99]">
                         <i id="submitReportIcon" class="fa-solid fa-paper-plane"></i>
                         <span id="submitReportBtnText">Nộp Báo Cáo Ngay</span>
@@ -510,8 +605,13 @@
     </main>
 
     <!-- Modal 1: Chọn Vai Trò Ban Đầu -->
-    <div id="initRoleModal" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-sm p-4">
-        <div class="light-card w-full max-w-sm rounded-3xl p-6 shadow-2xl space-y-4 text-center">
+    <div id="initRoleModal" onclick="if(event.target === this) closeRoleModal()" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-sm p-4">
+        <div class="light-card w-full max-w-sm rounded-3xl p-6 shadow-2xl space-y-4 text-center relative">
+            <!-- Nút x đóng bảng -->
+            <button type="button" onclick="closeRoleModal()" class="absolute top-4 right-4 w-7 h-7 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-500 hover:text-slate-800 flex items-center justify-center text-xs transition duration-150 active:scale-95" title="Đóng">
+                <i class="fa-solid fa-xmark"></i>
+            </button>
+
             <div class="w-12 h-12 rounded-2xl bg-indigo-100 text-indigo-600 mx-auto flex items-center justify-center text-xl shadow-md border border-indigo-200">
                 <i class="fa-solid fa-users-gear"></i>
             </div>
@@ -614,6 +714,14 @@
                 <div>
                     <label class="block text-[11px] font-bold text-slate-600 mb-1">Gán Vào Ổ Lưu / Kho Nộp Ảnh</label>
                     <select id="newMovStorageSelect" class="w-full px-3 py-2 rounded-xl bg-slate-50 border border-slate-300 text-xs text-slate-800 focus:outline-none focus:border-emerald-600 focus:bg-white"></select>
+                </div>
+                <!-- Checkbox tùy chọn theo dõi tham gia -->
+                <div class="p-2.5 rounded-xl bg-purple-50/60 border border-purple-200">
+                    <label class="flex items-center gap-2.5 cursor-pointer text-xs font-black text-purple-900 select-none">
+                        <input type="checkbox" id="movTrackParticipationCheckbox" checked class="w-4 h-4 rounded text-purple-600 focus:ring-purple-500 cursor-pointer">
+                        <span>Theo dõi học sinh tham gia (Hiển thị số lượng & danh sách tham gia)</span>
+                    </label>
+                    <p class="text-[10px] text-purple-700/80 font-bold mt-1 ml-6">Nếu bỏ tích, phong trào sẽ chỉ là đường link dẫn thông thường và ẩn danh sách người tham gia.</p>
                 </div>
                 <div>
                     <label class="block text-[11px] font-bold text-slate-600 mb-1">Thời Gian Kết Thúc (Hạn Chót)</label>
@@ -1170,6 +1278,21 @@
 
         function updateCloudStatusBadge(state) {
             const badge = document.getElementById('cloudStatusBadge');
+            const headerBadge = document.getElementById('headerSyncStatusBadge');
+
+            if (headerBadge) {
+                if (state === "connected") {
+                    headerBadge.className = "inline-flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 rounded-2xl text-[11px] font-black bg-emerald-50 text-emerald-800 border border-emerald-200 shadow-sm transition-all duration-300";
+                    headerBadge.innerHTML = `<span class="w-2 h-2 rounded-full bg-emerald-500"></span><span id="headerSyncStatusText" class="truncate max-w-[85px] sm:max-w-none">Đã kết nối</span>`;
+                } else if (state === "syncing") {
+                    headerBadge.className = "inline-flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 rounded-2xl text-[11px] font-black bg-amber-50 text-amber-800 border border-amber-200 shadow-sm transition-all duration-300";
+                    headerBadge.innerHTML = `<span class="w-2 h-2 rounded-full bg-amber-500 animate-ping"></span><span id="headerSyncStatusText" class="truncate max-w-[85px] sm:max-w-none">Đang kết nối...</span>`;
+                } else {
+                    headerBadge.className = "inline-flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 rounded-2xl text-[11px] font-black bg-slate-100 text-slate-600 border border-slate-300 shadow-sm transition-all duration-300";
+                    headerBadge.innerHTML = `<span class="w-2 h-2 rounded-full bg-slate-400"></span><span id="headerSyncStatusText" class="truncate max-w-[85px] sm:max-w-none">Chưa kết nối</span>`;
+                }
+            }
+
             if (!badge) return;
             if (state === "connected") {
                 badge.className = "ml-2 inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-black bg-emerald-100 text-emerald-800 border border-emerald-200";
@@ -1189,7 +1312,6 @@
             const syncIcon = document.getElementById('cloudSyncIcon');
             if (syncIcon) syncIcon.classList.add('fa-spin');
             try {
-                // Thêm mã chống lưu Cache, ép trình duyệt luôn tải dữ liệu mới nhất
                 const urlWithNoCache = appsScriptUrl + (appsScriptUrl.includes('?') ? '&' : '?') + "t=" + new Date().getTime();
                 const response = await fetch(urlWithNoCache);
                 const resJson = await response.json();
@@ -1234,7 +1356,6 @@
             if (!appsScriptUrl) {
                 openAppsScriptModal(); showToast("Vui lòng dán Link Apps Script trước!", "info"); return;
             }
-            // Lấy dữ liệu về (Pull) để tránh việc Admin ghi đè mất dữ liệu nộp của học sinh
             await fetchLatestDataFromSheet(true);
         }
 
@@ -1420,6 +1541,7 @@
         }
 
         function openRoleModal() { document.getElementById('initRoleModal').classList.remove('hidden'); }
+        function closeRoleModal() { document.getElementById('initRoleModal').classList.add('hidden'); }
         function selectUserRole(role) {
             currentUserRole = role; document.getElementById('initRoleModal').classList.add('hidden'); updateRoleUI();
             showToast(role === 'admin' ? "Đã đăng nhập Quản Trị Viên!" : "Đang truy cập chế độ Học Sinh.", "success");
@@ -1527,7 +1649,12 @@
         }
 
         function goHomeHub() {
-            document.getElementById('section-home-hub').classList.remove('hidden');
+            const hub = document.getElementById('section-home-hub');
+            hub.classList.remove('hidden');
+            hub.classList.remove('animate-section-in');
+            void hub.offsetWidth; // ép reflow để kích hoạt lại hoạt ảnh mượt mà
+            hub.classList.add('animate-section-in');
+
             ['violations', 'activities', 'academic', 'reports'].forEach(k => document.getElementById('section-' + k).classList.add('hidden'));
             window.scrollTo({ top: 0, behavior: 'smooth' });
         }
@@ -1535,7 +1662,13 @@
             document.getElementById('section-home-hub').classList.add('hidden');
             ['violations', 'activities', 'academic', 'reports'].forEach(k => document.getElementById('section-' + k).classList.add('hidden'));
             const targetSection = document.getElementById('section-' + targetKey);
-            if (targetSection) { targetSection.classList.remove('hidden'); window.scrollTo({ top: 0, behavior: 'smooth' }); }
+            if (targetSection) { 
+                targetSection.classList.remove('hidden'); 
+                targetSection.classList.remove('animate-section-in');
+                void targetSection.offsetWidth; // ép reflow để kích hoạt lại hoạt ảnh mượt mà
+                targetSection.classList.add('animate-section-in');
+                window.scrollTo({ top: 0, behavior: 'smooth' }); 
+            }
         }
 
         function toggleTrackingViolationsSection(forceState = null) {
@@ -1577,8 +1710,7 @@
             });
             if (badge) badge.innerText = violatedStudents.length;
             if (violatedStudents.length === 0) {
-                container.innerHTML = `<div class="p-4 rounded-2xl bg-white/90 border border-rose-200 text-center text-xs text-slate-500 font-bold"><i class="fa-solid fa-circle-check text-emerald-600 text-base mb-1 block"></i>Tuyệt vời! Không có học sinh nào vi phạm trong mốc thời gian này.</div>`; return;
-            }
+                container.innerHTML = `<div class="p-4 rounded-2xl bg-white/90 border border-rose-200 text-center text-xs text-slate-500 font-bold"><i class="fa-solid fa-circle-check text-emerald-600 text-base mb-1 block"></i>Tuyệt vời! Không có học sinh nào vi phạm trong mốc thời gian này.</div>`; return; }
             container.innerHTML = violatedStudents.map(({ student, activeViolations }) => `
                 <div class="p-3 rounded-2xl bg-white border border-rose-200/90 shadow-sm flex flex-col gap-2">
                     <div class="flex items-center justify-between gap-2">
@@ -1626,6 +1758,52 @@
             const pickerLabel = document.getElementById('customPickerLabel');
             if (pickerLabel) pickerLabel.innerText = { day: 'Chọn ngày cần xem:', week: 'Chọn tuần cần xem:', month: 'Chọn tháng cần xem:', year: 'Chọn năm học cần xem:' }[filterType] || 'Lựa chọn mốc thời gian:';
             renderStudentsList(); if (isTrackingViolationsOpen) renderTrackingViolatedStudents();
+        }
+
+        // Xử lý nút Tải Lại Trang Nhanh (hoạt động 100% không bao giờ lỗi)
+        function handleQuickReloadPage(btnEl) {
+            const icon = btnEl ? btnEl.querySelector('i') : null;
+            if (icon) icon.classList.add('fa-spin');
+            if (btnEl) btnEl.disabled = true;
+
+            showToast("Đang làm mới dữ liệu...", "info");
+
+            fetchLatestDataFromSheet(false).finally(() => {
+                try {
+                    setTimeout(() => {
+                        window.location.reload();
+                    }, 400);
+                } catch (e) {
+                    if (icon) icon.classList.remove('fa-spin');
+                    if (btnEl) btnEl.disabled = false;
+                    showToast("Đã làm mới dữ liệu thành công!", "success");
+                }
+            });
+        }
+
+        // Xử lý ô tìm kiếm học sinh và nút 'x' xóa nhanh
+        function handleSearchStudentInput() {
+            const input = document.getElementById('studentSearchInput');
+            const clearBtn = document.getElementById('clearStudentSearchBtn');
+            if (clearBtn) {
+                if (input && input.value.trim().length > 0) {
+                    clearBtn.classList.remove('hidden');
+                } else {
+                    clearBtn.classList.add('hidden');
+                }
+            }
+            renderStudentsList();
+        }
+
+        function clearStudentSearch() {
+            const input = document.getElementById('studentSearchInput');
+            const clearBtn = document.getElementById('clearStudentSearchBtn');
+            if (input) {
+                input.value = '';
+                input.focus();
+            }
+            if (clearBtn) clearBtn.classList.add('hidden');
+            renderStudentsList();
         }
 
         function renderStudentsList() {
@@ -1765,6 +1943,7 @@
         }
 
         function generateMovementHtml(m, isExpired) {
+            const trackParticipation = m.trackParticipation !== false;
             const participantCount = m.participantIds ? m.participantIds.length : 0; const totalStudents = students.length;
             const matchedStorage = m.storageId ? storageFolders.find(s => s.id === m.storageId) : null;
             const deadlineText = formatMovementDeadline(m.deadline); const urgentInfo = !isExpired ? getMovementUrgentStatus(m.deadline) : { isUrgent: false };
@@ -1786,9 +1965,18 @@
                             ${currentUserRole === 'admin' ? `<div class="self-end sm:self-auto flex items-center gap-1.5 flex-shrink-0"><button onclick="openEditMovementModal('${m.id}')" class="text-slate-400 hover:text-indigo-400 text-xs p-1"><i class="fa-solid fa-pen-to-square"></i></button><button onclick="deleteMovement('${m.id}')" class="text-slate-400 hover:text-rose-400 text-xs p-1"><i class="fa-solid fa-trash-can"></i></button></div>` : ''}
                         </div>
                         <div class="pt-2 border-t border-slate-800 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-                            <div class="flex items-center gap-2 text-xs text-slate-300 font-bold"><i class="fa-solid fa-users text-purple-400"></i><span>${participantCount}/${totalStudents} học sinh đã tham gia</span><button onclick="openMovementDetailModal('${m.id}')" class="text-xs font-black text-purple-400 hover:text-purple-300 underline ml-1">Chi tiết</button></div>
+                            <div class="flex items-center gap-2 text-xs text-slate-300 font-bold">
+                                ${trackParticipation ? `
+                                    <i class="fa-solid fa-users text-purple-400"></i>
+                                    <span>${participantCount}/${totalStudents} học sinh đã tham gia</span>
+                                    <button onclick="openMovementDetailModal('${m.id}')" class="text-xs font-black text-purple-400 hover:text-purple-300 underline ml-1">Chi tiết</button>
+                                ` : `
+                                    <i class="fa-solid fa-link text-slate-400"></i>
+                                    <span class="text-slate-400">Phong trào thông tin (Không theo dõi tham gia)</span>
+                                `}
+                            </div>
                             <div class="flex items-center gap-2 w-full sm:w-auto">
-                                ${currentUserRole === 'admin' ? `<button onclick="copyNotJoinedStudents('${m.id}')" class="w-full sm:w-auto px-4 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-amber-300 font-black text-xs sm:text-sm border border-slate-700 shadow-sm transition flex items-center justify-center gap-2"><i class="fa-regular fa-copy text-amber-400"></i><span>Copy DS Chưa Làm</span></button>` : ''}
+                                ${currentUserRole === 'admin' && trackParticipation ? `<button onclick="copyNotJoinedStudents('${m.id}')" class="w-full sm:w-auto px-4 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-amber-300 font-black text-xs sm:text-sm border border-slate-700 shadow-sm transition flex items-center justify-center gap-2"><i class="fa-regular fa-copy text-amber-400"></i><span>Copy DS Chưa Làm</span></button>` : ''}
                                 ${m.url ? `<button onclick="copyToClipboard('${m.url.replace(/'/g, "\\'")}', 'link phong trào')" class="px-3.5 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-purple-300 border border-slate-700 text-xs font-black shadow-sm transition flex items-center justify-center gap-1.5"><i class="fa-regular fa-copy"></i><span class="hidden sm:inline">Sao Chép</span></button>
                                 <a href="${m.url}" onclick="openExternalLink(event, '${m.url.replace(/'/g, "\\'")}')" class="w-full sm:w-auto px-5 py-2.5 rounded-xl bg-gradient-to-r from-purple-700 to-indigo-700 hover:from-purple-600 hover:to-indigo-600 text-white font-black text-xs sm:text-sm text-center shadow-md transition flex items-center justify-center gap-2"><span>Mở Link</span><i class="fa-solid fa-arrow-up-right-from-square text-xs"></i></a>` : ''}
                             </div>
@@ -1814,9 +2002,18 @@
                             ${currentUserRole === 'admin' ? `<div class="self-end sm:self-auto flex items-center gap-1.5 flex-shrink-0"><button onclick="openEditMovementModal('${m.id}')" class="text-slate-400 hover:text-rose-600 text-xs p-1"><i class="fa-solid fa-pen-to-square"></i></button><button onclick="deleteMovement('${m.id}')" class="text-slate-400 hover:text-rose-600 text-xs p-1"><i class="fa-solid fa-trash-can"></i></button></div>` : ''}
                         </div>
                         <div class="pt-2 border-t border-rose-200/80 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-                            <div class="flex items-center gap-2 text-xs text-rose-900 font-bold"><i class="fa-solid fa-triangle-exclamation text-rose-600"></i><span>${participantCount}/${totalStudents} học sinh đã tham gia</span><button onclick="openMovementDetailModal('${m.id}')" class="text-xs font-black text-rose-600 hover:text-rose-700 underline ml-1">Chi tiết</button></div>
+                            <div class="flex items-center gap-2 text-xs text-rose-900 font-bold">
+                                ${trackParticipation ? `
+                                    <i class="fa-solid fa-triangle-exclamation text-rose-600"></i>
+                                    <span>${participantCount}/${totalStudents} học sinh đã tham gia</span>
+                                    <button onclick="openMovementDetailModal('${m.id}')" class="text-xs font-black text-rose-600 hover:text-rose-700 underline ml-1">Chi tiết</button>
+                                ` : `
+                                    <i class="fa-solid fa-link text-rose-400"></i>
+                                    <span class="text-rose-700">Phong trào thông tin (Không theo dõi tham gia)</span>
+                                `}
+                            </div>
                             <div class="flex items-center gap-2 w-full sm:w-auto">
-                                ${currentUserRole === 'admin' ? `<button onclick="copyNotJoinedStudents('${m.id}')" class="w-full sm:w-auto px-4 py-2.5 rounded-xl bg-amber-100 hover:bg-amber-200 text-amber-950 font-black text-xs sm:text-sm border border-amber-300 shadow-sm transition flex items-center justify-center gap-2"><i class="fa-regular fa-copy text-amber-700"></i><span>Copy DS Chưa Làm</span></button>` : ''}
+                                ${currentUserRole === 'admin' && trackParticipation ? `<button onclick="copyNotJoinedStudents('${m.id}')" class="w-full sm:w-auto px-4 py-2.5 rounded-xl bg-amber-100 hover:bg-amber-200 text-amber-950 font-black text-xs sm:text-sm border border-amber-300 shadow-sm transition flex items-center justify-center gap-2"><i class="fa-regular fa-copy text-amber-700"></i><span>Copy DS Chưa Làm</span></button>` : ''}
                                 ${m.url ? `<button onclick="copyToClipboard('${m.url.replace(/'/g, "\\'")}', 'link phong trào')" class="px-3.5 py-2.5 rounded-xl bg-rose-100 hover:bg-rose-200 text-rose-800 border border-rose-300 text-xs font-black shadow-sm transition flex items-center justify-center gap-1.5"><i class="fa-regular fa-copy"></i><span class="hidden sm:inline">Sao Chép</span></button>
                                 <a href="${m.url}" onclick="openExternalLink(event, '${m.url.replace(/'/g, "\\'")}')" class="w-full sm:w-auto px-5 py-2.5 rounded-xl bg-gradient-to-r from-rose-600 via-red-600 to-orange-600 hover:from-rose-700 hover:to-orange-700 text-white font-black text-xs sm:text-sm text-center shadow-lg shadow-rose-600/30 transition flex items-center justify-center gap-2"><i class="fa-solid fa-bolt text-yellow-300"></i><span>Làm Gấp Ngay!</span><i class="fa-solid fa-arrow-up-right-from-square text-xs"></i></a>` : ''}
                             </div>
@@ -1840,9 +2037,18 @@
                         ${currentUserRole === 'admin' ? `<div class="self-end sm:self-auto flex items-center gap-1.5 flex-shrink-0"><button onclick="openEditMovementModal('${m.id}')" class="text-slate-400 hover:text-indigo-600 text-xs p-1"><i class="fa-solid fa-pen-to-square"></i></button><button onclick="deleteMovement('${m.id}')" class="text-slate-400 hover:text-rose-600 text-xs p-1"><i class="fa-solid fa-trash-can"></i></button></div>` : ''}
                     </div>
                     <div class="pt-2 border-t border-slate-100 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-                        <div class="flex items-center gap-2 text-xs text-slate-700 font-bold"><i class="fa-solid fa-users text-purple-600"></i><span>${participantCount}/${totalStudents} học sinh đã tham gia</span><button onclick="openMovementDetailModal('${m.id}')" class="text-xs font-black text-purple-600 hover:text-purple-700 underline ml-1">Chi tiết</button></div>
+                        <div class="flex items-center gap-2 text-xs text-slate-700 font-bold">
+                            ${trackParticipation ? `
+                                <i class="fa-solid fa-users text-purple-600"></i>
+                                <span>${participantCount}/${totalStudents} học sinh đã tham gia</span>
+                                <button onclick="openMovementDetailModal('${m.id}')" class="text-xs font-black text-purple-600 hover:text-purple-700 underline ml-1">Chi tiết</button>
+                            ` : `
+                                <i class="fa-solid fa-link text-slate-400"></i>
+                                <span class="text-slate-500 font-bold">Phong trào thông tin (Không theo dõi tham gia)</span>
+                            `}
+                        </div>
                         <div class="flex items-center gap-2 w-full sm:w-auto">
-                            ${currentUserRole === 'admin' ? `<button onclick="copyNotJoinedStudents('${m.id}')" class="w-full sm:w-auto px-4 py-2.5 rounded-xl bg-amber-50 hover:bg-amber-100 text-amber-800 font-black text-xs sm:text-sm border border-amber-300 shadow-sm transition flex items-center justify-center gap-2"><i class="fa-regular fa-copy text-amber-600"></i><span>Copy DS Chưa Làm</span></button>` : ''}
+                            ${currentUserRole === 'admin' && trackParticipation ? `<button onclick="copyNotJoinedStudents('${m.id}')" class="w-full sm:w-auto px-4 py-2.5 rounded-xl bg-amber-50 hover:bg-amber-100 text-amber-800 font-black text-xs sm:text-sm border border-amber-300 shadow-sm transition flex items-center justify-center gap-2"><i class="fa-regular fa-copy text-amber-600"></i><span>Copy DS Chưa Làm</span></button>` : ''}
                             ${m.url ? `<button onclick="copyToClipboard('${m.url.replace(/'/g, "\\'")}', 'link phong trào')" class="px-3.5 py-2.5 rounded-xl bg-purple-50 hover:bg-purple-100 text-purple-800 border border-purple-200 text-xs font-black shadow-sm transition flex items-center justify-center gap-1.5"><i class="fa-regular fa-copy"></i><span class="hidden sm:inline">Sao Chép</span></button>
                             <a href="${m.url}" onclick="openExternalLink(event, '${m.url.replace(/'/g, "\\'")}')" class="w-full sm:w-auto px-5 py-2.5 rounded-xl bg-purple-600 hover:bg-purple-700 text-white font-black text-xs sm:text-sm text-center shadow-md shadow-purple-600/20 transition flex items-center justify-center gap-2"><span>Mở Link</span><i class="fa-solid fa-arrow-up-right-from-square text-xs"></i></a>` : ''}
                         </div>
@@ -1896,6 +2102,8 @@
             document.getElementById('saveMovBtn').innerText = 'Tạo Ngay';
             ['newMovTitleInput', 'newMovDescInput', 'newMovUrlInput'].forEach(id => document.getElementById(id).value = '');
             document.getElementById('movNoDeadlineCheckbox').checked = false; toggleMovDeadlineInputs(); setMovDeadlinePickers();
+            const trackCb = document.getElementById('movTrackParticipationCheckbox');
+            if (trackCb) trackCb.checked = true;
             populateStorageDropdowns(); document.getElementById('createMovementModal').classList.remove('hidden');
         }
         function openEditMovementModal(id) {
@@ -1903,13 +2111,23 @@
             document.getElementById('editMovementId').value = m.id; document.getElementById('movModalTitle').innerHTML = '<i class="fa-solid fa-pen-to-square text-purple-600"></i><span>Chỉnh Sửa Phong Trào</span>'; document.getElementById('saveMovBtn').innerText = 'Cập Nhật';
             document.getElementById('newMovTitleInput').value = m.title || ''; document.getElementById('newMovDescInput').value = m.desc || ''; document.getElementById('newMovUrlInput').value = m.url || '';
             document.getElementById('movNoDeadlineCheckbox').checked = !m.deadline; setMovDeadlinePickers(m.deadline ? new Date(m.deadline) : new Date()); toggleMovDeadlineInputs();
+            const trackCb = document.getElementById('movTrackParticipationCheckbox');
+            if (trackCb) trackCb.checked = m.trackParticipation !== false;
             populateStorageDropdowns(); document.getElementById('newMovStorageSelect').value = m.storageId || ''; document.getElementById('createMovementModal').classList.remove('hidden');
         }
         function closeCreateMovementModal() { document.getElementById('createMovementModal').classList.add('hidden'); }
         function handleSaveNewMovement() {
             const editId = document.getElementById('editMovementId').value; const title = document.getElementById('newMovTitleInput').value.trim();
             if (!title) { showToast("Vui lòng nhập tên phong trào!", "error"); return; }
-            const payload = { title: title, desc: document.getElementById('newMovDescInput').value.trim(), url: document.getElementById('newMovUrlInput').value.trim(), storageId: document.getElementById('newMovStorageSelect').value, deadline: getMovSelectedDeadlineString() };
+            const trackParticipation = document.getElementById('movTrackParticipationCheckbox')?.checked !== false;
+            const payload = { 
+                title: title, 
+                desc: document.getElementById('newMovDescInput').value.trim(), 
+                url: document.getElementById('newMovUrlInput').value.trim(), 
+                storageId: document.getElementById('newMovStorageSelect').value, 
+                deadline: getMovSelectedDeadlineString(),
+                trackParticipation: trackParticipation
+            };
             if (editId) { const m = movements.find(item => item.id === editId); if (m) Object.assign(m, payload); showToast("Đã cập nhật!", "success"); } 
             else { movements.unshift(Object.assign({ id: "mov_" + Date.now(), participantIds: [] }, payload)); showToast("Đã tạo mới!", "success"); }
             saveStorageData(); closeCreateMovementModal(); renderMovementsCards();
@@ -1980,7 +2198,6 @@
         function populateReportMovementsDropdown() {
             const menu = document.getElementById('customMovementDropdownMenu'); if (!menu) return;
             const currentVal = document.getElementById('reportMovementSelect')?.value || "";
-            // Chỉ hiển thị phong trào chưa hết hạn VÀ bắt buộc phải có gắn Kho nộp ảnh (storageId)
             const validMovements = movements.filter(m => !isMovementExpired(m.deadline) && m.storageId && m.storageId.trim() !== "");
             if (validMovements.length === 0) { menu.innerHTML = `<div class="p-3 text-xs text-slate-400 italic text-center">Chưa có phong trào nào yêu cầu nộp ảnh.</div>`; return; }
             
@@ -2090,7 +2307,6 @@
 
             if (appsScriptUrl) {
                 try {
-                    // Thêm chữ await để đảm bảo dữ liệu phải được tải xong mới cho web chạy tiếp
                     await fetch(appsScriptUrl, {
                         method: "POST", mode: "no-cors", headers: { "Content-Type": "application/json" },
                         body: JSON.stringify({ action: "uploadImage", senderName: senderName, studentId: student ? student.id : "", studentStt: student ? student.stt : "", movementId: movementId, movementTitle: chosenMovement.title, storageId: matchedStorage ? matchedStorage.id : "", storageName: matchedStorage ? matchedStorage.name : "Ổ mặc định", storageUrl: matchedStorage ? matchedStorage.url : "", fileName: currentReportFileName, fileType: currentReportFileType, imageBase64: currentReportImageBase64, timestamp: new Date().toISOString() })
@@ -2111,7 +2327,6 @@
             if (e) e.preventDefault();
             if (!url) return;
             
-            // Đổi icon của nút vừa bấm thành biểu tượng xoay (loading)
             if (e && e.currentTarget) {
                 const icon = e.currentTarget.querySelector('.fa-arrow-up-right-from-square');
                 if (icon) {
@@ -2119,10 +2334,8 @@
                 }
             }
             
-            // Chuyển hướng trang ngay lập tức
             window.location.href = url;
             
-            // Phục hồi lại icon sau 3 giây (Đề phòng trường hợp người dùng bấm nút "Back" quay lại web)
             setTimeout(() => {
                 if (e && e.currentTarget) {
                     const icon = e.currentTarget.querySelector('.fa-spinner');
