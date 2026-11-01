@@ -87,7 +87,6 @@
             animation: urgentBadgePulse 1.2s infinite ease-in-out;
         }
 
-        /* --- BỘ HOẠT ẢNH CHUYỂN MỤC & TƯƠNG TÁC MƯỢT MÀ --- */
         @keyframes fadeSlideIn {
             0% {
                 opacity: 0;
@@ -128,7 +127,6 @@
             will-change: transform, opacity;
         }
 
-        /* Tự động áp dụng hoạt ảnh mềm mại khi mở bất kỳ Modal nào */
         .fixed.z-50:not(.hidden) {
             animation: fadeInBackdrop 0.22s ease-out forwards;
         }
@@ -137,12 +135,10 @@
             will-change: transform, opacity;
         }
 
-        /* Hoạt ảnh thả menu chọn phong trào */
         #customMovementDropdownMenu:not(.hidden) {
             animation: dropdownSlideDown 0.2s cubic-bezier(0.16, 1, 0.3, 1) forwards;
         }
 
-        /* Hiệu ứng nhấc nhẹ và độ nảy tinh tế cho thẻ và nút */
         .interactive-lift {
             transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.25s ease, border-color 0.2s ease;
         }
@@ -165,7 +161,7 @@
         </div>
 
         <div class="flex items-center gap-2 sm:gap-3">
-            <!-- Huy hiệu trạng thái kết nối Sheet (Ngang hàng với nút Tải lại) -->
+            <!-- Huy hiệu trạng thái kết nối Sheet -->
             <div id="headerSyncStatusBadge" class="inline-flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 rounded-2xl text-[11px] font-black bg-amber-50 text-amber-800 border border-amber-200 shadow-sm transition-all duration-300">
                 <span class="w-2 h-2 rounded-full bg-amber-500 animate-ping"></span>
                 <span id="headerSyncStatusText" class="truncate max-w-[85px] sm:max-w-none">Đang kết nối...</span>
@@ -1151,6 +1147,7 @@
         let currentReportImageBase64 = null;
         let currentReportFileName = "";
         let currentReportFileType = "";
+        let currentReportFileExt = "jpg";
         let detailMovementSubTab = "joined";
         let currentViolationTimeFilter = "all";
         let isTrackingViolationsOpen = false;
@@ -1161,14 +1158,12 @@
         // BẮT BUỘC KHÓA TRÌNH DUYỆT KHI ĐÓNG TAB / TẮT APP
         window.addEventListener('beforeunload', function (e) {
             if (isSubmittingReport) {
-                // Tiêu chuẩn HTML5 bắt buộc để Chrome/Safari/Edge bật hộp thoại cảnh báo đóng tab
                 e.preventDefault();
-                e.returnValue = ''; // Bắt buộc phải có để kích hoạt bảng chặn của trình duyệt
+                e.returnValue = '';
                 return '';
             }
         });
 
-        // Bổ sung chặn phím tắt đóng nhanh (F5, Ctrl+R, Ctrl+W nếu người dùng bấm trên máy tính)
         window.addEventListener('keydown', function (e) {
             if (isSubmittingReport) {
                 if ((e.key === 'F5') || (e.ctrlKey && (e.key === 'r' || e.key === 'R' || e.key === 'w' || e.key === 'W'))) {
@@ -1178,7 +1173,6 @@
             }
         });
 
-        // Khóa lịch sử trình duyệt (Chặn nút Back trên điện thoại)
         window.addEventListener('popstate', function (e) {
             if (isSubmittingReport) {
                 history.pushState(null, document.title, location.href);
@@ -1859,7 +1853,6 @@
             renderStudentsList(); if (isTrackingViolationsOpen) renderTrackingViolatedStudents();
         }
 
-        // Xử lý nút Tải Lại Trang Nhanh (hoạt động 100% không bao giờ lỗi)
         function handleQuickReloadPage(btnEl) {
             if (!checkBeforeLeavingAction(() => handleQuickReloadPage(btnEl))) return;
             const icon = btnEl ? btnEl.querySelector('i') : null;
@@ -1881,7 +1874,6 @@
             });
         }
 
-        // Xử lý ô tìm kiếm học sinh và nút 'x' xóa nhanh
         function handleSearchStudentInput() {
             const input = document.getElementById('studentSearchInput');
             const clearBtn = document.getElementById('clearStudentSearchBtn');
@@ -2329,13 +2321,11 @@
             const inputClean = removeVietnameseTones(rawInput.trim().toLowerCase());
             if (!inputClean) return { match: null, suggestions: [] };
 
-            // 1. Kiểm tra nếu trùng khớp chính xác 100% cả họ và tên
             const exactMatch = students.find(s => removeVietnameseTones(s.name.toLowerCase()) === inputClean);
             if (exactMatch) {
                 return { match: exactMatch, suggestions: [] };
             }
 
-            // 2. Chấm điểm độ tương đồng để lấy ra tối đa 3 bạn phù hợp nhất
             const scoredList = [];
             const inputTokens = inputClean.split(/\s+/).filter(Boolean);
             const inputLastName = inputTokens[inputTokens.length - 1];
@@ -2347,19 +2337,16 @@
 
                 let score = 0;
 
-                // Tên chính khớp tuyệt đối (ví dụ gõ "Hân" hoặc "Bình")
                 if (sLastName === inputLastName) {
                     score += 50;
                 } else if (sLastName.startsWith(inputLastName)) {
                     score += 25;
                 }
 
-                // Cả chuỗi chứa từ khóa tìm kiếm
                 if (sClean.includes(inputClean)) {
                     score += 30;
                 }
 
-                // Kiểm tra từng từ khóa người dùng nhập vào
                 inputTokens.forEach(t => {
                     if (sTokens.includes(t)) {
                         score += 15;
@@ -2373,11 +2360,9 @@
                 }
             });
 
-            // Sắp xếp điểm từ cao xuống thấp và lấy đúng 3 bạn học sinh phù hợp nhất
             scoredList.sort((a, b) => b.score - a.score);
             const top3Suggestions = scoredList.slice(0, 3).map(item => item.student);
 
-            // Nếu chỉ có duy nhất 1 kết quả đạt điểm rất cao và trùng tên chính
             if (top3Suggestions.length === 1 && scoredList[0].score >= 50) {
                 return { match: top3Suggestions[0], suggestions: [] };
             }
@@ -2442,7 +2427,6 @@
             if (!file.type.startsWith('image/')) {
                 showToast("Vui lòng chỉ chọn tệp hình ảnh, không gửi tài liệu!", "error"); cancelImageSelection(); return;
             }
-            // Lấy đúng phần đuôi mở rộng của tệp gốc (vd: jpg, png, webp...)
             let fileExt = "jpg";
             if (file.name && file.name.lastIndexOf(".") !== -1) {
                 fileExt = file.name.substring(file.name.lastIndexOf(".") + 1).toLowerCase();
@@ -2496,9 +2480,11 @@
                 if (!chosenMovement.participantIds.includes(student.id)) { chosenMovement.participantIds.push(student.id); botMsg = `Đã tự động cập nhật bạn ${student.name} vào danh sách!`; }
             }
 
-            // Lọc sạch tên: chỉ lấy tên chuẩn của học sinh, không cho kèm STT hay số lạ
-            let officialStudentName = (student ? student.name : senderName).trim();
-            officialStudentName = officialStudentName.replace(/^\d+[\s._-]+/, "").trim();
+            let officialStudentName = (student ? student.name : senderName)
+                .replace(/[0-9_\-\.]/g, " ")
+                .replace(/\s+/g, " ")
+                .trim();
+
             const cleanExtension = (typeof currentReportFileExt !== 'undefined' && currentReportFileExt) ? currentReportFileExt : "jpg";
             const finalCleanFileName = `${officialStudentName}.${cleanExtension}`;
 
@@ -2509,9 +2495,7 @@
             submitBtnText.innerText = "Đang gửi dữ liệu..."; 
             submitIcon.className = "fa-solid fa-spinner fa-spin";
 
-            // Đẩy 1 trạng thái ảo vào history để chặn nút "Back" trên điện thoại
             history.pushState(null, document.title, location.href);
-
             uploadAbortController = new AbortController();
 
             if (appsScriptUrl) {
