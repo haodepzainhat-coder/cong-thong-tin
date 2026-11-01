@@ -158,14 +158,9 @@
 
     <!-- Thanh Điều Hướng Trên Cùng -->
     <header class="light-header sticky top-0 z-40 px-4 sm:px-8 py-3.5 flex items-center justify-between shadow-sm">
-        <div class="flex items-center gap-3 cursor-pointer select-none" onclick="goHomeHub()">
-            <div class="w-10 h-10 rounded-2xl bg-gradient-to-tr from-indigo-600 via-purple-600 to-pink-500 flex items-center justify-center shadow-md shadow-indigo-500/20 text-white">
+        <div class="flex items-center gap-3 cursor-pointer select-none" onclick="goHomeHub()" title="Về trang chủ">
+            <div class="w-10 h-10 rounded-2xl bg-gradient-to-tr from-indigo-600 via-purple-600 to-pink-500 flex items-center justify-center shadow-md shadow-indigo-500/20 text-white transform hover:scale-105 active:scale-95 transition">
                 <i class="fa-solid fa-graduation-cap text-lg"></i>
-            </div>
-            <div>
-                <h1 class="text-lg sm:text-xl font-extrabold tracking-tight text-slate-800">
-                    Cổng Thông Tin
-                </h1>
             </div>
         </div>
 
@@ -231,7 +226,9 @@
                 <span class="px-4 py-1.5 rounded-full text-xs font-black uppercase tracking-wider bg-indigo-50 text-indigo-800 border border-indigo-200">
                     HỆ THỐNG QUẢN LÝ
                 </span>
-                <h2 class="text-2xl sm:text-4xl font-black text-slate-900 tracking-tight">Chào mừng bạn đến với Cổng Thông Tin</h2>
+                <h2 class="text-2xl sm:text-4xl font-black text-slate-900 tracking-tight">
+                    Chào mừng bạn đến với <span class="bg-gradient-to-r from-indigo-600 via-teal-600 to-emerald-600 bg-clip-text text-transparent font-black drop-shadow-sm">Cổng Thông Tin</span>
+                </h2>
                 <p class="text-xs sm:text-base text-slate-600 font-bold max-w-lg mx-auto">Vui lòng chọn một trong 4 chuyên mục bên dưới để xem hoặc thao tác nội dung</p>
             </div>
 
@@ -537,9 +534,9 @@
 
                 <form onsubmit="handleReportSubmit(event)" class="space-y-4">
                     <div class="space-y-1.5">
-                        <label class="block text-xs font-bold text-slate-700">Họ Và Tên Học Sinh <span class="text-rose-500">*</span></label>
+                        <label class="block text-xs font-bold text-slate-700">Ghi rõ họ và tên <span class="text-rose-500">*</span></label>
                         <div class="relative">
-                            <input type="text" id="reportSenderInput" oninput="handleBotNameInput()" placeholder="Ví dụ: Lê Duy Anh, Bình, Hân..."
+                            <input type="text" id="reportSenderInput" oninput="handleBotNameInput()" placeholder="Ví dụ: Lê Duy Anh, Nguyễn Thùy Giang..."
                                 class="w-full px-4 py-2.5 rounded-2xl bg-slate-50 border border-slate-300 focus:border-emerald-500 focus:bg-white text-xs sm:text-sm text-slate-800 focus:outline-none transition shadow-sm">
                             <input type="hidden" id="botMatchedStudentId" value="">
                         </div>
@@ -1019,6 +1016,30 @@
         </div>
     </div>
 
+    <!-- Modal Cảnh Báo Khi Thoát Lúc Đang Tải Ảnh -->
+    <div id="abortUploadWarningModal" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-slate-900/70 backdrop-blur-sm p-4">
+        <div class="light-card w-full max-w-sm rounded-3xl p-5 sm:p-6 shadow-2xl space-y-4 text-center">
+            <div class="w-14 h-14 rounded-2xl bg-rose-100 text-rose-600 mx-auto flex items-center justify-center text-2xl shadow-md border border-rose-200">
+                <i class="fa-solid fa-triangle-exclamation animate-bounce"></i>
+            </div>
+            <div>
+                <h3 class="text-base font-black text-slate-900">Ảnh Đang Được Gửi Lên!</h3>
+                <p class="text-xs text-slate-600 font-bold mt-1.5 leading-relaxed">
+                    Hệ thống đang tải minh chứng lên Google Drive. Nếu bạn thoát ngay bây giờ thì tệp ảnh sẽ bị mất và chưa được ghi nhận.
+                </p>
+            </div>
+            <div class="flex flex-col gap-2 pt-2">
+                <button type="button" onclick="continueUploadingWait()" class="w-full py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-black text-xs shadow-md shadow-emerald-600/20 transition active:scale-95 flex items-center justify-center gap-1.5">
+                    <i class="fa-solid fa-spinner fa-spin text-xs"></i>
+                    <span>Tiếp Tục Chờ</span>
+                </button>
+                <button type="button" onclick="confirmCancelUploadAndLeave()" class="w-full py-2.5 rounded-xl bg-slate-100 hover:bg-rose-50 text-slate-600 hover:text-rose-600 font-bold text-xs border border-slate-200 transition">
+                    <span>Hủy Gửi Để Thoát</span>
+                </button>
+            </div>
+        </div>
+    </div>
+
     <script>
         const DEFAULT_APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwpZiuet9torsA0NXfYzFML8k8loifWVrVR7n38ZEcyWtrrMsrbZS3VwixQOFh35khm/exec";
         const ADMIN_FIXED_PASSWORD = "Boiboi2021@";
@@ -1134,6 +1155,54 @@
         let currentViolationTimeFilter = "all";
         let isTrackingViolationsOpen = false;
         let isSubmittingReport = false;
+        let uploadAbortController = null;
+        let pendingLeaveAction = null;
+
+        // Cảnh báo trình duyệt khi tắt tab / reload lúc đang nộp ảnh
+        window.addEventListener('beforeunload', function (e) {
+            if (isSubmittingReport) {
+                e.preventDefault();
+                e.returnValue = 'Ảnh đang được tải lên! Nếu bạn rời đi, minh chứng sẽ không được lưu.';
+                return e.returnValue;
+            }
+        });
+
+        function checkBeforeLeavingAction(actionFn) {
+            if (isSubmittingReport) {
+                pendingLeaveAction = actionFn;
+                document.getElementById('abortUploadWarningModal').classList.remove('hidden');
+                return false;
+            }
+            return true;
+        }
+
+        function continueUploadingWait() {
+            document.getElementById('abortUploadWarningModal').classList.add('hidden');
+            pendingLeaveAction = null;
+        }
+
+        function confirmCancelUploadAndLeave() {
+            if (uploadAbortController) {
+                try { uploadAbortController.abort(); } catch (e) {}
+            }
+            isSubmittingReport = false;
+            const submitBtn = document.getElementById('submitReportBtn');
+            const submitBtnText = document.getElementById('submitReportBtnText');
+            const submitIcon = document.getElementById('submitReportIcon');
+            if (submitBtn) {
+                submitBtn.disabled = false;
+                submitBtn.classList.remove('opacity-75', 'cursor-not-allowed');
+            }
+            if (submitBtnText) submitBtnText.innerText = "Nộp Báo Cáo Ngay";
+            if (submitIcon) submitIcon.className = "fa-solid fa-paper-plane";
+            
+            document.getElementById('abortUploadWarningModal').classList.add('hidden');
+            showToast("Đã hủy quá trình gửi ảnh!", "info");
+            
+            const nextAction = pendingLeaveAction;
+            pendingLeaveAction = null;
+            if (typeof nextAction === 'function') nextAction();
+        }
 
         function getLocalISODate(d = new Date()) {
             const pad = num => String(num).padStart(2, '0');
@@ -1648,27 +1717,38 @@
             closeExportExcelModal(); showToast(`Đã xuất báo cáo thành công!`, "success");
         }
 
-        function goHomeHub() {
+        function doGoHomeHub() {
             const hub = document.getElementById('section-home-hub');
             hub.classList.remove('hidden');
             hub.classList.remove('animate-section-in');
-            void hub.offsetWidth; // ép reflow để kích hoạt lại hoạt ảnh mượt mà
+            void hub.offsetWidth;
             hub.classList.add('animate-section-in');
 
             ['violations', 'activities', 'academic', 'reports'].forEach(k => document.getElementById('section-' + k).classList.add('hidden'));
             window.scrollTo({ top: 0, behavior: 'smooth' });
         }
-        function switchSection(targetKey) {
+
+        function goHomeHub() {
+            if (!checkBeforeLeavingAction(doGoHomeHub)) return;
+            doGoHomeHub();
+        }
+
+        function doSwitchSection(targetKey) {
             document.getElementById('section-home-hub').classList.add('hidden');
             ['violations', 'activities', 'academic', 'reports'].forEach(k => document.getElementById('section-' + k).classList.add('hidden'));
             const targetSection = document.getElementById('section-' + targetKey);
             if (targetSection) { 
                 targetSection.classList.remove('hidden'); 
                 targetSection.classList.remove('animate-section-in');
-                void targetSection.offsetWidth; // ép reflow để kích hoạt lại hoạt ảnh mượt mà
+                void targetSection.offsetWidth;
                 targetSection.classList.add('animate-section-in');
                 window.scrollTo({ top: 0, behavior: 'smooth' }); 
             }
+        }
+
+        function switchSection(targetKey) {
+            if (!checkBeforeLeavingAction(() => doSwitchSection(targetKey))) return;
+            doSwitchSection(targetKey);
         }
 
         function toggleTrackingViolationsSection(forceState = null) {
@@ -1762,6 +1842,7 @@
 
         // Xử lý nút Tải Lại Trang Nhanh (hoạt động 100% không bao giờ lỗi)
         function handleQuickReloadPage(btnEl) {
+            if (!checkBeforeLeavingAction(() => handleQuickReloadPage(btnEl))) return;
             const icon = btnEl ? btnEl.querySelector('i') : null;
             if (icon) icon.classList.add('fa-spin');
             if (btnEl) btnEl.disabled = true;
@@ -1977,8 +2058,6 @@
                             </div>
                             <div class="flex items-center gap-2 w-full sm:w-auto">
                                 ${currentUserRole === 'admin' && trackParticipation ? `<button onclick="copyNotJoinedStudents('${m.id}')" class="w-full sm:w-auto px-4 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-amber-300 font-black text-xs sm:text-sm border border-slate-700 shadow-sm transition flex items-center justify-center gap-2"><i class="fa-regular fa-copy text-amber-400"></i><span>Copy DS Chưa Làm</span></button>` : ''}
-                                ${m.url ? `<button onclick="copyToClipboard('${m.url.replace(/'/g, "\\'")}', 'link phong trào')" class="px-3.5 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-purple-300 border border-slate-700 text-xs font-black shadow-sm transition flex items-center justify-center gap-1.5"><i class="fa-regular fa-copy"></i><span class="hidden sm:inline">Sao Chép</span></button>
-                                <a href="${m.url}" onclick="openExternalLink(event, '${m.url.replace(/'/g, "\\'")}')" class="w-full sm:w-auto px-5 py-2.5 rounded-xl bg-gradient-to-r from-purple-700 to-indigo-700 hover:from-purple-600 hover:to-indigo-600 text-white font-black text-xs sm:text-sm text-center shadow-md transition flex items-center justify-center gap-2"><span>Mở Link</span><i class="fa-solid fa-arrow-up-right-from-square text-xs"></i></a>` : ''}
                             </div>
                         </div>
                     </div>`;
@@ -2228,39 +2307,134 @@
         }
 
         function smartMatchStudent(rawInput) {
-            const inputClean = removeVietnameseTones(rawInput.trim().toLowerCase()); if (!inputClean) return { match: null, suggestions: [] };
-            const tokens = inputClean.split(/\s+/).filter(Boolean); const inputLastName = tokens[tokens.length - 1];
-            const candidates = [];
-            for (const s of students) {
-                const sClean = removeVietnameseTones(s.name.toLowerCase()); const sTokens = sClean.split(/\s+/); const sLastName = sTokens[sTokens.length - 1];
-                if (sClean === inputClean) return { match: s, suggestions: [] };
-                if (sLastName === inputLastName) candidates.push(s);
+            const inputClean = removeVietnameseTones(rawInput.trim().toLowerCase());
+            if (!inputClean) return { match: null, suggestions: [] };
+
+            // 1. Kiểm tra nếu trùng khớp chính xác 100% cả họ và tên
+            const exactMatch = students.find(s => removeVietnameseTones(s.name.toLowerCase()) === inputClean);
+            if (exactMatch) {
+                return { match: exactMatch, suggestions: [] };
             }
-            if (candidates.length === 1) return { match: candidates[0], suggestions: [] };
-            return { match: null, suggestions: candidates };
+
+            // 2. Chấm điểm độ tương đồng để lấy ra tối đa 3 bạn phù hợp nhất
+            const scoredList = [];
+            const inputTokens = inputClean.split(/\s+/).filter(Boolean);
+            const inputLastName = inputTokens[inputTokens.length - 1];
+
+            students.forEach(s => {
+                const sClean = removeVietnameseTones(s.name.toLowerCase());
+                const sTokens = sClean.split(/\s+/).filter(Boolean);
+                const sLastName = sTokens[sTokens.length - 1];
+
+                let score = 0;
+
+                // Tên chính khớp tuyệt đối (ví dụ gõ "Hân" hoặc "Bình")
+                if (sLastName === inputLastName) {
+                    score += 50;
+                } else if (sLastName.startsWith(inputLastName)) {
+                    score += 25;
+                }
+
+                // Cả chuỗi chứa từ khóa tìm kiếm
+                if (sClean.includes(inputClean)) {
+                    score += 30;
+                }
+
+                // Kiểm tra từng từ khóa người dùng nhập vào
+                inputTokens.forEach(t => {
+                    if (sTokens.includes(t)) {
+                        score += 15;
+                    } else if (sTokens.some(tok => tok.startsWith(t))) {
+                        score += 8;
+                    }
+                });
+
+                if (score > 0) {
+                    scoredList.push({ student: s, score: score });
+                }
+            });
+
+            // Sắp xếp điểm từ cao xuống thấp và lấy đúng 3 bạn học sinh phù hợp nhất
+            scoredList.sort((a, b) => b.score - a.score);
+            const top3Suggestions = scoredList.slice(0, 3).map(item => item.student);
+
+            // Nếu chỉ có duy nhất 1 kết quả đạt điểm rất cao và trùng tên chính
+            if (top3Suggestions.length === 1 && scoredList[0].score >= 50) {
+                return { match: top3Suggestions[0], suggestions: [] };
+            }
+
+            return { match: null, suggestions: top3Suggestions };
         }
 
         function handleBotNameInput() {
-            const rawVal = document.getElementById('reportSenderInput').value; const suggestionBox = document.getElementById('botSuggestionBox'); const hiddenId = document.getElementById('botMatchedStudentId');
-            hiddenId.value = ''; if (!rawVal.trim()) { suggestionBox.classList.add('hidden'); return; }
+            const rawVal = document.getElementById('reportSenderInput').value;
+            const suggestionBox = document.getElementById('botSuggestionBox');
+            const hiddenId = document.getElementById('botMatchedStudentId');
+            hiddenId.value = '';
+
+            if (!rawVal.trim()) {
+                suggestionBox.classList.add('hidden');
+                return;
+            }
+
             const { match, suggestions } = smartMatchStudent(rawVal);
+
             if (match) {
                 hiddenId.value = match.id;
-                suggestionBox.innerHTML = `<div class="text-emerald-700 font-bold flex items-center gap-1.5"><i class="fa-solid fa-robot"></i><span>Bot đã nhận diện: ${match.name} (STT #${match.stt})</span></div>`;
+                suggestionBox.innerHTML = `
+                    <div class="text-emerald-700 font-bold flex items-center justify-between gap-1.5 p-1">
+                        <div class="flex items-center gap-2 truncate">
+                            <i class="fa-solid fa-circle-check text-emerald-600 text-sm flex-shrink-0"></i>
+                            <span class="truncate">Bot đã nhận diện: <b>${match.name}</b> (STT #${match.stt})</span>
+                        </div>
+                    </div>
+                `;
                 suggestionBox.classList.remove('hidden');
             } else if (suggestions.length > 0) {
-                suggestionBox.innerHTML = `<div class="text-amber-800 font-semibold mb-1 flex items-center gap-1.5"><i class="fa-solid fa-robot text-amber-600"></i><span>Có nhiều bạn tên "${rawVal}". Chọn bạn:</span></div><div class="flex flex-wrap gap-1.5">${suggestions.map(s => `<button type="button" onclick="selectBotStudentSuggestion('${s.id}', '${s.name}')" class="px-2.5 py-1 rounded-lg bg-white hover:bg-emerald-600 text-slate-700 hover:text-white text-xs border border-slate-300 shadow-sm">#${s.stt} - ${s.name}</button>`).join('')}</div>`;
+                suggestionBox.innerHTML = `
+                    <div class="text-indigo-900 font-bold mb-1.5 flex items-center gap-1.5">
+                        <i class="fa-solid fa-robot text-indigo-600 text-xs"></i>
+                        <span>Gợi ý học sinh phù hợp (chạm để chọn):</span>
+                    </div>
+                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-1.5">
+                        ${suggestions.map(s => `
+                            <button type="button" onclick="selectBotStudentSuggestion('${s.id}', '${s.name.replace(/'/g, "\\'")}')" 
+                                class="px-3 py-2 rounded-xl bg-white hover:bg-emerald-600 hover:text-white text-slate-800 text-xs font-bold border border-emerald-300 shadow-sm transition active:scale-95 flex items-center justify-between sm:justify-center gap-1.5 text-left">
+                                <span class="truncate">#${s.stt} - ${s.name}</span>
+                                <i class="fa-solid fa-check text-[10px] text-emerald-600 sm:hidden"></i>
+                            </button>
+                        `).join('')}
+                    </div>
+                `;
                 suggestionBox.classList.remove('hidden');
-            } else { suggestionBox.classList.add('hidden'); }
+            } else {
+                suggestionBox.classList.add('hidden');
+            }
         }
-        function selectBotStudentSuggestion(id, name) { document.getElementById('reportSenderInput').value = name; document.getElementById('botMatchedStudentId').value = id; handleBotNameInput(); }
+
+        function selectBotStudentSuggestion(id, name) {
+            document.getElementById('reportSenderInput').value = name;
+            document.getElementById('botMatchedStudentId').value = id;
+            handleBotNameInput();
+        }
 
         function handleImageSelection(event) {
             const file = event.target.files[0]; if (!file) return;
             if (!file.type.startsWith('image/')) {
                 showToast("Vui lòng chỉ chọn tệp hình ảnh, không gửi tài liệu!", "error"); cancelImageSelection(); return;
             }
-            currentReportFileName = file.name || "file_minh_chung"; currentReportFileType = file.type || "application/octet-stream";
+            // Lấy đúng phần đuôi mở rộng của tệp gốc (vd: .jpg, .png, .jpeg, .webp...)
+            let fileExt = "jpg";
+            if (file.name && file.name.lastIndexOf(".") !== -1) {
+                fileExt = file.name.substring(file.name.lastIndexOf(".") + 1).toLowerCase();
+            } else if (file.type && file.type.includes("/")) {
+                fileExt = file.type.split("/")[1].toLowerCase().replace("jpeg", "jpg");
+            }
+
+            currentReportFileName = file.name || "file_minh_chung"; 
+            currentReportFileType = file.type || "application/octet-stream";
+            currentReportFileExt = fileExt;
+
             document.getElementById('imageUploadPlaceholder').classList.add('hidden');
             const reader = new FileReader();
             reader.onerror = function() { showToast("Không thể đọc tệp này!", "error"); cancelImageSelection(); };
@@ -2276,6 +2450,7 @@
 
         function cancelImageSelection(e) {
             if (e) e.stopPropagation(); currentReportImageBase64 = null; currentReportFileName = ""; currentReportFileType = "";
+            currentReportFileExt = "jpg";
             const fileInput = document.getElementById('reportFileInput'); if (fileInput) fileInput.value = '';
             document.getElementById('imagePreviewContainer').classList.add('hidden');
             document.getElementById('imageUploadPlaceholder').classList.remove('hidden');
@@ -2302,20 +2477,53 @@
                 if (!chosenMovement.participantIds.includes(student.id)) { chosenMovement.participantIds.push(student.id); botMsg = `Đã tự động cập nhật bạn ${student.name} vào danh sách!`; }
             }
 
+            // Định dạng tên file sạch sẽ: CHỈ HỌ VÀ TÊN + ĐUÔI TỆP (Vd: "Đoàn Minh Hào.jpg")
+            const officialStudentName = student ? student.name : senderName;
+            const cleanExtension = (typeof currentReportFileExt !== 'undefined' && currentReportFileExt) ? currentReportFileExt : "jpg";
+            const finalCleanFileName = `${officialStudentName}.${cleanExtension}`;
+
             const submitBtn = document.getElementById('submitReportBtn'); const submitBtnText = document.getElementById('submitReportBtnText'); const submitIcon = document.getElementById('submitReportIcon');
-            isSubmittingReport = true; submitBtn.disabled = true; submitBtn.classList.add('opacity-75', 'cursor-not-allowed'); submitBtnText.innerText = "Đang gửi dữ liệu..."; submitIcon.className = "fa-solid fa-spinner fa-spin";
+            isSubmittingReport = true; 
+            submitBtn.disabled = true; 
+            submitBtn.classList.add('opacity-75', 'cursor-not-allowed'); 
+            submitBtnText.innerText = "Đang gửi dữ liệu..."; 
+            submitIcon.className = "fa-solid fa-spinner fa-spin";
+
+            uploadAbortController = new AbortController();
 
             if (appsScriptUrl) {
                 try {
                     await fetch(appsScriptUrl, {
                         method: "POST", mode: "no-cors", headers: { "Content-Type": "application/json" },
-                        body: JSON.stringify({ action: "uploadImage", senderName: senderName, studentId: student ? student.id : "", studentStt: student ? student.stt : "", movementId: movementId, movementTitle: chosenMovement.title, storageId: matchedStorage ? matchedStorage.id : "", storageName: matchedStorage ? matchedStorage.name : "Ổ mặc định", storageUrl: matchedStorage ? matchedStorage.url : "", fileName: currentReportFileName, fileType: currentReportFileType, imageBase64: currentReportImageBase64, timestamp: new Date().toISOString() })
+                        signal: uploadAbortController.signal,
+                        body: JSON.stringify({ 
+                            action: "uploadImage", 
+                            senderName: officialStudentName, 
+                            studentId: student ? student.id : "", 
+                            studentStt: student ? student.stt : "", 
+                            movementId: movementId, 
+                            movementTitle: chosenMovement.title, 
+                            storageId: matchedStorage ? matchedStorage.id : "", 
+                            storageName: matchedStorage ? matchedStorage.name : "Ổ mặc định", 
+                            storageUrl: matchedStorage ? matchedStorage.url : "", 
+                            fileName: finalCleanFileName, 
+                            fileType: currentReportFileType, 
+                            imageBase64: currentReportImageBase64, 
+                            timestamp: new Date().toISOString() 
+                        })
                     });
-                } catch (err) {}
+                } catch (err) {
+                    if (err.name === 'AbortError') return;
+                }
             }
 
             saveStorageData(); renderMovementsCards(); renderStudentsList();
-            isSubmittingReport = false; submitBtn.disabled = false; submitBtn.classList.remove('opacity-75', 'cursor-not-allowed'); submitBtnText.innerText = "Nộp Báo Cáo Ngay"; submitIcon.className = "fa-solid fa-paper-plane";
+            isSubmittingReport = false; 
+            uploadAbortController = null;
+            submitBtn.disabled = false; 
+            submitBtn.classList.remove('opacity-75', 'cursor-not-allowed'); 
+            submitBtnText.innerText = "Nộp Báo Cáo Ngay"; 
+            submitIcon.className = "fa-solid fa-paper-plane";
 
             document.getElementById('reportSenderInput').value = ''; document.getElementById('botMatchedStudentId').value = ''; document.getElementById('reportMovementSelect').value = '';
             document.getElementById('customMovementPickerLabel').innerText = "-- Chọn phong trào cần nộp ảnh --";
@@ -2327,6 +2535,8 @@
             if (e) e.preventDefault();
             if (!url) return;
             
+            if (!checkBeforeLeavingAction(() => { window.location.href = url; })) return;
+
             if (e && e.currentTarget) {
                 const icon = e.currentTarget.querySelector('.fa-arrow-up-right-from-square');
                 if (icon) {
