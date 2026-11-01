@@ -546,7 +546,6 @@
             </div>
             <div>
                 <label class="block text-[11px] font-bold text-slate-600 mb-1">Nhập Mật Khẩu Admin</label>
-                <!-- Đã xóa gợi ý mật khẩu -->
                 <input type="password" id="adminPasswordInput" placeholder="Nhập mật khẩu..."
                     onkeydown="if(event.key === 'Enter') verifyAdminPassword()"
                     class="w-full px-3.5 py-2.5 rounded-xl bg-slate-50 border border-slate-300 text-xs text-slate-800 focus:outline-none focus:border-amber-600 focus:bg-white shadow-sm">
@@ -1190,7 +1189,9 @@
             const syncIcon = document.getElementById('cloudSyncIcon');
             if (syncIcon) syncIcon.classList.add('fa-spin');
             try {
-                const response = await fetch(appsScriptUrl);
+                // Thêm mã chống lưu Cache, ép trình duyệt luôn tải dữ liệu mới nhất
+                const urlWithNoCache = appsScriptUrl + (appsScriptUrl.includes('?') ? '&' : '?') + "t=" + new Date().getTime();
+                const response = await fetch(urlWithNoCache);
                 const resJson = await response.json();
                 if (resJson && resJson.status === "success" && resJson.data) {
                     const cloudData = resJson.data;
@@ -1233,7 +1234,8 @@
             if (!appsScriptUrl) {
                 openAppsScriptModal(); showToast("Vui lòng dán Link Apps Script trước!", "info"); return;
             }
-            await pushDataToGoogleSheet(false);
+            // Lấy dữ liệu về (Pull) để tránh việc Admin ghi đè mất dữ liệu nộp của học sinh
+            await fetchLatestDataFromSheet(true);
         }
 
         function loadStorageData() {
@@ -2062,7 +2064,7 @@
             document.getElementById('imageUploadPlaceholder').classList.remove('hidden');
         }
 
-        function handleReportSubmit(e) {
+        async function handleReportSubmit(e) {
             e.preventDefault();
             if (isSubmittingReport) { showToast("Đang xử lý, vui lòng chờ...", "info"); return; }
             const senderName = document.getElementById('reportSenderInput').value.trim(); const matchedId = document.getElementById('botMatchedStudentId').value; const movementId = document.getElementById('reportMovementSelect').value;
@@ -2088,8 +2090,8 @@
 
             if (appsScriptUrl) {
                 try {
-                    // Dùng await bên trong hàm async ẩn danh hoặc gọi fetch bình thường
-                    fetch(appsScriptUrl, {
+                    // Thêm chữ await để đảm bảo dữ liệu phải được tải xong mới cho web chạy tiếp
+                    await fetch(appsScriptUrl, {
                         method: "POST", mode: "no-cors", headers: { "Content-Type": "application/json" },
                         body: JSON.stringify({ action: "uploadImage", senderName: senderName, studentId: student ? student.id : "", studentStt: student ? student.stt : "", movementId: movementId, movementTitle: chosenMovement.title, storageId: matchedStorage ? matchedStorage.id : "", storageName: matchedStorage ? matchedStorage.name : "Ổ mặc định", storageUrl: matchedStorage ? matchedStorage.url : "", fileName: currentReportFileName, fileType: currentReportFileType, imageBase64: currentReportImageBase64, timestamp: new Date().toISOString() })
                     });
