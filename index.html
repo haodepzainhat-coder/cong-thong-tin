@@ -1157,6 +1157,7 @@
         let isSubmittingReport = false;
         let uploadAbortController = null;
         let pendingLeaveAction = null;
+        let savedHomeScrollY = 0; // Biến lưu lại vị trí cuộn trang chủ
 
         // BẮT BUỘC KHÓA TRÌNH DUYỆT KHI ĐÓNG TAB / TẮT APP
         window.addEventListener('beforeunload', function (e) {
@@ -1741,7 +1742,9 @@
             hub.classList.add('animate-section-in');
 
             ['violations', 'activities', 'academic', 'reports'].forEach(k => document.getElementById('section-' + k).classList.add('hidden'));
-            window.scrollTo({ top: 0, behavior: 'smooth' });
+            
+            // Khôi phục lại đúng vị trí cuộn trước đó ở Trang Chủ, không giật về đỉnh trang
+            window.scrollTo({ top: savedHomeScrollY, behavior: 'instant' });
         }
 
         function goHomeHub() {
@@ -1750,6 +1753,9 @@
         }
 
         function doSwitchSection(targetKey) {
+            // Lưu lại vị trí cuộn hiện tại của Trang Chủ trước khi vào mục con
+            savedHomeScrollY = window.pageYOffset || document.documentElement.scrollTop || 0;
+
             document.getElementById('section-home-hub').classList.add('hidden');
             ['violations', 'activities', 'academic', 'reports'].forEach(k => document.getElementById('section-' + k).classList.add('hidden'));
             const targetSection = document.getElementById('section-' + targetKey);
@@ -1758,7 +1764,7 @@
                 targetSection.classList.remove('animate-section-in');
                 void targetSection.offsetWidth;
                 targetSection.classList.add('animate-section-in');
-                window.scrollTo({ top: 0, behavior: 'smooth' }); 
+                window.scrollTo({ top: 0, behavior: 'instant' }); 
             }
         }
 
@@ -2154,7 +2160,11 @@
             const m = movements.find(item => item.id === movementId); if (!m) return;
             const notJoinedStudents = students.filter(s => !(m.participantIds || []).includes(s.id));
             if (notJoinedStudents.length === 0) { showToast(`Tuyệt vời! Tất cả học sinh đều đã tham gia.`, "success"); return; }
-            const text = `📋 DANH SÁCH CHƯA THAM GIA PHONG TRÀO:\n"${m.title}"\nTổng số: ${notJoinedStudents.length}/${students.length} học sinh\n--------------------------------\n` + notJoinedStudents.map(s => `${s.stt}. ${s.name}`).join('\n');
+            
+            const deadlineText = formatMovementDeadline(m.deadline);
+            const mainWebUrl = "https://haodepzainhat-coder.github.io/cong-thong-tin/";
+
+            const text = `📋 DANH SÁCH CHƯA THAM GIA PHONG TRÀO:\n"${m.title}"\n⏰ ${deadlineText}\n🌐 Vào làm bài / nộp minh chứng tại: ${mainWebUrl}\n📊 Tổng số: ${notJoinedStudents.length}/${students.length} học sinh\n--------------------------------\n` + notJoinedStudents.map(s => `${s.stt}. ${s.name}`).join('\n');
             copyToClipboard(text, "Danh sách");
         }
 
