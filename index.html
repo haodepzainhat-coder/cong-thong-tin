@@ -2086,6 +2086,9 @@
             if (!m) return;
             m.isPinned = !m.isPinned;
             saveStorageData();
+            if (currentUserRole === 'admin' && appsScriptUrl) {
+                pushDataToGoogleSheet(true);
+            }
             renderMovementsCards();
             showToast(m.isPinned ? `Đã ghim "${m.title}" lên đầu!` : `Đã bỏ ghim "${m.title}"!`, "info");
         }
@@ -2095,6 +2098,9 @@
             if (!t) return;
             t.isPinned = !t.isPinned;
             saveStorageData();
+            if (currentUserRole === 'admin' && appsScriptUrl) {
+                pushDataToGoogleSheet(true);
+            }
             renderAcademicTasks();
             showToast(t.isPinned ? `Đã ghim "${t.title}" lên đầu!` : `Đã bỏ ghim "${t.title}"!`, "info");
         }
@@ -2314,9 +2320,19 @@
             };
             if (editId) { const m = movements.find(item => item.id === editId); if (m) Object.assign(m, payload); showToast("Đã cập nhật!", "success"); } 
             else { movements.unshift(Object.assign({ id: "mov_" + Date.now(), participantIds: [] }, payload)); showToast("Đã tạo mới!", "success"); }
-            saveStorageData(); closeCreateMovementModal(); renderMovementsCards();
+            saveStorageData(); 
+            if (currentUserRole === 'admin' && appsScriptUrl) pushDataToGoogleSheet(true);
+            closeCreateMovementModal(); 
+            renderMovementsCards();
         }
-        function deleteMovement(id) { movements = movements.filter(m => m.id !== id); saveStorageData(); renderMovementsCards(); populateReportMovementsDropdown(); showToast("Đã xóa!", "info"); }
+        function deleteMovement(id) { 
+            movements = movements.filter(m => m.id !== id); 
+            saveStorageData(); 
+            if (currentUserRole === 'admin' && appsScriptUrl) pushDataToGoogleSheet(true);
+            renderMovementsCards(); 
+            populateReportMovementsDropdown(); 
+            showToast("Đã xóa!", "info"); 
+        }
 
         function renderAcademicTasks() {
             const container = document.getElementById('academicTasksContainer'); if (!container) return;
@@ -2400,9 +2416,18 @@
             };
             if (editId) { const task = academicTasks.find(t => t.id === editId); if (task) Object.assign(task, payload); showToast("Đã cập nhật!", "success"); }
             else { academicTasks.unshift(Object.assign({ id: "aca_" + Date.now() }, payload)); showToast("Đã đăng bài tập mới!", "success"); }
-            saveStorageData(); closeCreateAcademicModal(); renderAcademicTasks();
+            saveStorageData(); 
+            if (currentUserRole === 'admin' && appsScriptUrl) pushDataToGoogleSheet(true);
+            closeCreateAcademicModal(); 
+            renderAcademicTasks();
         }
-        function deleteAcademicTask(id) { academicTasks = academicTasks.filter(t => t.id !== id); saveStorageData(); renderAcademicTasks(); showToast("Đã xóa!", "info"); }
+        function deleteAcademicTask(id) { 
+            academicTasks = academicTasks.filter(t => t.id !== id); 
+            saveStorageData(); 
+            if (currentUserRole === 'admin' && appsScriptUrl) pushDataToGoogleSheet(true);
+            renderAcademicTasks(); 
+            showToast("Đã xóa!", "info"); 
+        }
 
         function toggleCustomMovementDropdown() {
             const menu = document.getElementById('customMovementDropdownMenu'); const arrow = document.getElementById('customMovementPickerArrow'); if (!menu) return;
