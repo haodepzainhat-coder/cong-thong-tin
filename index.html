@@ -1422,14 +1422,65 @@
                 if (resJson && resJson.status === "success" && resJson.data) {
                     const cloudData = resJson.data;
                     if (cloudData.students && cloudData.students.length > 0) students = cloudData.students;
-                    if (cloudData.movements) movements = cloudData.movements;
-                    if (cloudData.academicTasks) academicTasks = cloudData.academicTasks;
+                    
+                    // CƠ CHẾ KHÓA BẢO VỆ: Chống ghi đè mất ghim nếu Google Sheet lưu chậm
+                    const lastPinActionStr = localStorage.getItem("cct_last_pin_action");
+                    const lastPinActionTime = lastPinActionStr ? parseInt(lastPinActionStr, 10) : 0;
+                    const isRecentPin = (Date.now() - lastPinActionTime) < 15000; // Bảo vệ ghim trong 15 giây
+
+                    if (cloudData.movements) {
+                        movements = cloudData.movements.map(m => {
+                            const localMatch = movements.find(oldM => oldM.id === m.id);
+                            const sheetPinned = (m.isPinned === true || String(m.isPinned).toLowerCase() === 'true' || m.isPinned === 1);
+                            
+                            let finalPinned = sheetPinned;
+                            // Nếu bạn vừa ghim (dưới 15s) mà tải lại ngay, hệ thống sẽ giữ ghim của bạn thay vì lấy từ Sheet chưa lưu kịp
+                            if (isRecentPin && localMatch) {
+                                finalPinned = !!localMatch.isPinned;
+                            } else if (m.isPinned === undefined && localMatch) {
+                                finalPinned = !!localMatch.isPinned;
+                            }
+
+                            return {
+                                ...m,
+                                isPinned: finalPinned
+                            };
+                        });
+                    }
+
+                    if (cloudData.academicTasks) {
+                        academicTasks = cloudData.academicTasks.map(t => {
+                            const localMatch = academicTasks.find(oldT => oldT.id === t.id);
+                            const sheetPinned = (t.isPinned === true || String(t.isPinned).toLowerCase() === 'true' || t.isPinned === 1);
+                            
+                            let finalPinned = sheetPinned;
+                            // Bảo vệ ghim Góc học tập tương tự
+                            if (isRecentPin && localMatch) {
+                                finalPinned = !!localMatch.isPinned;
+                            } else if (t.isPinned === undefined && localMatch) {
+                                finalPinned = !!localMatch.isPinned;
+                            }
+
+                            return {
+                                ...t,
+                                isPinned: finalPinned
+                            };
+                        });
+                    }
+
                     if (cloudData.storageFolders) storageFolders = cloudData.storageFolders;
+                    
                     localStorage.setItem("cct_students", JSON.stringify(students));
                     localStorage.setItem("cct_movements", JSON.stringify(movements));
                     localStorage.setItem("cct_academics", JSON.stringify(academicTasks));
                     localStorage.setItem("cct_storage_folders", JSON.stringify(storageFolders));
-                    renderStudentsList(); renderMovementsCards(); renderAcademicTasks(); renderStorageFolders(); populateStorageDropdowns(); populateReportMovementsDropdown();
+                    
+                    renderStudentsList(); 
+                    renderMovementsCards(); 
+                    renderAcademicTasks(); 
+                    renderStorageFolders(); 
+                    populateStorageDropdowns(); 
+                    populateReportMovementsDropdown();
                     updateCloudStatusBadge("connected");
                     if (showNotify) showToast("Đã cập nhật dữ liệu mới nhất từ Google Sheet!", "success");
                 }
@@ -1448,7 +1499,12 @@
                 data: { students: students, movements: movements, academicTasks: academicTasks, storageFolders: storageFolders }
             };
             try {
-                await fetch(appsScriptUrl, { method: "POST", mode: "no-cors", headers: { "Content-Type": "application/json" }, body: JSON.stringify(payload) });
+                await fetch(appsScriptUrl, { 
+                    method: "POST", 
+                    mode: "no-cors", 
+                    headers: { "Content-Type": "application/json" }, 
+                    body: JSON.stringify(payload) 
+                });
                 updateCloudStatusBadge("connected");
                 if (!silent) showToast("Đã lưu dữ liệu lên Google Sheet thành công!", "success");
             } catch (err) {
@@ -1468,8 +1524,16 @@
                 const savedUrl = localStorage.getItem("cct_apps_script_url");
                 if (savedUrl) appsScriptUrl = savedUrl;
                 const savedStudents = localStorage.getItem("cct_students"); students = savedStudents ? JSON.parse(savedStudents) : DEFAULT_STUDENTS_LIST;
-                const savedMovements = localStorage.getItem("cct_movements"); movements = savedMovements ? JSON.parse(savedMovements) : DEFAULT_MOVEMENTS;
-                const savedAcademics = localStorage.getItem("cct_academics"); academicTasks = savedAcademics ? JSON.parse(savedAcademics) : DEFAULT_ACADEMICS;
+                const savedMovements = localStorage.getItem("cct_movements"); 
+                movements = savedMovements ? JSON.parse(savedMovements).map(m => ({
+                    ...m,
+                    isPinned: m.isPinned === true || String(m.isPinned).toLowerCase() === 'true' || m.isPinned === 1
+                })) : DEFAULT_MOVEMENTS;
+                const savedAcademics = localStorage.getItem("cct_academics"); 
+                academicTasks = savedAcademics ? JSON.parse(savedAcademics).map(t => ({
+                    ...t,
+                    isPinned: t.isPinned === true || String(t.isPinned).toLowerCase() === 'true' || t.isPinned === 1
+                })) : DEFAULT_ACADEMICS;
                 const savedStorageFolders = localStorage.getItem("cct_storage_folders"); storageFolders = savedStorageFolders ? JSON.parse(savedStorageFolders) : DEFAULT_STORAGE_FOLDERS;
             } catch (e) {
                 students = DEFAULT_STUDENTS_LIST; movements = DEFAULT_MOVEMENTS; academicTasks = DEFAULT_ACADEMICS; storageFolders = DEFAULT_STORAGE_FOLDERS;
@@ -2061,11 +2125,11 @@
             const activeList = []; const expiredList = [];
             movements.forEach(m => isMovementExpired(m.deadline) ? expiredList.push(m) : activeList.push(m));
             
-            // Sắp xếp: Ưu tiên mục ĐƯỢC GHIM lên đầu, sau đó mới xếp theo hạn chót
+            // Sắp xếp: Mục ĐÃ GHIM luôn luôn đứng đầu danh sách kể cả cho học sinh
             const sortMovements = (list) => {
                 list.sort((a, b) => {
-                    const pinA = a.isPinned ? 1 : 0;
-                    const pinB = b.isPinned ? 1 : 0;
+                    const pinA = (a.isPinned === true || String(a.isPinned).toLowerCase() === 'true' || a.isPinned === 1) ? 1 : 0;
+                    const pinB = (b.isPinned === true || String(b.isPinned).toLowerCase() === 'true' || b.isPinned === 1) ? 1 : 0;
                     if (pinA !== pinB) return pinB - pinA;
                     if (!a.deadline && !b.deadline) return 0;
                     if (!a.deadline) return 1;
@@ -2081,40 +2145,61 @@
             expiredContainer.innerHTML = expiredList.length === 0 ? `<div class="light-card p-4 rounded-2xl text-center text-xs text-slate-400 italic">Chưa có phong trào nào hết hạn.</div>` : expiredList.map(m => generateMovementHtml(m, true)).join('');
         }
 
-        function togglePinMovement(movementId) {
+        async function togglePinMovement(movementId) {
             const m = movements.find(item => item.id === movementId);
             if (!m) return;
-            m.isPinned = !m.isPinned;
-            saveStorageData();
-            if (currentUserRole === 'admin' && appsScriptUrl) {
-                pushDataToGoogleSheet(true);
-            }
+            // Đảo ngược trạng thái ghim
+            m.isPinned = !(m.isPinned === true || String(m.isPinned).toLowerCase() === 'true' || m.isPinned === 1);
+            
+            // 1. Lưu ngay tức thì vào bộ nhớ máy và ĐÁNH DẤU THỜI GIAN GHIM
+            try {
+                localStorage.setItem("cct_movements", JSON.stringify(movements));
+                localStorage.setItem("cct_last_pin_action", Date.now().toString());
+            } catch(e) {}
+
+            // 2. Cập nhật giao diện ngay lập tức
             renderMovementsCards();
             showToast(m.isPinned ? `Đã ghim "${m.title}" lên đầu!` : `Đã bỏ ghim "${m.title}"!`, "info");
+            
+            // 3. Đẩy lên Google Sheet để đồng bộ cho toàn bộ học sinh
+            if (appsScriptUrl) {
+                await pushDataToGoogleSheet(true);
+            }
         }
 
-        function togglePinAcademic(taskId) {
+        async function togglePinAcademic(taskId) {
             const t = academicTasks.find(item => item.id === taskId);
             if (!t) return;
-            t.isPinned = !t.isPinned;
-            saveStorageData();
-            if (currentUserRole === 'admin' && appsScriptUrl) {
-                pushDataToGoogleSheet(true);
-            }
+            // Đảo ngược trạng thái ghim
+            t.isPinned = !(t.isPinned === true || String(t.isPinned).toLowerCase() === 'true' || t.isPinned === 1);
+            
+            // 1. Lưu ngay tức thì vào bộ nhớ máy và ĐÁNH DẤU THỜI GIAN GHIM
+            try {
+                localStorage.setItem("cct_academics", JSON.stringify(academicTasks));
+                localStorage.setItem("cct_last_pin_action", Date.now().toString());
+            } catch(e) {}
+
+            // 2. Cập nhật giao diện ngay lập tức
             renderAcademicTasks();
             showToast(t.isPinned ? `Đã ghim "${t.title}" lên đầu!` : `Đã bỏ ghim "${t.title}"!`, "info");
+            
+            // 3. Đẩy lên Google Sheet để đồng bộ cho toàn bộ học sinh
+            if (appsScriptUrl) {
+                await pushDataToGoogleSheet(true);
+            }
         }
 
         function generateMovementHtml(m, isExpired) {
             const trackParticipation = m.trackParticipation !== false;
+            const isPinnedItem = m.isPinned === true || String(m.isPinned).toLowerCase() === 'true' || m.isPinned === 1;
             const participantCount = m.participantIds ? m.participantIds.length : 0; const totalStudents = students.length;
             const matchedStorage = m.storageId ? storageFolders.find(s => s.id === m.storageId) : null;
             const deadlineText = formatMovementDeadline(m.deadline); const urgentInfo = !isExpired ? getMovementUrgentStatus(m.deadline) : { isUrgent: false };
-            const pinBadge = m.isPinned ? `<span class="px-2.5 py-1 rounded-xl text-[11px] font-black bg-amber-500 text-white shadow-sm flex items-center gap-1"><i class="fa-solid fa-thumbtack text-[10px]"></i><span>Đã ghim</span></span>` : '';
+            const pinBadge = isPinnedItem ? `<span class="px-2.5 py-1 rounded-xl text-[11px] font-black bg-amber-500 text-white shadow-sm flex items-center gap-1"><i class="fa-solid fa-thumbtack text-[10px]"></i><span>Đã ghim</span></span>` : '';
             
             if (isExpired) {
                 return `
-                    <div class="p-4 sm:p-5 rounded-2xl border ${m.isPinned ? 'border-amber-500 ring-2 ring-amber-500/30' : 'border-slate-700'} bg-slate-900/95 text-slate-100 flex flex-col gap-3 shadow-lg transition">
+                    <div class="p-4 sm:p-5 rounded-2xl border ${isPinnedItem ? 'border-amber-500 ring-2 ring-amber-500/30' : 'border-slate-700'} bg-slate-900/95 text-slate-100 flex flex-col gap-3 shadow-lg transition">
                         <div class="flex flex-col sm:flex-row sm:items-start justify-between gap-3">
                             <div class="space-y-2 flex-1">
                                 <div class="flex flex-col sm:flex-row sm:items-center gap-2 flex-wrap">
@@ -2129,7 +2214,7 @@
                             </div>
                             ${currentUserRole === 'admin' ? `
                                 <div class="self-end sm:self-auto flex items-center gap-1.5 flex-shrink-0">
-                                    <button onclick="togglePinMovement('${m.id}')" title="${m.isPinned ? 'Bỏ ghim' : 'Ghim lên đầu'}" class="p-1.5 rounded-lg text-xs transition ${m.isPinned ? 'bg-amber-500/20 text-amber-400' : 'text-slate-400 hover:text-amber-400'}"><i class="fa-solid fa-thumbtack"></i></button>
+                                    <button onclick="togglePinMovement('${m.id}')" title="${isPinnedItem ? 'Bỏ ghim' : 'Ghim lên đầu'}" class="p-1.5 rounded-lg text-xs transition ${isPinnedItem ? 'bg-amber-500/20 text-amber-400 font-bold' : 'text-slate-400 hover:text-amber-400'}"><i class="fa-solid fa-thumbtack"></i></button>
                                     <button onclick="openEditMovementModal('${m.id}')" class="text-slate-400 hover:text-indigo-400 text-xs p-1"><i class="fa-solid fa-pen-to-square"></i></button>
                                     <button onclick="deleteMovement('${m.id}')" class="text-slate-400 hover:text-rose-400 text-xs p-1"><i class="fa-solid fa-trash-can"></i></button>
                                 </div>` : ''}
@@ -2153,7 +2238,7 @@
             }
             if (urgentInfo.isUrgent) {
                 return `
-                    <div class="urgent-card-glow p-4 sm:p-5 rounded-2xl border-2 ${m.isPinned ? 'border-amber-500 ring-2 ring-amber-400/40' : 'border-rose-500'} bg-gradient-to-r from-rose-50 via-amber-50/70 to-white flex flex-col gap-3 transition relative overflow-hidden">
+                    <div class="urgent-card-glow p-4 sm:p-5 rounded-2xl border-2 ${isPinnedItem ? 'border-amber-500 ring-2 ring-amber-400/40' : 'border-rose-500'} bg-gradient-to-r from-rose-50 via-amber-50/70 to-white flex flex-col gap-3 transition relative overflow-hidden">
                         <div class="absolute -top-1 -right-1"><span class="flex h-3 w-3"><span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-rose-400 opacity-75"></span><span class="relative inline-flex rounded-full h-3 w-3 bg-rose-600"></span></span></div>
                         <div class="flex flex-col sm:flex-row sm:items-start justify-between gap-3">
                             <div class="space-y-2 flex-1">
@@ -2170,7 +2255,7 @@
                             </div>
                             ${currentUserRole === 'admin' ? `
                                 <div class="self-end sm:self-auto flex items-center gap-1.5 flex-shrink-0">
-                                    <button onclick="togglePinMovement('${m.id}')" title="${m.isPinned ? 'Bỏ ghim' : 'Ghim lên đầu'}" class="p-1.5 rounded-lg text-xs transition ${m.isPinned ? 'bg-amber-100 text-amber-700' : 'text-slate-400 hover:text-amber-600'}"><i class="fa-solid fa-thumbtack"></i></button>
+                                    <button onclick="togglePinMovement('${m.id}')" title="${isPinnedItem ? 'Bỏ ghim' : 'Ghim lên đầu'}" class="p-1.5 rounded-lg text-xs transition ${isPinnedItem ? 'bg-amber-100 text-amber-700 font-bold' : 'text-slate-400 hover:text-amber-600'}"><i class="fa-solid fa-thumbtack"></i></button>
                                     <button onclick="openEditMovementModal('${m.id}')" class="text-slate-400 hover:text-rose-600 text-xs p-1"><i class="fa-solid fa-pen-to-square"></i></button>
                                     <button onclick="deleteMovement('${m.id}')" class="text-slate-400 hover:text-rose-600 text-xs p-1"><i class="fa-solid fa-trash-can"></i></button>
                                 </div>` : ''}
@@ -2196,7 +2281,7 @@
             }
 
             return `
-                <div class="light-card p-4 sm:p-5 rounded-2xl border ${m.isPinned ? 'border-amber-400 ring-2 ring-amber-400/30 bg-amber-50/20' : 'border-purple-200 bg-white hover:border-purple-300'} flex flex-col gap-3 shadow-sm transition">
+                <div class="light-card p-4 sm:p-5 rounded-2xl border ${isPinnedItem ? 'border-amber-400 ring-2 ring-amber-400/30 bg-amber-50/20' : 'border-purple-200 bg-white hover:border-purple-300'} flex flex-col gap-3 shadow-sm transition">
                     <div class="flex flex-col sm:flex-row sm:items-start justify-between gap-3">
                         <div class="space-y-2 flex-1">
                             <div class="flex flex-col sm:flex-row sm:items-center gap-2 flex-wrap">
@@ -2211,7 +2296,7 @@
                         </div>
                         ${currentUserRole === 'admin' ? `
                             <div class="self-end sm:self-auto flex items-center gap-1.5 flex-shrink-0">
-                                <button onclick="togglePinMovement('${m.id}')" title="${m.isPinned ? 'Bỏ ghim' : 'Ghim lên đầu'}" class="p-1.5 rounded-lg text-xs transition ${m.isPinned ? 'bg-amber-100 text-amber-700' : 'text-slate-400 hover:text-amber-600'}"><i class="fa-solid fa-thumbtack"></i></button>
+                                <button onclick="togglePinMovement('${m.id}')" title="${isPinnedItem ? 'Bỏ ghim' : 'Ghim lên đầu'}" class="p-1.5 rounded-lg text-xs transition ${isPinnedItem ? 'bg-amber-100 text-amber-700 font-bold' : 'text-slate-400 hover:text-amber-600'}"><i class="fa-solid fa-thumbtack"></i></button>
                                 <button onclick="openEditMovementModal('${m.id}')" class="text-slate-400 hover:text-indigo-600 text-xs p-1"><i class="fa-solid fa-pen-to-square"></i></button>
                                 <button onclick="deleteMovement('${m.id}')" class="text-slate-400 hover:text-rose-600 text-xs p-1"><i class="fa-solid fa-trash-can"></i></button>
                             </div>` : ''}
@@ -2338,10 +2423,10 @@
             const container = document.getElementById('academicTasksContainer'); if (!container) return;
             if (academicTasks.length === 0) { container.innerHTML = `<div class="light-card p-6 rounded-2xl text-center text-xs text-slate-400">Chưa có bài tập nào.</div>`; return; }
             
-            // Sắp xếp: Mục được ghim ưu tiên lên đầu
+            // Sắp xếp: Mục được ghim ưu tiên lên đầu cho cả học sinh
             const sortedTasks = [...academicTasks].sort((a, b) => {
-                const pinA = a.isPinned ? 1 : 0;
-                const pinB = b.isPinned ? 1 : 0;
+                const pinA = (a.isPinned === true || String(a.isPinned).toLowerCase() === 'true' || a.isPinned === 1) ? 1 : 0;
+                const pinB = (b.isPinned === true || String(b.isPinned).toLowerCase() === 'true' || b.isPinned === 1) ? 1 : 0;
                 if (pinA !== pinB) return pinB - pinA;
                 if (!a.deadline && !b.deadline) return 0;
                 if (!a.deadline) return 1;
@@ -2350,11 +2435,12 @@
             });
 
             container.innerHTML = sortedTasks.map(task => {
+                const isPinnedTask = task.isPinned === true || String(task.isPinned).toLowerCase() === 'true' || task.isPinned === 1;
                 const deadlineBadge = !task.deadline ? `<span class="px-2.5 py-1 rounded-xl text-xs font-black bg-sky-50 text-sky-700 border border-sky-200 shadow-sm flex items-center gap-1.5"><i class="fa-solid fa-infinity text-sky-600"></i><span>Không giới hạn</span></span>`
                     : `<span class="px-2.5 py-1 rounded-xl text-xs font-black bg-amber-50 text-amber-800 border border-amber-200 shadow-sm flex items-center gap-1.5"><i class="fa-solid fa-hourglass-half text-amber-600"></i><span>Hạn: ${isNaN(new Date(task.deadline).getTime()) ? task.deadline : `${new Date(task.deadline).toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' })} ${new Date(task.deadline).toLocaleDateString('vi-VN')}`}</span></span>`;
-                const pinBadge = task.isPinned ? `<span class="px-2.5 py-1 rounded-xl text-xs font-black bg-amber-500 text-white shadow-sm flex items-center gap-1"><i class="fa-solid fa-thumbtack text-[10px]"></i><span>Đã ghim</span></span>` : '';
+                const pinBadge = isPinnedTask ? `<span class="px-2.5 py-1 rounded-xl text-xs font-black bg-amber-500 text-white shadow-sm flex items-center gap-1"><i class="fa-solid fa-thumbtack text-[10px]"></i><span>Đã ghim</span></span>` : '';
                 return `
-                    <div class="light-card p-4 sm:p-5 rounded-2xl border ${task.isPinned ? 'border-amber-400 ring-2 ring-amber-400/30 bg-amber-50/20' : 'border-sky-200 hover:border-sky-300'} flex flex-col sm:flex-row sm:items-center justify-between gap-3.5 shadow-sm transition">
+                    <div class="light-card p-4 sm:p-5 rounded-2xl border ${isPinnedTask ? 'border-amber-400 ring-2 ring-amber-400/30 bg-amber-50/20' : 'border-sky-200 hover:border-sky-300'} flex flex-col sm:flex-row sm:items-center justify-between gap-3.5 shadow-sm transition">
                         <div class="space-y-1.5 flex-1">
                             <div class="flex items-center gap-2 flex-wrap">
                                 <h4 class="text-base sm:text-lg font-black text-slate-900 flex items-center gap-2"><i class="fa-solid fa-book-bookmark text-sky-600 text-sm"></i><span>${task.title}</span></h4>
@@ -2365,7 +2451,7 @@
                         </div>
                         <div class="flex items-center gap-2 flex-shrink-0 self-end sm:self-auto">
                             ${currentUserRole === 'admin' ? `
-                                <button onclick="togglePinAcademic('${task.id}')" title="${task.isPinned ? 'Bỏ ghim' : 'Ghim lên đầu'}" class="p-1.5 rounded-lg text-xs transition ${task.isPinned ? 'bg-amber-100 text-amber-700' : 'text-slate-400 hover:text-amber-600'}"><i class="fa-solid fa-thumbtack"></i></button>
+                                <button onclick="togglePinAcademic('${task.id}')" title="${isPinnedTask ? 'Bỏ ghim' : 'Ghim lên đầu'}" class="p-1.5 rounded-lg text-xs transition ${isPinnedTask ? 'bg-amber-100 text-amber-700 font-bold' : 'text-slate-400 hover:text-amber-600'}"><i class="fa-solid fa-thumbtack"></i></button>
                                 <button onclick="openEditAcademicModal('${task.id}')" class="text-slate-400 hover:text-sky-600 text-xs p-1"><i class="fa-solid fa-pen-to-square"></i></button>
                                 <button onclick="deleteAcademicTask('${task.id}')" class="text-slate-400 hover:text-rose-600 text-xs p-1"><i class="fa-solid fa-trash-can"></i></button>
                             ` : ''}
