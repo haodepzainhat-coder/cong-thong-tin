@@ -1429,10 +1429,17 @@
                     const cloudData = resJson.data;
                     if (cloudData.students && cloudData.students.length > 0) students = cloudData.students;
                     
-                    // Lấy danh sách ID đã ghim từ cloudData nếu có, hoặc giữ nguyên danh sách hiện tại
+                    // CƠ CHẾ BẢO VỆ 15 GIÂY (Chống ghi đè khi Sheet chưa kịp lưu)
+                    let lastPinAction = 0;
+                    try { lastPinAction = parseInt(localStorage.getItem("cct_last_pin_action") || "0", 10); } catch(e) {}
+                    const isProtected = (Date.now() - lastPinAction < 15000);
+
+                    // Lấy danh sách ID đã ghim từ mây (chỉ khi không nằm trong 15s bảo vệ)
                     if (cloudData.pinnedItemIds) {
-                        pinnedItemIds = cloudData.pinnedItemIds;
-                        localStorage.setItem("cct_pinned_ids", JSON.stringify(pinnedItemIds));
+                        if (!isProtected) {
+                            pinnedItemIds = cloudData.pinnedItemIds;
+                            localStorage.setItem("cct_pinned_ids", JSON.stringify(pinnedItemIds));
+                        }
                     }
 
                     if (cloudData.movements) {
@@ -1497,6 +1504,7 @@
                 await fetch(appsScriptUrl, { 
                     method: "POST", 
                     mode: "no-cors", 
+                    keepalive: true, // QUAN TRỌNG: Ép trình duyệt điện thoại gửi nốt dữ liệu chạy nền kể cả khi đã thoát app
                     headers: { "Content-Type": "application/json" }, 
                     body: JSON.stringify(payload) 
                 });
@@ -2165,6 +2173,7 @@
             try {
                 localStorage.setItem("cct_pinned_ids", JSON.stringify(pinnedItemIds));
                 localStorage.setItem("cct_movements", JSON.stringify(movements));
+                localStorage.setItem("cct_last_pin_action", Date.now().toString()); // Chốt thời gian ghim
             } catch(e) {}
 
             renderMovementsCards();
@@ -2192,33 +2201,12 @@
             try {
                 localStorage.setItem("cct_pinned_ids", JSON.stringify(pinnedItemIds));
                 localStorage.setItem("cct_academics", JSON.stringify(academicTasks));
+                localStorage.setItem("cct_last_pin_action", Date.now().toString()); // Chốt thời gian ghim
             } catch(e) {}
 
             renderAcademicTasks();
             showToast(t.isPinned ? `Đã ghim "${t.title}" lên đầu!` : `Đã bỏ ghim "${t.title}"!`, "info");
             
-            if (appsScriptUrl) {
-                await pushDataToGoogleSheet(true);
-            }
-        }
-
-        async function togglePinAcademic(taskId) {
-            const t = academicTasks.find(item => item.id === taskId);
-            if (!t) return;
-            // Đảo ngược trạng thái ghim
-            t.isPinned = !(t.isPinned === true || String(t.isPinned).toLowerCase() === 'true' || t.isPinned === 1);
-            
-            // 1. Lưu ngay tức thì vào bộ nhớ máy và ĐÁNH DẤU THỜI GIAN GHIM
-            try {
-                localStorage.setItem("cct_academics", JSON.stringify(academicTasks));
-                localStorage.setItem("cct_last_pin_action", Date.now().toString());
-            } catch(e) {}
-
-            // 2. Cập nhật giao diện ngay lập tức
-            renderAcademicTasks();
-            showToast(t.isPinned ? `Đã ghim "${t.title}" lên đầu!` : `Đã bỏ ghim "${t.title}"!`, "info");
-            
-            // 3. Đẩy lên Google Sheet để đồng bộ cho toàn bộ học sinh
             if (appsScriptUrl) {
                 await pushDataToGoogleSheet(true);
             }
