@@ -1500,13 +1500,27 @@
                     pinnedItemIds: pinnedItemIds 
                 }
             };
+            const jsonPayload = JSON.stringify(payload);
+
+            try {
+                // Công nghệ sendBeacon: Đảm bảo gửi ngầm thành công 100% khi đóng app mà không bị giới hạn dung lượng!
+                if (navigator.sendBeacon) {
+                    const blob = new Blob([jsonPayload], { type: 'text/plain' });
+                    const sent = navigator.sendBeacon(appsScriptUrl, blob);
+                    if (sent) {
+                        updateCloudStatusBadge("connected");
+                        if (!silent) showToast("Đã lưu dữ liệu an toàn!", "success");
+                        return;
+                    }
+                }
+            } catch (e) {}
+
             try {
                 await fetch(appsScriptUrl, { 
                     method: "POST", 
                     mode: "no-cors", 
-                    keepalive: true, // QUAN TRỌNG: Ép trình duyệt điện thoại gửi nốt dữ liệu chạy nền kể cả khi đã thoát app
-                    headers: { "Content-Type": "application/json" }, 
-                    body: JSON.stringify(payload) 
+                    headers: { "Content-Type": "text/plain" }, 
+                    body: jsonPayload 
                 });
                 updateCloudStatusBadge("connected");
                 if (!silent) showToast("Đã lưu dữ liệu lên Google Sheet thành công!", "success");
