@@ -1177,6 +1177,12 @@
         let pendingLeaveAction = null;
         let savedHomeScrollY = 0; // Biến lưu lại vị trí cuộn trang chủ
 
+        // DANH SÁCH ID ĐƯỢC GHIM ĐỘC LẬP (ĐẢM BẢO 100% KHÔNG BỊ TRÔI MẤT KỂ CẢ KHI SHEET CHẬM)
+        let pinnedItemIds = {
+            movements: [],
+            academics: []
+        };
+
         // BẮT BUỘC KHÓA TRÌNH DUYỆT KHI ĐÓNG TAB / TẮT APP
         window.addEventListener('beforeunload', function (e) {
             if (isSubmittingReport) {
@@ -1423,47 +1429,30 @@
                     const cloudData = resJson.data;
                     if (cloudData.students && cloudData.students.length > 0) students = cloudData.students;
                     
-                    // CƠ CHẾ KHÓA BẢO VỆ: Chống ghi đè mất ghim nếu Google Sheet lưu chậm
-                    const lastPinActionStr = localStorage.getItem("cct_last_pin_action");
-                    const lastPinActionTime = lastPinActionStr ? parseInt(lastPinActionStr, 10) : 0;
-                    const isRecentPin = (Date.now() - lastPinActionTime) < 15000; // Bảo vệ ghim trong 15 giây
+                    // Lấy danh sách ID đã ghim từ cloudData nếu có, hoặc giữ nguyên danh sách hiện tại
+                    if (cloudData.pinnedItemIds) {
+                        pinnedItemIds = cloudData.pinnedItemIds;
+                        localStorage.setItem("cct_pinned_ids", JSON.stringify(pinnedItemIds));
+                    }
 
                     if (cloudData.movements) {
                         movements = cloudData.movements.map(m => {
-                            const localMatch = movements.find(oldM => oldM.id === m.id);
+                            const isPinnedInList = pinnedItemIds.movements && pinnedItemIds.movements.includes(m.id);
                             const sheetPinned = (m.isPinned === true || String(m.isPinned).toLowerCase() === 'true' || m.isPinned === 1);
-                            
-                            let finalPinned = sheetPinned;
-                            // Nếu bạn vừa ghim (dưới 15s) mà tải lại ngay, hệ thống sẽ giữ ghim của bạn thay vì lấy từ Sheet chưa lưu kịp
-                            if (isRecentPin && localMatch) {
-                                finalPinned = !!localMatch.isPinned;
-                            } else if (m.isPinned === undefined && localMatch) {
-                                finalPinned = !!localMatch.isPinned;
-                            }
-
                             return {
                                 ...m,
-                                isPinned: finalPinned
+                                isPinned: isPinnedInList || sheetPinned
                             };
                         });
                     }
 
                     if (cloudData.academicTasks) {
                         academicTasks = cloudData.academicTasks.map(t => {
-                            const localMatch = academicTasks.find(oldT => oldT.id === t.id);
+                            const isPinnedInList = pinnedItemIds.academics && pinnedItemIds.academics.includes(t.id);
                             const sheetPinned = (t.isPinned === true || String(t.isPinned).toLowerCase() === 'true' || t.isPinned === 1);
-                            
-                            let finalPinned = sheetPinned;
-                            // Bảo vệ ghim Góc học tập tương tự
-                            if (isRecentPin && localMatch) {
-                                finalPinned = !!localMatch.isPinned;
-                            } else if (t.isPinned === undefined && localMatch) {
-                                finalPinned = !!localMatch.isPinned;
-                            }
-
                             return {
                                 ...t,
-                                isPinned: finalPinned
+                                isPinned: isPinnedInList || sheetPinned
                             };
                         });
                     }
@@ -1496,7 +1485,13 @@
             updateCloudStatusBadge("syncing");
             const payload = {
                 action: "syncAllData",
-                data: { students: students, movements: movements, academicTasks: academicTasks, storageFolders: storageFolders }
+                data: { 
+                    students: students, 
+                    movements: movements, 
+                    academicTasks: academicTasks, 
+                    storageFolders: storageFolders,
+                    pinnedItemIds: pinnedItemIds 
+                }
             };
             try {
                 await fetch(appsScriptUrl, { 
@@ -1523,16 +1518,24 @@
             try {
                 const savedUrl = localStorage.getItem("cct_apps_script_url");
                 if (savedUrl) appsScriptUrl = savedUrl;
+                
+                const savedPins = localStorage.getItem("cct_pinned_ids");
+                if (savedPins) {
+                    pinnedItemIds = JSON.parse(savedPins);
+                }
+                if (!pinnedItemIds.movements) pinnedItemIds.movements = [];
+                if (!pinnedItemIds.academics) pinnedItemIds.academics = [];
+
                 const savedStudents = localStorage.getItem("cct_students"); students = savedStudents ? JSON.parse(savedStudents) : DEFAULT_STUDENTS_LIST;
                 const savedMovements = localStorage.getItem("cct_movements"); 
                 movements = savedMovements ? JSON.parse(savedMovements).map(m => ({
                     ...m,
-                    isPinned: m.isPinned === true || String(m.isPinned).toLowerCase() === 'true' || m.isPinned === 1
+                    isPinned: (pinnedItemIds.movements && pinnedItemIds.movements.includes(m.id)) || m.isPinned === true || String(m.isPinned).toLowerCase() === 'true' || m.isPinned === 1
                 })) : DEFAULT_MOVEMENTS;
                 const savedAcademics = localStorage.getItem("cct_academics"); 
                 academicTasks = savedAcademics ? JSON.parse(savedAcademics).map(t => ({
                     ...t,
-                    isPinned: t.isPinned === true || String(t.isPinned).toLowerCase() === 'true' || t.isPinned === 1
+                    isPinned: (pinnedItemIds.academics && pinnedItemIds.academics.includes(t.id)) || t.isPinned === true || String(t.isPinned).toLowerCase() === 'true' || t.isPinned === 1
                 })) : DEFAULT_ACADEMICS;
                 const savedStorageFolders = localStorage.getItem("cct_storage_folders"); storageFolders = savedStorageFolders ? JSON.parse(savedStorageFolders) : DEFAULT_STORAGE_FOLDERS;
             } catch (e) {
@@ -2148,20 +2151,52 @@
         async function togglePinMovement(movementId) {
             const m = movements.find(item => item.id === movementId);
             if (!m) return;
-            // Đảo ngược trạng thái ghim
-            m.isPinned = !(m.isPinned === true || String(m.isPinned).toLowerCase() === 'true' || m.isPinned === 1);
             
-            // 1. Lưu ngay tức thì vào bộ nhớ máy và ĐÁNH DẤU THỜI GIAN GHIM
+            const nextPinned = !(m.isPinned === true || String(m.isPinned).toLowerCase() === 'true' || m.isPinned === 1);
+            m.isPinned = nextPinned;
+            
+            if (!pinnedItemIds.movements) pinnedItemIds.movements = [];
+            if (nextPinned) {
+                if (!pinnedItemIds.movements.includes(movementId)) pinnedItemIds.movements.push(movementId);
+            } else {
+                pinnedItemIds.movements = pinnedItemIds.movements.filter(id => id !== movementId);
+            }
+
             try {
+                localStorage.setItem("cct_pinned_ids", JSON.stringify(pinnedItemIds));
                 localStorage.setItem("cct_movements", JSON.stringify(movements));
-                localStorage.setItem("cct_last_pin_action", Date.now().toString());
             } catch(e) {}
 
-            // 2. Cập nhật giao diện ngay lập tức
             renderMovementsCards();
             showToast(m.isPinned ? `Đã ghim "${m.title}" lên đầu!` : `Đã bỏ ghim "${m.title}"!`, "info");
             
-            // 3. Đẩy lên Google Sheet để đồng bộ cho toàn bộ học sinh
+            if (appsScriptUrl) {
+                await pushDataToGoogleSheet(true);
+            }
+        }
+
+        async function togglePinAcademic(taskId) {
+            const t = academicTasks.find(item => item.id === taskId);
+            if (!t) return;
+            
+            const nextPinned = !(t.isPinned === true || String(t.isPinned).toLowerCase() === 'true' || t.isPinned === 1);
+            t.isPinned = nextPinned;
+            
+            if (!pinnedItemIds.academics) pinnedItemIds.academics = [];
+            if (nextPinned) {
+                if (!pinnedItemIds.academics.includes(taskId)) pinnedItemIds.academics.push(taskId);
+            } else {
+                pinnedItemIds.academics = pinnedItemIds.academics.filter(id => id !== taskId);
+            }
+
+            try {
+                localStorage.setItem("cct_pinned_ids", JSON.stringify(pinnedItemIds));
+                localStorage.setItem("cct_academics", JSON.stringify(academicTasks));
+            } catch(e) {}
+
+            renderAcademicTasks();
+            showToast(t.isPinned ? `Đã ghim "${t.title}" lên đầu!` : `Đã bỏ ghim "${t.title}"!`, "info");
+            
             if (appsScriptUrl) {
                 await pushDataToGoogleSheet(true);
             }
@@ -2425,8 +2460,10 @@
             
             // Sắp xếp: Mục được ghim ưu tiên lên đầu cho cả học sinh
             const sortedTasks = [...academicTasks].sort((a, b) => {
-                const pinA = (a.isPinned === true || String(a.isPinned).toLowerCase() === 'true' || a.isPinned === 1) ? 1 : 0;
-                const pinB = (b.isPinned === true || String(b.isPinned).toLowerCase() === 'true' || b.isPinned === 1) ? 1 : 0;
+                const isPinA = (pinnedItemIds.academics && pinnedItemIds.academics.includes(a.id)) || a.isPinned === true || String(a.isPinned).toLowerCase() === 'true' || a.isPinned === 1;
+                const isPinB = (pinnedItemIds.academics && pinnedItemIds.academics.includes(b.id)) || b.isPinned === true || String(b.isPinned).toLowerCase() === 'true' || b.isPinned === 1;
+                const pinA = isPinA ? 1 : 0;
+                const pinB = isPinB ? 1 : 0;
                 if (pinA !== pinB) return pinB - pinA;
                 if (!a.deadline && !b.deadline) return 0;
                 if (!a.deadline) return 1;
@@ -2435,12 +2472,12 @@
             });
 
             container.innerHTML = sortedTasks.map(task => {
-                const isPinnedTask = task.isPinned === true || String(task.isPinned).toLowerCase() === 'true' || task.isPinned === 1;
+                const isPinnedTask = (pinnedItemIds.academics && pinnedItemIds.academics.includes(task.id)) || task.isPinned === true || String(task.isPinned).toLowerCase() === 'true' || task.isPinned === 1;
                 const deadlineBadge = !task.deadline ? `<span class="px-2.5 py-1 rounded-xl text-xs font-black bg-sky-50 text-sky-700 border border-sky-200 shadow-sm flex items-center gap-1.5"><i class="fa-solid fa-infinity text-sky-600"></i><span>Không giới hạn</span></span>`
                     : `<span class="px-2.5 py-1 rounded-xl text-xs font-black bg-amber-50 text-amber-800 border border-amber-200 shadow-sm flex items-center gap-1.5"><i class="fa-solid fa-hourglass-half text-amber-600"></i><span>Hạn: ${isNaN(new Date(task.deadline).getTime()) ? task.deadline : `${new Date(task.deadline).toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' })} ${new Date(task.deadline).toLocaleDateString('vi-VN')}`}</span></span>`;
                 const pinBadge = isPinnedTask ? `<span class="px-2.5 py-1 rounded-xl text-xs font-black bg-amber-500 text-white shadow-sm flex items-center gap-1 flex-shrink-0 whitespace-nowrap"><i class="fa-solid fa-thumbtack text-[10px]"></i><span>Đã ghim</span></span>` : '';
                 return `
-                    <div class="light-card p-4 sm:p-5 rounded-2xl border ${isPinnedTask ? 'border-amber-400 ring-2 ring-amber-400/30 bg-amber-50/20' : 'border-sky-200 hover:border-sky-300'} flex flex-col sm:flex-row sm:items-center justify-between gap-3.5 shadow-sm transition">
+                    <div class="light-card p-4 sm:p-5 rounded-2xl border ${isPinnedTask ? 'border-amber-400 ring-2 ring-amber-400/40 bg-amber-50/25' : 'border-sky-200 hover:border-sky-300'} flex flex-col sm:flex-row sm:items-center justify-between gap-3.5 shadow-sm transition">
                         <div class="space-y-1.5 flex-1 min-w-0">
                             <div class="flex items-center gap-2 flex-wrap">
                                 <h4 class="text-base sm:text-lg font-black text-slate-900 flex items-center gap-2 break-words"><i class="fa-solid fa-book-bookmark text-sky-600 text-sm flex-shrink-0"></i><span>${task.title}</span></h4>
@@ -2451,7 +2488,7 @@
                         </div>
                         <div class="flex items-center gap-2 flex-shrink-0 self-end sm:self-auto">
                             ${currentUserRole === 'admin' ? `
-                                <button type="button" onclick="togglePinAcademic('${task.id}')" title="${isPinnedTask ? 'Bỏ ghim' : 'Ghim lên đầu'}" class="p-2 sm:p-1.5 rounded-xl text-xs transition active:scale-90 ${isPinnedTask ? 'bg-amber-500 text-white font-bold shadow-sm' : 'bg-slate-100 text-slate-500 hover:text-amber-600'}"><i class="fa-solid fa-thumbtack text-xs"></i></button>
+                                <button type="button" onclick="togglePinAcademic('${task.id}')" title="${isPinnedTask ? 'Bỏ ghim' : 'Ghim lên đầu'}" class="p-2.5 sm:p-2 rounded-xl text-xs transition active:scale-90 ${isPinnedTask ? 'bg-amber-500 text-white font-bold shadow-md shadow-amber-500/30' : 'bg-slate-100 text-slate-600 hover:text-amber-600 border border-slate-200'}"><i class="fa-solid fa-thumbtack text-sm"></i></button>
                                 <button type="button" onclick="openEditAcademicModal('${task.id}')" class="p-2 sm:p-1 text-slate-400 hover:text-sky-600 text-xs"><i class="fa-solid fa-pen-to-square"></i></button>
                                 <button type="button" onclick="deleteAcademicTask('${task.id}')" class="p-2 sm:p-1 text-slate-400 hover:text-rose-600 text-xs"><i class="fa-solid fa-trash-can"></i></button>
                             ` : ''}
