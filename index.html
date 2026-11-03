@@ -711,13 +711,6 @@
                     <label class="block text-[11px] font-bold text-slate-600 mb-1">Gán Vào Ổ Lưu / Kho Nộp Ảnh</label>
                     <select id="newMovStorageSelect" class="w-full px-3 py-2 rounded-xl bg-slate-50 border border-slate-300 text-xs text-slate-800 focus:outline-none focus:border-emerald-600 focus:bg-white"></select>
                 </div>
-                <!-- Checkbox ghim phong trào -->
-                <div class="p-2.5 rounded-xl bg-amber-50/70 border border-amber-200">
-                    <label class="flex items-center gap-2.5 cursor-pointer text-xs font-black text-amber-900 select-none">
-                        <input type="checkbox" id="movIsPinnedCheckbox" class="w-4 h-4 rounded text-amber-600 focus:ring-amber-500 cursor-pointer">
-                        <span class="flex items-center gap-1.5"><i class="fa-solid fa-thumbtack text-amber-600"></i> Ghim lên đầu trang</span>
-                    </label>
-                </div>
                 <!-- Checkbox tùy chọn theo dõi tham gia -->
                 <div class="p-2.5 rounded-xl bg-purple-50/60 border border-purple-200">
                     <label class="flex items-center gap-2.5 cursor-pointer text-xs font-black text-purple-900 select-none">
@@ -779,13 +772,6 @@
                 <div>
                     <label class="block text-[11px] font-bold text-slate-600 mb-1">Ghi Chú Hướng Dẫn</label>
                     <textarea id="newAcaNoteInput" rows="2" class="w-full px-3 py-2 rounded-xl bg-slate-50 border border-slate-300 text-xs text-slate-800 focus:outline-none focus:border-sky-600 focus:bg-white"></textarea>
-                </div>
-                <!-- Checkbox ghim bài tập -->
-                <div class="p-2.5 rounded-xl bg-amber-50/70 border border-amber-200">
-                    <label class="flex items-center gap-2.5 cursor-pointer text-xs font-black text-amber-900 select-none">
-                        <input type="checkbox" id="acaIsPinnedCheckbox" class="w-4 h-4 rounded text-amber-600 focus:ring-amber-500 cursor-pointer">
-                        <span class="flex items-center gap-1.5"><i class="fa-solid fa-thumbtack text-amber-600"></i> Ghim lên đầu trang</span>
-                    </label>
                 </div>
                 <div>
                     <label class="block text-[11px] font-bold text-slate-600 mb-1">Hạn Chót Hoàn Thành</label>
@@ -1176,6 +1162,135 @@
         let uploadAbortController = null;
         let pendingLeaveAction = null;
         let savedHomeScrollY = 0; // Biến lưu lại vị trí cuộn trang chủ
+
+        // Hàm xóa dấu tiếng Việt hỗ trợ tìm kiếm và so khớp
+        function removeVietnameseTones(str) {
+            if (!str) return "";
+            str = String(str);
+            str = str.replace(/à|á|ạ|ả|ã|â|ầ|ấ|ậ|ẩ|ẫ|ă|ằ|ắ|ặ|ẳ|ẵ/g, "a");
+            str = str.replace(/è|é|ẹ|ẻ|ẽ|ê|ề|ế|ệ|ể|ễ/g, "e");
+            str = str.replace(/ì|í|ị|ỉ|ĩ/g, "i");
+            str = str.replace(/ò|ó|ọ|ỏ|õ|ô|ồ|ố|ộ|ổ|ỗ|ơ|ờ|ớ|ợ|ở|ỡ/g, "o");
+            str = str.replace(/ù|ú|ụ|ủ|ũ|ư|ừ|ứ|ự|ử|ữ/g, "u");
+            str = str.replace(/ỳ|ý|ỵ|ỷ|ỹ/g, "y");
+            str = str.replace(/đ/g, "d");
+            str = str.replace(/À|Á|Ạ|Ả|Ã|Â|Ầ|Ấ|Ậ|Ẩ|Ẫ|Ă|Ằ|Ắ|Ặ|Ẳ|Ẵ/g, "A");
+            str = str.replace(/È|É|Ẻ|Ẽ|Ê|Ề|Ế|Ệ|Ể|Ễ/g, "E");
+            str = str.replace(/Ì|Í|Ị|Ỉ|Ĩ/g, "I");
+            str = str.replace(/Ò|Ó|Ọ|Ỏ|Õ|Ô|Ồ|Ố|Ộ|Ổ|Ỗ|Ơ|Ờ|Ớ|Ợ|Ở|Ỡ/g, "O");
+            str = str.replace(/Ù|Ú|Ụ|Ủ|Ũ|Ư|Ừ|Ứ|Ự|Ử|Ữ/g, "U");
+            str = str.replace(/Ỳ|Ý|Ỵ|Ỷ|Ỹ/g, "Y");
+            str = str.replace(/Đ/g, "D");
+            return str;
+        }
+
+        // Tự động nhận diện thông minh học sinh khi gõ tên
+        function smartMatchStudent(rawInput) {
+            if (!rawInput) return { match: null, suggestions: [] };
+            const clean = removeVietnameseTones(rawInput.toLowerCase().trim());
+            if (!clean) return { match: null, suggestions: [] };
+
+            const exact = students.find(s => removeVietnameseTones(s.name.toLowerCase().trim()) === clean);
+            if (exact) return { match: exact, suggestions: [exact] };
+
+            const partials = students.filter(s => {
+                const sClean = removeVietnameseTones(s.name.toLowerCase().trim());
+                return sClean.includes(clean) || clean.includes(sClean);
+            });
+
+            return { match: partials.length === 1 ? partials[0] : null, suggestions: partials };
+        }
+
+        function handleBotNameInput() {
+            const val = document.getElementById('reportSenderInput')?.value || "";
+            const box = document.getElementById('botSuggestionBox');
+            const hiddenId = document.getElementById('botMatchedStudentId');
+            if (!box || !hiddenId) return;
+
+            if (!val.trim()) {
+                box.classList.add('hidden');
+                hiddenId.value = '';
+                return;
+            }
+
+            const { match, suggestions } = smartMatchStudent(val);
+            if (match) {
+                hiddenId.value = match.id;
+                box.classList.remove('hidden');
+                box.innerHTML = `<div class="flex items-center gap-1.5 text-emerald-800 font-bold"><i class="fa-solid fa-circle-check text-emerald-600"></i><span>Đã khớp học sinh: <b>#${match.stt} - ${match.name}</b></span></div>`;
+            } else if (suggestions.length > 0) {
+                hiddenId.value = '';
+                box.classList.remove('hidden');
+                box.innerHTML = `<div class="text-xs font-bold text-slate-700 mb-1">Gợi ý gần đúng:</div>` + suggestions.slice(0, 3).map(s => `
+                    <div onclick="selectBotStudent('${s.id}', '${s.name.replace(/'/g, "\\'")}')" class="p-1.5 rounded-lg bg-white hover:bg-emerald-100 cursor-pointer text-xs font-semibold text-slate-800 flex items-center justify-between mb-1">
+                        <span>#${s.stt} - ${s.name}</span>
+                        <i class="fa-solid fa-check text-emerald-600 text-xs"></i>
+                    </div>
+                `).join('');
+            } else {
+                hiddenId.value = '';
+                box.classList.add('hidden');
+            }
+        }
+
+        function selectBotStudent(id, name) {
+            const input = document.getElementById('reportSenderInput');
+            const hiddenId = document.getElementById('botMatchedStudentId');
+            const box = document.getElementById('botSuggestionBox');
+            if (input) input.value = name;
+            if (hiddenId) hiddenId.value = id;
+            if (box) {
+                box.classList.remove('hidden');
+                box.innerHTML = `<div class="flex items-center gap-1.5 text-emerald-800 font-bold"><i class="fa-solid fa-circle-check text-emerald-600"></i><span>Đã chọn: <b>${name}</b></span></div>`;
+            }
+        }
+
+        function toggleCustomMovementDropdown() {
+            const menu = document.getElementById('customMovementDropdownMenu');
+            const arrow = document.getElementById('customMovementPickerArrow');
+            if (!menu) return;
+            const isHidden = menu.classList.contains('hidden');
+            if (isHidden) {
+                menu.classList.remove('hidden');
+                if (arrow) arrow.className = "fa-solid fa-chevron-up text-slate-400 text-xs transition duration-200";
+            } else {
+                menu.classList.add('hidden');
+                if (arrow) arrow.className = "fa-solid fa-chevron-down text-slate-400 text-xs transition duration-200";
+            }
+        }
+
+        function selectCustomMovementOption(movId, title) {
+            const input = document.getElementById('reportMovementSelect');
+            const label = document.getElementById('customMovementPickerLabel');
+            const icon = document.getElementById('customMovementPickerIcon');
+            if (input) input.value = movId;
+            if (label) {
+                label.innerText = title;
+                label.className = "font-black truncate text-slate-900";
+            }
+            if (icon) icon.className = "fa-solid fa-award text-purple-600";
+            toggleCustomMovementDropdown();
+        }
+
+        function populateReportMovementsDropdown() {
+            const menu = document.getElementById('customMovementDropdownMenu');
+            if (!menu) return;
+            // Chỉ lấy các phong trào còn hạn VÀ CÓ GÁN Ổ LƯU (nhận ảnh minh chứng)
+            const activeMovs = movements.filter(m => !isMovementExpired(m.deadline) && m.storageId && String(m.storageId).trim() !== "");
+            if (activeMovs.length === 0) {
+                menu.innerHTML = `<div class="p-3 text-xs text-slate-400 italic text-center">Không có phong trào nào cần nộp ảnh minh chứng.</div>`;
+                return;
+            }
+            menu.innerHTML = activeMovs.map(m => `
+                <div onclick="selectCustomMovementOption('${m.id}', '${m.title.replace(/'/g, "\\'")}')" class="p-2.5 rounded-xl hover:bg-purple-50 cursor-pointer border border-transparent hover:border-purple-200 flex items-center justify-between gap-2 transition">
+                    <div class="overflow-hidden">
+                        <div class="text-xs font-black text-slate-900 truncate">${m.title}</div>
+                        <div class="text-[10px] text-slate-500 font-bold">${formatMovementDeadline(m.deadline)}</div>
+                    </div>
+                    <i class="fa-solid fa-chevron-right text-xs text-slate-300"></i>
+                </div>
+            `).join('');
+        }
 
         // BẮT BUỘC KHÓA TRÌNH DUYỆT KHI ĐÓNG TAB / TẮT APP
         window.addEventListener('beforeunload', function (e) {
@@ -2164,9 +2279,11 @@
             const matchedStorage = m.storageId ? storageFolders.find(s => s.id === m.storageId) : null;
             const deadlineText = formatMovementDeadline(m.deadline); const urgentInfo = !isExpired ? getMovementUrgentStatus(m.deadline) : { isUrgent: false };
             
-            const curIdx = movements.findIndex(item => item.id === m.id);
-            const isFirst = curIdx === 0;
-            const isLast = curIdx === movements.length - 1;
+            // Chỉ tính vị trí sắp xếp cho các phong trào còn hạn
+            const activeList = movements.filter(item => !isMovementExpired(item.deadline));
+            const activeIdx = activeList.findIndex(item => item.id === m.id);
+            const isFirst = activeIdx === 0;
+            const isLast = activeIdx === activeList.length - 1;
 
             if (isExpired) {
                 return `
@@ -2183,13 +2300,9 @@
                                 ${m.desc ? `<p class="text-xs text-slate-300 font-bold leading-relaxed break-words">${m.desc}</p>` : ''}
                             </div>
                             ${currentUserRole === 'admin' ? `
-                                <div class="flex items-center gap-1 flex-shrink-0 pt-0.5">
-                                    <div class="inline-flex rounded-xl bg-slate-800 p-0.5 border border-slate-700">
-                                        <button type="button" onclick="moveMovement('${m.id}', -1)" title="Di chuyển lên trên" ${isFirst ? 'disabled class="opacity-30 p-2 sm:p-1.5 text-slate-400 cursor-not-allowed"' : 'class="p-2 sm:p-1.5 rounded-lg text-slate-300 hover:text-white hover:bg-slate-700 transition active:scale-95"'}><i class="fa-solid fa-arrow-up text-xs"></i></button>
-                                        <button type="button" onclick="moveMovement('${m.id}', 1)" title="Di chuyển xuống dưới" ${isLast ? 'disabled class="opacity-30 p-2 sm:p-1.5 text-slate-400 cursor-not-allowed"' : 'class="p-2 sm:p-1.5 rounded-lg text-slate-300 hover:text-white hover:bg-slate-700 transition active:scale-95"'}><i class="fa-solid fa-arrow-down text-xs"></i></button>
-                                    </div>
-                                    <button type="button" onclick="openEditMovementModal('${m.id}')" class="p-2 sm:p-1 text-slate-400 hover:text-indigo-400 text-xs"><i class="fa-solid fa-pen-to-square"></i></button>
-                                    <button type="button" onclick="deleteMovement('${m.id}')" class="p-2 sm:p-1 text-slate-400 hover:text-rose-400 text-xs"><i class="fa-solid fa-trash-can"></i></button>
+                                <div class="flex items-center gap-1.5 flex-shrink-0 pt-0.5">
+                                    <button type="button" onclick="openEditMovementModal('${m.id}')" title="Chỉnh sửa phong trào" class="p-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-indigo-400 border border-slate-700 text-xs transition active:scale-95"><i class="fa-solid fa-pen-to-square"></i></button>
+                                    <button type="button" onclick="deleteMovement('${m.id}')" title="Xóa phong trào" class="p-2 rounded-xl bg-slate-800 hover:bg-rose-900/50 text-rose-400 border border-slate-700 text-xs transition active:scale-95"><i class="fa-solid fa-trash-can"></i></button>
                                 </div>` : ''}
                         </div>
                         <div class="pt-2 border-t border-slate-800 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
@@ -2226,13 +2339,13 @@
                                 ${m.desc ? `<p class="text-xs text-rose-900/80 font-bold leading-relaxed break-words">${m.desc}</p>` : ''}
                             </div>
                             ${currentUserRole === 'admin' ? `
-                                <div class="flex items-center gap-1 flex-shrink-0 pt-0.5">
+                                <div class="flex items-center gap-1.5 flex-shrink-0 pt-0.5">
                                     <div class="inline-flex rounded-xl bg-white p-0.5 border border-rose-200 shadow-sm">
                                         <button type="button" onclick="moveMovement('${m.id}', -1)" title="Di chuyển lên trên" ${isFirst ? 'disabled class="opacity-30 p-2 sm:p-1.5 text-slate-400 cursor-not-allowed"' : 'class="p-2 sm:p-1.5 rounded-lg text-slate-600 hover:text-rose-600 hover:bg-rose-50 transition active:scale-95"'}><i class="fa-solid fa-arrow-up text-xs"></i></button>
                                         <button type="button" onclick="moveMovement('${m.id}', 1)" title="Di chuyển xuống dưới" ${isLast ? 'disabled class="opacity-30 p-2 sm:p-1.5 text-slate-400 cursor-not-allowed"' : 'class="p-2 sm:p-1.5 rounded-lg text-slate-600 hover:text-rose-600 hover:bg-rose-50 transition active:scale-95"'}><i class="fa-solid fa-arrow-down text-xs"></i></button>
                                     </div>
-                                    <button type="button" onclick="openEditMovementModal('${m.id}')" class="p-2 sm:p-1 text-slate-400 hover:text-rose-600 text-xs"><i class="fa-solid fa-pen-to-square"></i></button>
-                                    <button type="button" onclick="deleteMovement('${m.id}')" class="p-2 sm:p-1 text-slate-400 hover:text-rose-600 text-xs"><i class="fa-solid fa-trash-can"></i></button>
+                                    <button type="button" onclick="openEditMovementModal('${m.id}')" title="Chỉnh sửa phong trào" class="p-2 rounded-xl bg-white hover:bg-rose-50 text-indigo-600 border border-rose-200 text-xs shadow-sm transition active:scale-95"><i class="fa-solid fa-pen-to-square"></i></button>
+                                    <button type="button" onclick="deleteMovement('${m.id}')" title="Xóa phong trào" class="p-2 rounded-xl bg-white hover:bg-rose-50 text-rose-600 border border-rose-200 text-xs shadow-sm transition active:scale-95"><i class="fa-solid fa-trash-can"></i></button>
                                 </div>` : ''}
                         </div>
                         <div class="pt-2 border-t border-rose-200/80 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
@@ -2269,13 +2382,13 @@
                             ${m.desc ? `<p class="text-xs text-slate-600 font-bold leading-relaxed break-words">${m.desc}</p>` : ''}
                         </div>
                         ${currentUserRole === 'admin' ? `
-                            <div class="flex items-center gap-1 flex-shrink-0 pt-0.5">
+                            <div class="flex items-center gap-1.5 flex-shrink-0 pt-0.5">
                                 <div class="inline-flex rounded-xl bg-slate-100 p-0.5 border border-slate-200 shadow-sm">
                                     <button type="button" onclick="moveMovement('${m.id}', -1)" title="Di chuyển lên trên" ${isFirst ? 'disabled class="opacity-30 p-2 sm:p-1.5 text-slate-400 cursor-not-allowed"' : 'class="p-2 sm:p-1.5 rounded-lg text-slate-600 hover:text-purple-600 hover:bg-white transition active:scale-95"'}><i class="fa-solid fa-arrow-up text-xs"></i></button>
                                     <button type="button" onclick="moveMovement('${m.id}', 1)" title="Di chuyển xuống dưới" ${isLast ? 'disabled class="opacity-30 p-2 sm:p-1.5 text-slate-400 cursor-not-allowed"' : 'class="p-2 sm:p-1.5 rounded-lg text-slate-600 hover:text-purple-600 hover:bg-white transition active:scale-95"'}><i class="fa-solid fa-arrow-down text-xs"></i></button>
                                 </div>
-                                <button type="button" onclick="openEditMovementModal('${m.id}')" class="p-2 sm:p-1 text-slate-400 hover:text-indigo-600 text-xs"><i class="fa-solid fa-pen-to-square"></i></button>
-                                <button type="button" onclick="deleteMovement('${m.id}')" class="p-2 sm:p-1 text-slate-400 hover:text-rose-600 text-xs"><i class="fa-solid fa-trash-can"></i></button>
+                                <button type="button" onclick="openEditMovementModal('${m.id}')" title="Chỉnh sửa phong trào" class="p-2 rounded-xl bg-slate-50 hover:bg-purple-50 text-indigo-600 border border-slate-200 text-xs shadow-sm transition active:scale-95"><i class="fa-solid fa-pen-to-square"></i></button>
+                                <button type="button" onclick="deleteMovement('${m.id}')" title="Xóa phong trào" class="p-2 rounded-xl bg-slate-50 hover:bg-rose-50 text-rose-600 border border-slate-200 text-xs shadow-sm transition active:scale-95"><i class="fa-solid fa-trash-can"></i></button>
                             </div>` : ''}
                     </div>
                     <div class="pt-2 border-t border-slate-100 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
@@ -2350,8 +2463,6 @@
             document.getElementById('movNoDeadlineCheckbox').checked = false; toggleMovDeadlineInputs(); setMovDeadlinePickers();
             const trackCb = document.getElementById('movTrackParticipationCheckbox');
             if (trackCb) trackCb.checked = true;
-            const pinCb = document.getElementById('movIsPinnedCheckbox');
-            if (pinCb) pinCb.checked = false;
             populateStorageDropdowns(); document.getElementById('createMovementModal').classList.remove('hidden');
         }
         function openEditMovementModal(id) {
@@ -2361,8 +2472,6 @@
             document.getElementById('movNoDeadlineCheckbox').checked = !m.deadline; setMovDeadlinePickers(m.deadline ? new Date(m.deadline) : new Date()); toggleMovDeadlineInputs();
             const trackCb = document.getElementById('movTrackParticipationCheckbox');
             if (trackCb) trackCb.checked = m.trackParticipation !== false;
-            const pinCb = document.getElementById('movIsPinnedCheckbox');
-            if (pinCb) pinCb.checked = !!m.isPinned;
             populateStorageDropdowns(); document.getElementById('newMovStorageSelect').value = m.storageId || ''; document.getElementById('createMovementModal').classList.remove('hidden');
         }
         function closeCreateMovementModal() { document.getElementById('createMovementModal').classList.add('hidden'); }
@@ -2370,15 +2479,13 @@
             const editId = document.getElementById('editMovementId').value; const title = document.getElementById('newMovTitleInput').value.trim();
             if (!title) { showToast("Vui lòng nhập tên phong trào!", "error"); return; }
             const trackParticipation = document.getElementById('movTrackParticipationCheckbox')?.checked !== false;
-            const isPinned = document.getElementById('movIsPinnedCheckbox')?.checked === true;
             const payload = { 
                 title: title, 
                 desc: document.getElementById('newMovDescInput').value.trim(), 
                 url: document.getElementById('newMovUrlInput').value.trim(), 
                 storageId: document.getElementById('newMovStorageSelect').value, 
                 deadline: getMovSelectedDeadlineString(),
-                trackParticipation: trackParticipation,
-                isPinned: isPinned
+                trackParticipation: trackParticipation
             };
             if (editId) { const m = movements.find(item => item.id === editId); if (m) Object.assign(m, payload); showToast("Đã cập nhật!", "success"); } 
             else { movements.unshift(Object.assign({ id: "mov_" + Date.now(), participantIds: [] }, payload)); showToast("Đã tạo mới!", "success"); }
@@ -2404,7 +2511,7 @@
             container.innerHTML = academicTasks.map((task, idx) => {
                 const deadlineBadge = !task.deadline ? `<span class="px-2.5 py-1 rounded-xl text-xs font-black bg-sky-50 text-sky-700 border border-sky-200 shadow-sm flex items-center gap-1.5"><i class="fa-solid fa-infinity text-sky-600"></i><span>Không giới hạn</span></span>`
                     : `<span class="px-2.5 py-1 rounded-xl text-xs font-black bg-amber-50 text-amber-800 border border-amber-200 shadow-sm flex items-center gap-1.5"><i class="fa-solid fa-hourglass-half text-amber-600"></i><span>Hạn: ${isNaN(new Date(task.deadline).getTime()) ? task.deadline : `${new Date(task.deadline).toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' })} ${new Date(task.deadline).toLocaleDateString('vi-VN')}`}</span></span>`;
-                
+
                 const isFirst = idx === 0;
                 const isLast = idx === academicTasks.length - 1;
 
@@ -2412,66 +2519,119 @@
                     <div class="light-card p-4 sm:p-5 rounded-2xl border border-sky-200 hover:border-sky-300 flex flex-col sm:flex-row sm:items-center justify-between gap-3.5 shadow-sm transition">
                         <div class="space-y-1.5 flex-1 min-w-0">
                             <div class="flex items-center gap-2 flex-wrap">
-                                <h4 class="text-base sm:text-lg font-black text-slate-900 flex items-center gap-2 break-words"><i class="fa-solid fa-book-bookmark text-sky-600 text-sm flex-shrink-0"></i><span>${task.title}</span></h4>
+                                <h4 class="text-base sm:text-lg font-black text-slate-900 flex items-center gap-2 break-words">
+                                    <i class="fa-solid fa-book-bookmark text-sky-600 text-sm flex-shrink-0"></i>
+                                    <span>${task.title}</span>
+                                </h4>
                                 ${deadlineBadge}
                             </div>
                             ${task.note ? `<p class="text-xs text-slate-600 font-bold leading-relaxed break-words">${task.note}</p>` : ''}
                         </div>
-                        <div class="flex items-center gap-2 flex-shrink-0 self-end sm:self-auto">
+                        <div class="flex items-center gap-2 flex-shrink-0 self-end sm:self-auto flex-wrap">
                             ${currentUserRole === 'admin' ? `
                                 <div class="inline-flex rounded-xl bg-slate-100 p-0.5 border border-slate-200 shadow-sm">
                                     <button type="button" onclick="moveAcademicTask('${task.id}', -1)" title="Đưa lên trên" ${isFirst ? 'disabled class="opacity-30 p-2 sm:p-1.5 text-slate-400 cursor-not-allowed"' : 'class="p-2 sm:p-1.5 rounded-lg text-slate-600 hover:text-sky-600 hover:bg-white transition active:scale-95"'}><i class="fa-solid fa-arrow-up text-xs"></i></button>
                                     <button type="button" onclick="moveAcademicTask('${task.id}', 1)" title="Đưa xuống dưới" ${isLast ? 'disabled class="opacity-30 p-2 sm:p-1.5 text-slate-400 cursor-not-allowed"' : 'class="p-2 sm:p-1.5 rounded-lg text-slate-600 hover:text-sky-600 hover:bg-white transition active:scale-95"'}><i class="fa-solid fa-arrow-down text-xs"></i></button>
                                 </div>
-                                <button type="button" onclick="openEditAcademicModal('${task.id}')" class="p-2 sm:p-1 text-slate-400 hover:text-sky-600 text-xs"><i class="fa-solid fa-pen-to-square"></i></button>
-                                <button type="button" onclick="deleteAcademicTask('${task.id}')" class="p-2 sm:p-1 text-slate-400 hover:text-rose-600 text-xs"><i class="fa-solid fa-trash-can"></i></button>
+                                <button type="button" onclick="openEditAcademicModal('${task.id}')" title="Chỉnh sửa bài tập" class="p-2 rounded-xl bg-slate-50 hover:bg-sky-50 text-sky-600 border border-slate-200 text-xs shadow-sm transition active:scale-95"><i class="fa-solid fa-pen-to-square"></i></button>
+                                <button type="button" onclick="deleteAcademicTask('${task.id}')" title="Xóa bài tập" class="p-2 rounded-xl bg-slate-50 hover:bg-rose-50 text-rose-600 border border-slate-200 text-xs shadow-sm transition active:scale-95"><i class="fa-solid fa-trash-can"></i></button>
                             ` : ''}
                             <button onclick="copyToClipboard('${task.url.replace(/'/g, "\\'")}', 'link bài tập')" class="px-3 py-2 rounded-xl bg-sky-50 hover:bg-sky-100 text-sky-800 border border-sky-200 text-xs font-black shadow-sm transition flex items-center gap-1.5"><i class="fa-regular fa-copy"></i><span class="hidden sm:inline">Sao Chép</span></button>
-                            <a href="${task.url}" onclick="openExternalLink(event, '${task.url.replace(/'/g, "\\'")}')" class="px-4 py-2 rounded-xl bg-sky-600 hover:bg-sky-700 text-white font-black text-xs shadow-md shadow-sky-600/20 transition flex items-center gap-1.5"><span>Làm Bài</span><i class="fa-solid fa-arrow-up-right-from-square text-[10px]"></i></a>
+                            <a href="${task.url}" onclick="openExternalLink(event, '${task.url.replace(/'/g, "\\'")}')" class="px-4 py-2 rounded-xl bg-sky-600 hover:bg-sky-700 shadow-sky-600/20 text-white font-black text-xs shadow-md transition flex items-center gap-1.5"><span>Làm Bài</span><i class="fa-solid fa-arrow-up-right-from-square text-[10px]"></i></a>
                         </div>
                     </div>`;
             }).join('');
         }
-        function handleSaveNewMovement() {
-            const editId = document.getElementById('editMovementId').value; const title = document.getElementById('newMovTitleInput').value.trim();
-            if (!title) { showToast("Vui lòng nhập tên phong trào!", "error"); return; }
-            const trackParticipation = document.getElementById('movTrackParticipationCheckbox')?.checked !== false;
-            const payload = { 
-                title: title, 
-                desc: document.getElementById('newMovDescInput').value.trim(), 
-                url: document.getElementById('newMovUrlInput').value.trim(), 
-                storageId: document.getElementById('newMovStorageSelect').value, 
-                deadline: getMovSelectedDeadlineString(),
-                trackParticipation: trackParticipation
-            };
-            if (editId) { const m = movements.find(item => item.id === editId); if (m) Object.assign(m, payload); showToast("Đã cập nhật!", "success"); } 
-            else { movements.unshift(Object.assign({ id: "mov_" + Date.now(), participantIds: [] }, payload)); showToast("Đã tạo mới!", "success"); }
-            saveStorageData(); 
-            if (currentUserRole === 'admin' && appsScriptUrl) pushDataToGoogleSheet(true);
-            closeCreateMovementModal(); 
-            renderMovementsCards();
+
+        function toggleAcaDeadlineInputs() {
+            const group = document.getElementById('acaDeadlinePickersGroup');
+            const noDeadline = document.getElementById('acaNoDeadlineCheckbox')?.checked;
+            if (group) {
+                group.classList.toggle('opacity-40', !!noDeadline);
+                group.classList.toggle('pointer-events-none', !!noDeadline);
+            }
         }
-        function setQuickAcaDeadline(type) { document.getElementById('acaNoDeadlineCheckbox').checked = false; toggleAcaDeadlineInputs(); const d = new Date(); if (type === 'todayEnd') { d.setHours(23, 59, 0, 0); setAcaDeadlinePickers(d); document.getElementById('acaPickHour').value = "23"; document.getElementById('acaPickMinute').value = "59"; } else if (type === 'plus3Days') { d.setDate(d.getDate() + 3); d.setHours(22, 0, 0, 0); setAcaDeadlinePickers(d); document.getElementById('acaPickHour').value = "22"; document.getElementById('acaPickMinute').value = "00"; } }
-        function getAcaSelectedDeadlineString() { if (document.getElementById('acaNoDeadlineCheckbox').checked) return ""; return `${document.getElementById('acaPickYear').value}-${document.getElementById('acaPickMonth').value}-${document.getElementById('acaPickDay').value}T${document.getElementById('acaPickHour').value}:${document.getElementById('acaPickMinute').value}`; }
+
+        function setAcaDeadlinePickers(d) {
+            const pad = n => String(n).padStart(2, '0');
+            d = d || new Date();
+            const setVal = (id, val) => { const el = document.getElementById(id); if (el) el.value = val; };
+            setVal('acaPickDay', pad(d.getDate()));
+            setVal('acaPickMonth', pad(d.getMonth() + 1));
+            setVal('acaPickYear', String(d.getFullYear()));
+            setVal('acaPickHour', pad(d.getHours()));
+            setVal('acaPickMinute', pad(Math.round(d.getMinutes() / 5) * 5 >= 60 ? 55 : Math.round(d.getMinutes() / 5) * 5));
+        }
+
+        function setQuickAcaDeadline(type) {
+            const cb = document.getElementById('acaNoDeadlineCheckbox');
+            if (cb) cb.checked = false;
+            toggleAcaDeadlineInputs();
+            const d = new Date();
+            if (type === 'todayEnd') {
+                d.setHours(23, 59, 0, 0);
+                setAcaDeadlinePickers(d);
+                const hEl = document.getElementById('acaPickHour');
+                const mEl = document.getElementById('acaPickMinute');
+                if (hEl) hEl.value = "23";
+                if (mEl) mEl.value = "59";
+            } else if (type === 'plus3Days') {
+                d.setDate(d.getDate() + 3);
+                d.setHours(23, 59, 0, 0);
+                setAcaDeadlinePickers(d);
+                const hEl = document.getElementById('acaPickHour');
+                const mEl = document.getElementById('acaPickMinute');
+                if (hEl) hEl.value = "23";
+                if (mEl) mEl.value = "59";
+            }
+        }
+
+        function getAcaSelectedDeadlineString() {
+            if (document.getElementById('acaNoDeadlineCheckbox')?.checked) return "";
+            const y = document.getElementById('acaPickYear')?.value || new Date().getFullYear();
+            const m = document.getElementById('acaPickMonth')?.value || "01";
+            const d = document.getElementById('acaPickDay')?.value || "01";
+            const h = document.getElementById('acaPickHour')?.value || "00";
+            const min = document.getElementById('acaPickMinute')?.value || "00";
+            return `${y}-${m}-${d}T${h}:${min}`;
+        }
 
         function openCreateAcademicModal() {
-            document.getElementById('editAcademicId').value = ''; document.getElementById('acaModalTitle').innerHTML = '<i class="fa-solid fa-book-open text-sky-600"></i><span>Tạo Bài Tập</span>'; document.getElementById('saveAcaBtn').innerText = 'Lưu';
-            ['newAcaTitleInput', 'newAcaUrlInput', 'newAcaNoteInput'].forEach(id => document.getElementById(id).value = '');
-            document.getElementById('acaNoDeadlineCheckbox').checked = false; toggleAcaDeadlineInputs(); setAcaDeadlinePickers();
-            const pinCb = document.getElementById('acaIsPinnedCheckbox');
-            if (pinCb) pinCb.checked = false;
+            document.getElementById('editAcademicId').value = '';
+            document.getElementById('acaModalTitle').innerHTML = '<i class="fa-solid fa-book-open text-sky-600"></i><span>Thêm Bài Tập Mới</span>';
+            document.getElementById('saveAcaBtn').innerText = 'Lưu Bài Tập';
+            ['newAcaTitleInput', 'newAcaUrlInput', 'newAcaNoteInput'].forEach(id => {
+                const el = document.getElementById(id);
+                if (el) el.value = '';
+            });
+            const noDeadlineCb = document.getElementById('acaNoDeadlineCheckbox');
+            if (noDeadlineCb) noDeadlineCb.checked = true;
+            toggleAcaDeadlineInputs();
+            setAcaDeadlinePickers();
             document.getElementById('createAcademicModal').classList.remove('hidden');
         }
+
         function openEditAcademicModal(id) {
-            const task = academicTasks.find(t => t.id === id); if (!task) return;
-            document.getElementById('editAcademicId').value = task.id; document.getElementById('acaModalTitle').innerHTML = '<i class="fa-solid fa-pen-to-square text-sky-600"></i><span>Sửa Bài Tập</span>'; document.getElementById('saveAcaBtn').innerText = 'Cập Nhật';
-            document.getElementById('newAcaTitleInput').value = task.title || ''; document.getElementById('newAcaUrlInput').value = task.url || ''; document.getElementById('newAcaNoteInput').value = task.note || '';
-            document.getElementById('acaNoDeadlineCheckbox').checked = !task.deadline; setAcaDeadlinePickers(task.deadline ? new Date(task.deadline) : new Date()); toggleAcaDeadlineInputs();
-            const pinCb = document.getElementById('acaIsPinnedCheckbox');
-            if (pinCb) pinCb.checked = !!task.isPinned;
+            const task = academicTasks.find(item => item.id === id);
+            if (!task) return;
+            document.getElementById('editAcademicId').value = task.id;
+            document.getElementById('acaModalTitle').innerHTML = '<i class="fa-solid fa-pen-to-square text-sky-600"></i><span>Chỉnh Sửa Bài Tập</span>';
+            document.getElementById('saveAcaBtn').innerText = 'Cập Nhật';
+            document.getElementById('newAcaTitleInput').value = task.title || '';
+            document.getElementById('newAcaUrlInput').value = task.url || '';
+            document.getElementById('newAcaNoteInput').value = task.note || '';
+
+            const noDeadlineCb = document.getElementById('acaNoDeadlineCheckbox');
+            if (noDeadlineCb) noDeadlineCb.checked = !task.deadline;
+            setAcaDeadlinePickers(task.deadline ? new Date(task.deadline) : new Date());
+            toggleAcaDeadlineInputs();
             document.getElementById('createAcademicModal').classList.remove('hidden');
         }
-        function closeCreateAcademicModal() { document.getElementById('createAcademicModal').classList.add('hidden'); }
+
+        function closeCreateAcademicModal() {
+            document.getElementById('createAcademicModal').classList.add('hidden');
+        }
+
         function handleSaveNewAcademic() {
             const editId = document.getElementById('editAcademicId').value; const title = document.getElementById('newAcaTitleInput').value.trim(); const url = document.getElementById('newAcaUrlInput').value.trim();
             if (!title || !url) { showToast("Vui lòng nhập tên và link!", "error"); return; }
@@ -2481,165 +2641,20 @@
                 note: document.getElementById('newAcaNoteInput').value.trim(), 
                 deadline: getAcaSelectedDeadlineString()
             };
-            if (editId) { const task = academicTasks.find(t => t.id === editId); if (task) Object.assign(task, payload); showToast("Đã cập nhật!", "success"); }
-            else { academicTasks.unshift(Object.assign({ id: "aca_" + Date.now() }, payload)); showToast("Đã đăng bài tập mới!", "success"); }
+            if (editId) { 
+                const task = academicTasks.find(t => t.id === editId); 
+                if (task) {
+                    Object.assign(task, payload); 
+                    showToast("Đã cập nhật bài tập!", "success"); 
+                }
+            } else { 
+                academicTasks.unshift(Object.assign({ id: "aca_" + Date.now() }, payload)); 
+                showToast("Đã đăng bài tập mới!", "success"); 
+            }
             saveStorageData(); 
             if (currentUserRole === 'admin' && appsScriptUrl) pushDataToGoogleSheet(true);
             closeCreateAcademicModal(); 
             renderAcademicTasks();
-        }
-        function deleteAcademicTask(id) { 
-            academicTasks = academicTasks.filter(t => t.id !== id); 
-            saveStorageData(); 
-            if (currentUserRole === 'admin' && appsScriptUrl) pushDataToGoogleSheet(true);
-            renderAcademicTasks(); 
-            showToast("Đã xóa!", "info"); 
-        }
-
-        function toggleCustomMovementDropdown() {
-            const menu = document.getElementById('customMovementDropdownMenu'); const arrow = document.getElementById('customMovementPickerArrow'); if (!menu) return;
-            if (menu.classList.contains('hidden')) { menu.classList.remove('hidden'); if (arrow) arrow.classList.add('rotate-180'); } else { menu.classList.add('hidden'); if (arrow) arrow.classList.remove('rotate-180'); }
-        }
-        document.addEventListener('click', function (e) {
-            const btn = document.getElementById('customMovementPickerBtn'); const menu = document.getElementById('customMovementDropdownMenu');
-            if (btn && menu && !btn.contains(e.target) && !menu.contains(e.target)) { menu.classList.add('hidden'); document.getElementById('customMovementPickerArrow')?.classList.remove('rotate-180'); }
-        });
-
-        function populateReportMovementsDropdown() {
-            const menu = document.getElementById('customMovementDropdownMenu'); if (!menu) return;
-            const currentVal = document.getElementById('reportMovementSelect')?.value || "";
-            const validMovements = movements.filter(m => !isMovementExpired(m.deadline) && m.storageId && m.storageId.trim() !== "");
-            if (validMovements.length === 0) { menu.innerHTML = `<div class="p-3 text-xs text-slate-400 italic text-center">Chưa có phong trào nào yêu cầu nộp ảnh.</div>`; return; }
-            
-            if (currentVal && !validMovements.find(m => m.id === currentVal)) {
-                document.getElementById('reportMovementSelect').value = '';
-                document.getElementById('customMovementPickerLabel').innerText = "-- Chọn phong trào cần nộp ảnh --";
-            }
-            
-            menu.innerHTML = validMovements.map(m => {
-                const isSelected = currentVal === m.id;
-                return `<div onclick="selectMovementItem('${m.id}', '${m.title.replace(/'/g, "\\'")}')" class="p-3 rounded-xl border cursor-pointer transition flex items-center justify-between ${isSelected ? 'bg-purple-50/70 border-purple-400 text-purple-900 font-bold shadow-sm' : 'bg-slate-50 hover:bg-purple-50/40 border-slate-200 text-slate-700 font-medium'}">
-                    <div class="flex items-center gap-2.5 overflow-hidden"><div class="w-8 h-8 rounded-lg ${isSelected ? 'bg-purple-600 text-white' : 'bg-purple-100 text-purple-700'} flex items-center justify-center text-xs flex-shrink-0"><i class="fa-solid fa-award"></i></div><div class="truncate"><div class="text-xs sm:text-sm truncate">${m.title}</div><div class="text-[10px] text-slate-400">${formatMovementDeadline(m.deadline)}</div></div></div>${isSelected ? '<i class="fa-solid fa-check text-purple-600 text-sm"></i>' : ''}</div>`;
-            }).join('');
-        }
-
-        function selectMovementItem(movId, movTitle) {
-            document.getElementById('reportMovementSelect').value = movId;
-            const labelEl = document.getElementById('customMovementPickerLabel'); labelEl.innerText = movTitle; labelEl.className = "font-bold truncate text-slate-800";
-            document.getElementById('customMovementPickerIcon').className = "fa-solid fa-award text-purple-600";
-            document.getElementById('customMovementDropdownMenu').classList.add('hidden'); document.getElementById('customMovementPickerArrow').classList.remove('rotate-180');
-            populateReportMovementsDropdown();
-        }
-
-        function removeVietnameseTones(str) {
-            str = str.replace(/à|á|ạ|ả|ã|â|ầ|ấ|ậ|ẩ|ẫ|ă|ằ|ắ|ặ|ẳ|ẵ/g, "a").replace(/è|é|ẹ|ẻ|ẽ|ê|ề|ế|ệ|ể|ễ/g, "e").replace(/ì|í|ị|ỉ|ĩ/g, "i").replace(/ò|ó|ọ|ỏ|õ|ô|ồ|ố|ộ|ổ|ỗ|ơ|ờ|ớ|ợ|ở|ỡ/g, "o").replace(/ù|ú|ụ|ủ|ũ|ư|ừ|ứ|ự|ử|ữ/g, "u").replace(/ỳ|ý|ỵ|ỷ|ỹ/g, "y").replace(/đ/g, "d");
-            str = str.replace(/À|Á|Ạ|Ả|Ã|Â|Ầ|Ấ|Ậ|Ẩ|Ẫ|Ă|Ằ|Ắ|Ặ|Ẳ|Ẵ/g, "A").replace(/È|É|Ẹ|Ẻ|Ẽ|Ê|Ề|Ế|Ệ|Ể|Ễ/g, "E").replace(/Ì|Í|Ị|Ỉ|Ĩ/g, "I").replace(/Ò|Ó|Ọ|Ỏ|Õ|Ô|Ồ|Ố|Ộ|Ổ|Ỗ|Ơ|Ờ|Ớ|Ợ|Ở|Ỡ/g, "O").replace(/Ù|Ú|Ụ|Ủ|Ũ|Ư|Ừ|Ứ|Ự|Ử|Ữ/g, "U").replace(/Ỳ|Ý|Ỵ|Ỷ|Ỹ/g, "Y").replace(/Đ/g, "D");
-            return str;
-        }
-
-        function smartMatchStudent(rawInput) {
-            const inputClean = removeVietnameseTones(rawInput.trim().toLowerCase());
-            if (!inputClean) return { match: null, suggestions: [] };
-
-            const exactMatch = students.find(s => removeVietnameseTones(s.name.toLowerCase()) === inputClean);
-            if (exactMatch) {
-                return { match: exactMatch, suggestions: [] };
-            }
-
-            const scoredList = [];
-            const inputTokens = inputClean.split(/\s+/).filter(Boolean);
-            const inputLastName = inputTokens[inputTokens.length - 1];
-
-            students.forEach(s => {
-                const sClean = removeVietnameseTones(s.name.toLowerCase());
-                const sTokens = sClean.split(/\s+/).filter(Boolean);
-                const sLastName = sTokens[sTokens.length - 1];
-
-                let score = 0;
-
-                if (sLastName === inputLastName) {
-                    score += 50;
-                } else if (sLastName.startsWith(inputLastName)) {
-                    score += 25;
-                }
-
-                if (sClean.includes(inputClean)) {
-                    score += 30;
-                }
-
-                inputTokens.forEach(t => {
-                    if (sTokens.includes(t)) {
-                        score += 15;
-                    } else if (sTokens.some(tok => tok.startsWith(t))) {
-                        score += 8;
-                    }
-                });
-
-                if (score > 0) {
-                    scoredList.push({ student: s, score: score });
-                }
-            });
-
-            scoredList.sort((a, b) => b.score - a.score);
-            const top3Suggestions = scoredList.slice(0, 3).map(item => item.student);
-
-            if (top3Suggestions.length === 1 && scoredList[0].score >= 50) {
-                return { match: top3Suggestions[0], suggestions: [] };
-            }
-
-            return { match: null, suggestions: top3Suggestions };
-        }
-
-        function handleBotNameInput() {
-            const rawVal = document.getElementById('reportSenderInput').value;
-            const suggestionBox = document.getElementById('botSuggestionBox');
-            const hiddenId = document.getElementById('botMatchedStudentId');
-            hiddenId.value = '';
-
-            if (!rawVal.trim()) {
-                suggestionBox.classList.add('hidden');
-                return;
-            }
-
-            const { match, suggestions } = smartMatchStudent(rawVal);
-
-            if (match) {
-                hiddenId.value = match.id;
-                suggestionBox.innerHTML = `
-                    <div class="text-emerald-700 font-bold flex items-center justify-between gap-1.5 p-1">
-                        <div class="flex items-center gap-2 truncate">
-                            <i class="fa-solid fa-circle-check text-emerald-600 text-sm flex-shrink-0"></i>
-                            <span class="truncate">Bot đã nhận diện: <b>${match.name}</b> (STT #${match.stt})</span>
-                        </div>
-                    </div>
-                `;
-                suggestionBox.classList.remove('hidden');
-            } else if (suggestions.length > 0) {
-                suggestionBox.innerHTML = `
-                    <div class="text-indigo-900 font-bold mb-1.5 flex items-center gap-1.5">
-                        <i class="fa-solid fa-robot text-indigo-600 text-xs"></i>
-                        <span>Gợi ý học sinh phù hợp (chạm để chọn):</span>
-                    </div>
-                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-1.5">
-                        ${suggestions.map(s => `
-                            <button type="button" onclick="selectBotStudentSuggestion('${s.id}', '${s.name.replace(/'/g, "\\'")}')" 
-                                class="px-3 py-2 rounded-xl bg-white hover:bg-emerald-600 hover:text-white text-slate-800 text-xs font-bold border border-emerald-300 shadow-sm transition active:scale-95 flex items-center justify-between sm:justify-center gap-1.5 text-left">
-                                <span class="truncate">#${s.stt} - ${s.name}</span>
-                                <i class="fa-solid fa-check text-[10px] text-emerald-600 sm:hidden"></i>
-                            </button>
-                        `).join('')}
-                    </div>
-                `;
-                suggestionBox.classList.remove('hidden');
-            } else {
-                suggestionBox.classList.add('hidden');
-            }
-        }
-
-        function selectBotStudentSuggestion(id, name) {
-            document.getElementById('reportSenderInput').value = name;
-            document.getElementById('botMatchedStudentId').value = id;
-            handleBotNameInput();
         }
 
         function handleImageSelection(event) {
@@ -2732,13 +2747,9 @@
                 if (!chosenMovement.participantIds.includes(student.id)) { chosenMovement.participantIds.push(student.id); botMsg = `Đã tự động cập nhật bạn ${student.name} vào danh sách!`; }
             }
 
-            let officialStudentName = (student ? student.name : senderName)
-                .replace(/[0-9_\-\.]/g, " ")
-                .replace(/\s+/g, " ")
-                .trim();
-
+            const senderDisplayName = student ? student.name : senderName;
             const cleanExtension = (typeof currentReportFileExt !== 'undefined' && currentReportFileExt) ? currentReportFileExt : "jpg";
-            const finalCleanFileName = `${officialStudentName}.${cleanExtension}`;
+            const finalFileName = `${student ? `${student.stt}_` : ''}${senderDisplayName}_${currentReportFileName || `minhchung.${cleanExtension}`}`;
 
             const submitBtn = document.getElementById('submitReportBtn'); const submitBtnText = document.getElementById('submitReportBtnText'); const submitIcon = document.getElementById('submitReportIcon');
             isSubmittingReport = true; 
@@ -2759,8 +2770,7 @@
                         signal: uploadAbortController.signal,
                         body: JSON.stringify({ 
                             action: "uploadImage", 
-                            senderName: officialStudentName, 
-                            cleanNameOnly: officialStudentName,
+                            senderName: senderDisplayName, 
                             studentId: student ? student.id : "", 
                             studentStt: student ? student.stt : "", 
                             movementId: movementId, 
@@ -2768,7 +2778,7 @@
                             storageId: matchedStorage ? matchedStorage.id : "", 
                             storageName: matchedStorage ? matchedStorage.name : "Ổ mặc định", 
                             storageUrl: matchedStorage ? matchedStorage.url : "", 
-                            fileName: finalCleanFileName, 
+                            fileName: finalFileName, 
                             fileType: currentReportFileType || "image/jpeg", 
                             imageBase64: currentReportImageBase64, 
                             timestamp: new Date().toISOString() 
