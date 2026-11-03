@@ -711,6 +711,13 @@
                     <label class="block text-[11px] font-bold text-slate-600 mb-1">Gán Vào Ổ Lưu / Kho Nộp Ảnh</label>
                     <select id="newMovStorageSelect" class="w-full px-3 py-2 rounded-xl bg-slate-50 border border-slate-300 text-xs text-slate-800 focus:outline-none focus:border-emerald-600 focus:bg-white"></select>
                 </div>
+                <!-- Checkbox ghim phong trào -->
+                <div class="p-2.5 rounded-xl bg-amber-50/70 border border-amber-200">
+                    <label class="flex items-center gap-2.5 cursor-pointer text-xs font-black text-amber-900 select-none">
+                        <input type="checkbox" id="movIsPinnedCheckbox" class="w-4 h-4 rounded text-amber-600 focus:ring-amber-500 cursor-pointer">
+                        <span class="flex items-center gap-1.5"><i class="fa-solid fa-thumbtack text-amber-600"></i> Ghim lên đầu trang</span>
+                    </label>
+                </div>
                 <!-- Checkbox tùy chọn theo dõi tham gia -->
                 <div class="p-2.5 rounded-xl bg-purple-50/60 border border-purple-200">
                     <label class="flex items-center gap-2.5 cursor-pointer text-xs font-black text-purple-900 select-none">
@@ -772,6 +779,13 @@
                 <div>
                     <label class="block text-[11px] font-bold text-slate-600 mb-1">Ghi Chú Hướng Dẫn</label>
                     <textarea id="newAcaNoteInput" rows="2" class="w-full px-3 py-2 rounded-xl bg-slate-50 border border-slate-300 text-xs text-slate-800 focus:outline-none focus:border-sky-600 focus:bg-white"></textarea>
+                </div>
+                <!-- Checkbox ghim bài tập -->
+                <div class="p-2.5 rounded-xl bg-amber-50/70 border border-amber-200">
+                    <label class="flex items-center gap-2.5 cursor-pointer text-xs font-black text-amber-900 select-none">
+                        <input type="checkbox" id="acaIsPinnedCheckbox" class="w-4 h-4 rounded text-amber-600 focus:ring-amber-500 cursor-pointer">
+                        <span class="flex items-center gap-1.5"><i class="fa-solid fa-thumbtack text-amber-600"></i> Ghim lên đầu trang</span>
+                    </label>
                 </div>
                 <div>
                     <label class="block text-[11px] font-bold text-slate-600 mb-1">Hạn Chót Hoàn Thành</label>
@@ -860,6 +874,10 @@
                     <div class="grid grid-cols-2 gap-2">
                         <select id="excelSelectWeekNum" onchange="updateExcelWeekHint()" class="w-full px-2.5 py-2 rounded-xl bg-white border border-slate-300 text-xs font-black text-slate-800 shadow-sm focus:border-emerald-500"></select>
                         <select id="excelSelectWeekYear" onchange="updateExcelWeekHint()" class="w-full px-2.5 py-2 rounded-xl bg-white border border-slate-300 text-xs font-black text-slate-800 shadow-sm focus:border-emerald-500"></select>
+                    </div>
+                    <div class="text-[11px] text-emerald-700 font-bold flex items-center gap-1.5">
+                        <i class="fa-solid fa-calendar-week text-xs"></i>
+                        <span id="excelWeekRangeHint">Đang tải khoảng ngày...</span>
                     </div>
                 </div>
                 <div id="excelOptionContainer-month" class="hidden p-3.5 rounded-2xl bg-slate-50 border border-slate-200 space-y-2">
@@ -1883,6 +1901,7 @@
             });
         }
 
+        let searchDebounceTimer = null;
         function handleSearchStudentInput() {
             const input = document.getElementById('studentSearchInput');
             const clearBtn = document.getElementById('clearStudentSearchBtn');
@@ -1893,7 +1912,10 @@
                     clearBtn.classList.add('hidden');
                 }
             }
-            renderStudentsList();
+            if (searchDebounceTimer) clearTimeout(searchDebounceTimer);
+            searchDebounceTimer = setTimeout(() => {
+                renderStudentsList();
+            }, 120);
         }
 
         function clearStudentSearch() {
@@ -2038,9 +2060,43 @@
             const activeContainer = document.getElementById('activeMovementsContainer'); const expiredContainer = document.getElementById('expiredMovementsContainer'); if (!activeContainer || !expiredContainer) return;
             const activeList = []; const expiredList = [];
             movements.forEach(m => isMovementExpired(m.deadline) ? expiredList.push(m) : activeList.push(m));
-            activeList.sort((a, b) => { if (!a.deadline && !b.deadline) return 0; if (!a.deadline) return 1; if (!b.deadline) return -1; return new Date(a.deadline) - new Date(b.deadline); });
+            
+            // Sắp xếp: Ưu tiên mục ĐƯỢC GHIM lên đầu, sau đó mới xếp theo hạn chót
+            const sortMovements = (list) => {
+                list.sort((a, b) => {
+                    const pinA = a.isPinned ? 1 : 0;
+                    const pinB = b.isPinned ? 1 : 0;
+                    if (pinA !== pinB) return pinB - pinA;
+                    if (!a.deadline && !b.deadline) return 0;
+                    if (!a.deadline) return 1;
+                    if (!b.deadline) return -1;
+                    return new Date(a.deadline) - new Date(b.deadline);
+                });
+            };
+
+            sortMovements(activeList);
+            sortMovements(expiredList);
+
             activeContainer.innerHTML = activeList.length === 0 ? `<div class="light-card p-6 rounded-2xl text-center text-xs text-slate-400">Hiện không có phong trào nào đang diễn ra.</div>` : activeList.map(m => generateMovementHtml(m, false)).join('');
             expiredContainer.innerHTML = expiredList.length === 0 ? `<div class="light-card p-4 rounded-2xl text-center text-xs text-slate-400 italic">Chưa có phong trào nào hết hạn.</div>` : expiredList.map(m => generateMovementHtml(m, true)).join('');
+        }
+
+        function togglePinMovement(movementId) {
+            const m = movements.find(item => item.id === movementId);
+            if (!m) return;
+            m.isPinned = !m.isPinned;
+            saveStorageData();
+            renderMovementsCards();
+            showToast(m.isPinned ? `Đã ghim "${m.title}" lên đầu!` : `Đã bỏ ghim "${m.title}"!`, "info");
+        }
+
+        function togglePinAcademic(taskId) {
+            const t = academicTasks.find(item => item.id === taskId);
+            if (!t) return;
+            t.isPinned = !t.isPinned;
+            saveStorageData();
+            renderAcademicTasks();
+            showToast(t.isPinned ? `Đã ghim "${t.title}" lên đầu!` : `Đã bỏ ghim "${t.title}"!`, "info");
         }
 
         function generateMovementHtml(m, isExpired) {
@@ -2048,22 +2104,29 @@
             const participantCount = m.participantIds ? m.participantIds.length : 0; const totalStudents = students.length;
             const matchedStorage = m.storageId ? storageFolders.find(s => s.id === m.storageId) : null;
             const deadlineText = formatMovementDeadline(m.deadline); const urgentInfo = !isExpired ? getMovementUrgentStatus(m.deadline) : { isUrgent: false };
+            const pinBadge = m.isPinned ? `<span class="px-2.5 py-1 rounded-xl text-[11px] font-black bg-amber-500 text-white shadow-sm flex items-center gap-1"><i class="fa-solid fa-thumbtack text-[10px]"></i><span>Đã ghim</span></span>` : '';
             
             if (isExpired) {
                 return `
-                    <div class="p-4 sm:p-5 rounded-2xl border border-slate-700 bg-slate-900/95 text-slate-100 flex flex-col gap-3 shadow-lg transition">
+                    <div class="p-4 sm:p-5 rounded-2xl border ${m.isPinned ? 'border-amber-500 ring-2 ring-amber-500/30' : 'border-slate-700'} bg-slate-900/95 text-slate-100 flex flex-col gap-3 shadow-lg transition">
                         <div class="flex flex-col sm:flex-row sm:items-start justify-between gap-3">
                             <div class="space-y-2 flex-1">
                                 <div class="flex flex-col sm:flex-row sm:items-center gap-2 flex-wrap">
                                     <h4 class="text-base sm:text-lg font-black text-slate-100 tracking-tight leading-snug">${m.title}</h4>
                                     <div class="flex items-center gap-1.5 flex-wrap">
+                                        ${pinBadge}
                                         <span class="px-3 py-1 rounded-xl text-xs font-black bg-rose-950/80 text-rose-300 border border-rose-800 shadow-sm flex items-center gap-1.5"><i class="fa-solid fa-clock-rotate-left"></i><span>Đã hết hạn (${deadlineText})</span></span>
                                         ${matchedStorage ? `<span class="px-2.5 py-1 rounded-xl text-[11px] font-extrabold bg-slate-800 text-emerald-400 border border-slate-700 flex items-center gap-1"><i class="fa-solid fa-folder text-[10px]"></i><span>${matchedStorage.name}</span></span>` : ''}
                                     </div>
                                 </div>
                                 ${m.desc ? `<p class="text-xs text-slate-300 font-bold leading-relaxed">${m.desc}</p>` : ''}
                             </div>
-                            ${currentUserRole === 'admin' ? `<div class="self-end sm:self-auto flex items-center gap-1.5 flex-shrink-0"><button onclick="openEditMovementModal('${m.id}')" class="text-slate-400 hover:text-indigo-400 text-xs p-1"><i class="fa-solid fa-pen-to-square"></i></button><button onclick="deleteMovement('${m.id}')" class="text-slate-400 hover:text-rose-400 text-xs p-1"><i class="fa-solid fa-trash-can"></i></button></div>` : ''}
+                            ${currentUserRole === 'admin' ? `
+                                <div class="self-end sm:self-auto flex items-center gap-1.5 flex-shrink-0">
+                                    <button onclick="togglePinMovement('${m.id}')" title="${m.isPinned ? 'Bỏ ghim' : 'Ghim lên đầu'}" class="p-1.5 rounded-lg text-xs transition ${m.isPinned ? 'bg-amber-500/20 text-amber-400' : 'text-slate-400 hover:text-amber-400'}"><i class="fa-solid fa-thumbtack"></i></button>
+                                    <button onclick="openEditMovementModal('${m.id}')" class="text-slate-400 hover:text-indigo-400 text-xs p-1"><i class="fa-solid fa-pen-to-square"></i></button>
+                                    <button onclick="deleteMovement('${m.id}')" class="text-slate-400 hover:text-rose-400 text-xs p-1"><i class="fa-solid fa-trash-can"></i></button>
+                                </div>` : ''}
                         </div>
                         <div class="pt-2 border-t border-slate-800 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                             <div class="flex items-center gap-2 text-xs text-slate-300 font-bold">
@@ -2084,13 +2147,14 @@
             }
             if (urgentInfo.isUrgent) {
                 return `
-                    <div class="urgent-card-glow p-4 sm:p-5 rounded-2xl border-2 border-rose-500 bg-gradient-to-r from-rose-50 via-amber-50/70 to-white flex flex-col gap-3 transition relative overflow-hidden">
+                    <div class="urgent-card-glow p-4 sm:p-5 rounded-2xl border-2 ${m.isPinned ? 'border-amber-500 ring-2 ring-amber-400/40' : 'border-rose-500'} bg-gradient-to-r from-rose-50 via-amber-50/70 to-white flex flex-col gap-3 transition relative overflow-hidden">
                         <div class="absolute -top-1 -right-1"><span class="flex h-3 w-3"><span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-rose-400 opacity-75"></span><span class="relative inline-flex rounded-full h-3 w-3 bg-rose-600"></span></span></div>
                         <div class="flex flex-col sm:flex-row sm:items-start justify-between gap-3">
                             <div class="space-y-2 flex-1">
                                 <div class="flex flex-col sm:flex-row sm:items-center gap-2 flex-wrap">
                                     <h4 class="text-base sm:text-lg font-black text-rose-950 tracking-tight leading-snug flex items-center gap-2"><i class="fa-solid fa-bell text-rose-600 animate-bounce"></i><span>${m.title}</span></h4>
                                     <div class="flex items-center gap-1.5 flex-wrap">
+                                        ${pinBadge}
                                         <span class="urgent-badge-pulse px-3 py-1 rounded-xl text-xs font-black bg-gradient-to-r from-rose-600 to-red-600 text-white shadow-md shadow-rose-600/30 flex items-center gap-1.5 border border-rose-300"><i class="fa-solid fa-fire-flame-curved text-amber-300 animate-pulse"></i><span>${urgentInfo.label}</span></span>
                                         <span class="px-2.5 py-1 rounded-xl text-[11px] font-black bg-rose-100 text-rose-800 border border-rose-200 shadow-sm flex items-center gap-1"><i class="fa-solid fa-hourglass-end text-[10px] text-rose-600"></i><span>${deadlineText}</span></span>
                                         ${matchedStorage ? `<span class="px-2.5 py-1 rounded-xl text-[11px] font-extrabold bg-emerald-50 text-emerald-700 border border-emerald-200 flex items-center gap-1"><i class="fa-solid fa-folder text-[10px]"></i><span>${matchedStorage.name}</span></span>` : ''}
@@ -2098,7 +2162,12 @@
                                 </div>
                                 ${m.desc ? `<p class="text-xs text-rose-900/80 font-bold leading-relaxed">${m.desc}</p>` : ''}
                             </div>
-                            ${currentUserRole === 'admin' ? `<div class="self-end sm:self-auto flex items-center gap-1.5 flex-shrink-0"><button onclick="openEditMovementModal('${m.id}')" class="text-slate-400 hover:text-rose-600 text-xs p-1"><i class="fa-solid fa-pen-to-square"></i></button><button onclick="deleteMovement('${m.id}')" class="text-slate-400 hover:text-rose-600 text-xs p-1"><i class="fa-solid fa-trash-can"></i></button></div>` : ''}
+                            ${currentUserRole === 'admin' ? `
+                                <div class="self-end sm:self-auto flex items-center gap-1.5 flex-shrink-0">
+                                    <button onclick="togglePinMovement('${m.id}')" title="${m.isPinned ? 'Bỏ ghim' : 'Ghim lên đầu'}" class="p-1.5 rounded-lg text-xs transition ${m.isPinned ? 'bg-amber-100 text-amber-700' : 'text-slate-400 hover:text-amber-600'}"><i class="fa-solid fa-thumbtack"></i></button>
+                                    <button onclick="openEditMovementModal('${m.id}')" class="text-slate-400 hover:text-rose-600 text-xs p-1"><i class="fa-solid fa-pen-to-square"></i></button>
+                                    <button onclick="deleteMovement('${m.id}')" class="text-slate-400 hover:text-rose-600 text-xs p-1"><i class="fa-solid fa-trash-can"></i></button>
+                                </div>` : ''}
                         </div>
                         <div class="pt-2 border-t border-rose-200/80 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                             <div class="flex items-center gap-2 text-xs text-rose-900 font-bold">
@@ -2121,19 +2190,25 @@
             }
 
             return `
-                <div class="light-card p-4 sm:p-5 rounded-2xl border border-purple-200 bg-white hover:border-purple-300 flex flex-col gap-3 shadow-sm transition">
+                <div class="light-card p-4 sm:p-5 rounded-2xl border ${m.isPinned ? 'border-amber-400 ring-2 ring-amber-400/30 bg-amber-50/20' : 'border-purple-200 bg-white hover:border-purple-300'} flex flex-col gap-3 shadow-sm transition">
                     <div class="flex flex-col sm:flex-row sm:items-start justify-between gap-3">
                         <div class="space-y-2 flex-1">
                             <div class="flex flex-col sm:flex-row sm:items-center gap-2 flex-wrap">
                                 <h4 class="text-base sm:text-lg font-black text-slate-900 tracking-tight leading-snug">${m.title}</h4>
                                 <div class="flex items-center gap-1.5 flex-wrap">
+                                    ${pinBadge}
                                     <span class="px-3 py-1 rounded-xl text-xs font-black shadow-sm flex items-center gap-1.5 ${deadlineText === 'Vô thời hạn' ? 'bg-gradient-to-r from-indigo-500 to-purple-600 text-white shadow-indigo-500/20' : 'bg-gradient-to-r from-amber-500 to-orange-500 text-white shadow-orange-500/20'}"><i class="fa-solid ${deadlineText === 'Vô thời hạn' ? 'fa-infinity' : 'fa-hourglass-half'}"></i><span>${deadlineText}</span></span>
                                     ${matchedStorage ? `<span class="px-2.5 py-1 rounded-xl text-[11px] font-extrabold bg-emerald-50 text-emerald-700 border border-emerald-200 flex items-center gap-1"><i class="fa-solid fa-folder text-[10px]"></i><span>${matchedStorage.name}</span></span>` : ''}
                                 </div>
                             </div>
                             ${m.desc ? `<p class="text-xs text-slate-600 font-bold leading-relaxed">${m.desc}</p>` : ''}
                         </div>
-                        ${currentUserRole === 'admin' ? `<div class="self-end sm:self-auto flex items-center gap-1.5 flex-shrink-0"><button onclick="openEditMovementModal('${m.id}')" class="text-slate-400 hover:text-indigo-600 text-xs p-1"><i class="fa-solid fa-pen-to-square"></i></button><button onclick="deleteMovement('${m.id}')" class="text-slate-400 hover:text-rose-600 text-xs p-1"><i class="fa-solid fa-trash-can"></i></button></div>` : ''}
+                        ${currentUserRole === 'admin' ? `
+                            <div class="self-end sm:self-auto flex items-center gap-1.5 flex-shrink-0">
+                                <button onclick="togglePinMovement('${m.id}')" title="${m.isPinned ? 'Bỏ ghim' : 'Ghim lên đầu'}" class="p-1.5 rounded-lg text-xs transition ${m.isPinned ? 'bg-amber-100 text-amber-700' : 'text-slate-400 hover:text-amber-600'}"><i class="fa-solid fa-thumbtack"></i></button>
+                                <button onclick="openEditMovementModal('${m.id}')" class="text-slate-400 hover:text-indigo-600 text-xs p-1"><i class="fa-solid fa-pen-to-square"></i></button>
+                                <button onclick="deleteMovement('${m.id}')" class="text-slate-400 hover:text-rose-600 text-xs p-1"><i class="fa-solid fa-trash-can"></i></button>
+                            </div>` : ''}
                     </div>
                     <div class="pt-2 border-t border-slate-100 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                         <div class="flex items-center gap-2 text-xs text-slate-700 font-bold">
@@ -2207,6 +2282,8 @@
             document.getElementById('movNoDeadlineCheckbox').checked = false; toggleMovDeadlineInputs(); setMovDeadlinePickers();
             const trackCb = document.getElementById('movTrackParticipationCheckbox');
             if (trackCb) trackCb.checked = true;
+            const pinCb = document.getElementById('movIsPinnedCheckbox');
+            if (pinCb) pinCb.checked = false;
             populateStorageDropdowns(); document.getElementById('createMovementModal').classList.remove('hidden');
         }
         function openEditMovementModal(id) {
@@ -2216,6 +2293,8 @@
             document.getElementById('movNoDeadlineCheckbox').checked = !m.deadline; setMovDeadlinePickers(m.deadline ? new Date(m.deadline) : new Date()); toggleMovDeadlineInputs();
             const trackCb = document.getElementById('movTrackParticipationCheckbox');
             if (trackCb) trackCb.checked = m.trackParticipation !== false;
+            const pinCb = document.getElementById('movIsPinnedCheckbox');
+            if (pinCb) pinCb.checked = !!m.isPinned;
             populateStorageDropdowns(); document.getElementById('newMovStorageSelect').value = m.storageId || ''; document.getElementById('createMovementModal').classList.remove('hidden');
         }
         function closeCreateMovementModal() { document.getElementById('createMovementModal').classList.add('hidden'); }
@@ -2223,13 +2302,15 @@
             const editId = document.getElementById('editMovementId').value; const title = document.getElementById('newMovTitleInput').value.trim();
             if (!title) { showToast("Vui lòng nhập tên phong trào!", "error"); return; }
             const trackParticipation = document.getElementById('movTrackParticipationCheckbox')?.checked !== false;
+            const isPinned = document.getElementById('movIsPinnedCheckbox')?.checked === true;
             const payload = { 
                 title: title, 
                 desc: document.getElementById('newMovDescInput').value.trim(), 
                 url: document.getElementById('newMovUrlInput').value.trim(), 
                 storageId: document.getElementById('newMovStorageSelect').value, 
                 deadline: getMovSelectedDeadlineString(),
-                trackParticipation: trackParticipation
+                trackParticipation: trackParticipation,
+                isPinned: isPinned
             };
             if (editId) { const m = movements.find(item => item.id === editId); if (m) Object.assign(m, payload); showToast("Đã cập nhật!", "success"); } 
             else { movements.unshift(Object.assign({ id: "mov_" + Date.now(), participantIds: [] }, payload)); showToast("Đã tạo mới!", "success"); }
@@ -2240,17 +2321,38 @@
         function renderAcademicTasks() {
             const container = document.getElementById('academicTasksContainer'); if (!container) return;
             if (academicTasks.length === 0) { container.innerHTML = `<div class="light-card p-6 rounded-2xl text-center text-xs text-slate-400">Chưa có bài tập nào.</div>`; return; }
-            container.innerHTML = academicTasks.map(task => {
+            
+            // Sắp xếp: Mục được ghim ưu tiên lên đầu
+            const sortedTasks = [...academicTasks].sort((a, b) => {
+                const pinA = a.isPinned ? 1 : 0;
+                const pinB = b.isPinned ? 1 : 0;
+                if (pinA !== pinB) return pinB - pinA;
+                if (!a.deadline && !b.deadline) return 0;
+                if (!a.deadline) return 1;
+                if (!b.deadline) return -1;
+                return new Date(a.deadline) - new Date(b.deadline);
+            });
+
+            container.innerHTML = sortedTasks.map(task => {
                 const deadlineBadge = !task.deadline ? `<span class="px-2.5 py-1 rounded-xl text-xs font-black bg-sky-50 text-sky-700 border border-sky-200 shadow-sm flex items-center gap-1.5"><i class="fa-solid fa-infinity text-sky-600"></i><span>Không giới hạn</span></span>`
                     : `<span class="px-2.5 py-1 rounded-xl text-xs font-black bg-amber-50 text-amber-800 border border-amber-200 shadow-sm flex items-center gap-1.5"><i class="fa-solid fa-hourglass-half text-amber-600"></i><span>Hạn: ${isNaN(new Date(task.deadline).getTime()) ? task.deadline : `${new Date(task.deadline).toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' })} ${new Date(task.deadline).toLocaleDateString('vi-VN')}`}</span></span>`;
+                const pinBadge = task.isPinned ? `<span class="px-2.5 py-1 rounded-xl text-xs font-black bg-amber-500 text-white shadow-sm flex items-center gap-1"><i class="fa-solid fa-thumbtack text-[10px]"></i><span>Đã ghim</span></span>` : '';
                 return `
-                    <div class="light-card p-4 sm:p-5 rounded-2xl border border-sky-200 hover:border-sky-300 flex flex-col sm:flex-row sm:items-center justify-between gap-3.5 shadow-sm transition">
+                    <div class="light-card p-4 sm:p-5 rounded-2xl border ${task.isPinned ? 'border-amber-400 ring-2 ring-amber-400/30 bg-amber-50/20' : 'border-sky-200 hover:border-sky-300'} flex flex-col sm:flex-row sm:items-center justify-between gap-3.5 shadow-sm transition">
                         <div class="space-y-1.5 flex-1">
-                            <div class="flex items-center gap-2 flex-wrap"><h4 class="text-base sm:text-lg font-black text-slate-900 flex items-center gap-2"><i class="fa-solid fa-book-bookmark text-sky-600 text-sm"></i><span>${task.title}</span></h4>${deadlineBadge}</div>
+                            <div class="flex items-center gap-2 flex-wrap">
+                                <h4 class="text-base sm:text-lg font-black text-slate-900 flex items-center gap-2"><i class="fa-solid fa-book-bookmark text-sky-600 text-sm"></i><span>${task.title}</span></h4>
+                                ${pinBadge}
+                                ${deadlineBadge}
+                            </div>
                             ${task.note ? `<p class="text-xs text-slate-600 font-bold leading-relaxed">${task.note}</p>` : ''}
                         </div>
                         <div class="flex items-center gap-2 flex-shrink-0 self-end sm:self-auto">
-                            ${currentUserRole === 'admin' ? `<button onclick="openEditAcademicModal('${task.id}')" class="text-slate-400 hover:text-sky-600 text-xs p-1"><i class="fa-solid fa-pen-to-square"></i></button><button onclick="deleteAcademicTask('${task.id}')" class="text-slate-400 hover:text-rose-600 text-xs p-1"><i class="fa-solid fa-trash-can"></i></button>` : ''}
+                            ${currentUserRole === 'admin' ? `
+                                <button onclick="togglePinAcademic('${task.id}')" title="${task.isPinned ? 'Bỏ ghim' : 'Ghim lên đầu'}" class="p-1.5 rounded-lg text-xs transition ${task.isPinned ? 'bg-amber-100 text-amber-700' : 'text-slate-400 hover:text-amber-600'}"><i class="fa-solid fa-thumbtack"></i></button>
+                                <button onclick="openEditAcademicModal('${task.id}')" class="text-slate-400 hover:text-sky-600 text-xs p-1"><i class="fa-solid fa-pen-to-square"></i></button>
+                                <button onclick="deleteAcademicTask('${task.id}')" class="text-slate-400 hover:text-rose-600 text-xs p-1"><i class="fa-solid fa-trash-can"></i></button>
+                            ` : ''}
                             <button onclick="copyToClipboard('${task.url.replace(/'/g, "\\'")}', 'link bài tập')" class="px-3 py-2 rounded-xl bg-sky-50 hover:bg-sky-100 text-sky-800 border border-sky-200 text-xs font-black shadow-sm transition flex items-center gap-1.5"><i class="fa-regular fa-copy"></i><span class="hidden sm:inline">Sao Chép</span></button>
                             <a href="${task.url}" onclick="openExternalLink(event, '${task.url.replace(/'/g, "\\'")}')" class="px-4 py-2 rounded-xl bg-sky-600 hover:bg-sky-700 text-white font-black text-xs shadow-md shadow-sky-600/20 transition flex items-center gap-1.5"><span>Làm Bài</span><i class="fa-solid fa-arrow-up-right-from-square text-[10px]"></i></a>
                         </div>
@@ -2270,19 +2372,32 @@
         function openCreateAcademicModal() {
             document.getElementById('editAcademicId').value = ''; document.getElementById('acaModalTitle').innerHTML = '<i class="fa-solid fa-book-open text-sky-600"></i><span>Tạo Bài Tập</span>'; document.getElementById('saveAcaBtn').innerText = 'Lưu';
             ['newAcaTitleInput', 'newAcaUrlInput', 'newAcaNoteInput'].forEach(id => document.getElementById(id).value = '');
-            document.getElementById('acaNoDeadlineCheckbox').checked = false; toggleAcaDeadlineInputs(); setAcaDeadlinePickers(); document.getElementById('createAcademicModal').classList.remove('hidden');
+            document.getElementById('acaNoDeadlineCheckbox').checked = false; toggleAcaDeadlineInputs(); setAcaDeadlinePickers();
+            const pinCb = document.getElementById('acaIsPinnedCheckbox');
+            if (pinCb) pinCb.checked = false;
+            document.getElementById('createAcademicModal').classList.remove('hidden');
         }
         function openEditAcademicModal(id) {
             const task = academicTasks.find(t => t.id === id); if (!task) return;
             document.getElementById('editAcademicId').value = task.id; document.getElementById('acaModalTitle').innerHTML = '<i class="fa-solid fa-pen-to-square text-sky-600"></i><span>Sửa Bài Tập</span>'; document.getElementById('saveAcaBtn').innerText = 'Cập Nhật';
             document.getElementById('newAcaTitleInput').value = task.title || ''; document.getElementById('newAcaUrlInput').value = task.url || ''; document.getElementById('newAcaNoteInput').value = task.note || '';
-            document.getElementById('acaNoDeadlineCheckbox').checked = !task.deadline; setAcaDeadlinePickers(task.deadline ? new Date(task.deadline) : new Date()); toggleAcaDeadlineInputs(); document.getElementById('createAcademicModal').classList.remove('hidden');
+            document.getElementById('acaNoDeadlineCheckbox').checked = !task.deadline; setAcaDeadlinePickers(task.deadline ? new Date(task.deadline) : new Date()); toggleAcaDeadlineInputs();
+            const pinCb = document.getElementById('acaIsPinnedCheckbox');
+            if (pinCb) pinCb.checked = !!task.isPinned;
+            document.getElementById('createAcademicModal').classList.remove('hidden');
         }
         function closeCreateAcademicModal() { document.getElementById('createAcademicModal').classList.add('hidden'); }
         function handleSaveNewAcademic() {
             const editId = document.getElementById('editAcademicId').value; const title = document.getElementById('newAcaTitleInput').value.trim(); const url = document.getElementById('newAcaUrlInput').value.trim();
             if (!title || !url) { showToast("Vui lòng nhập tên và link!", "error"); return; }
-            const payload = { title: title, url: url, note: document.getElementById('newAcaNoteInput').value.trim(), deadline: getAcaSelectedDeadlineString() };
+            const isPinned = document.getElementById('acaIsPinnedCheckbox')?.checked === true;
+            const payload = { 
+                title: title, 
+                url: url, 
+                note: document.getElementById('newAcaNoteInput').value.trim(), 
+                deadline: getAcaSelectedDeadlineString(),
+                isPinned: isPinned
+            };
             if (editId) { const task = academicTasks.find(t => t.id === editId); if (task) Object.assign(task, payload); showToast("Đã cập nhật!", "success"); }
             else { academicTasks.unshift(Object.assign({ id: "aca_" + Date.now() }, payload)); showToast("Đã đăng bài tập mới!", "success"); }
             saveStorageData(); closeCreateAcademicModal(); renderAcademicTasks();
@@ -2452,14 +2567,46 @@
             currentReportFileExt = fileExt;
 
             document.getElementById('imageUploadPlaceholder').classList.add('hidden');
+            
+            // Tối ưu nén ảnh tự động bằng HTML5 Canvas để giảm kích thước và tải siêu nhanh
             const reader = new FileReader();
             reader.onerror = function() { showToast("Không thể đọc tệp này!", "error"); cancelImageSelection(); };
             reader.onload = function (e) {
-                currentReportImageBase64 = e.target.result;
-                const fileKb = Math.round(file.size / 1024); document.getElementById('imageFileSizeText').innerText = `${currentReportFileName} (${fileKb} KB)`;
-                document.getElementById('imagePreviewContainer').classList.remove('hidden');
-                document.getElementById('imagePreview').src = currentReportImageBase64;
-                document.getElementById('imagePreview').classList.remove('hidden');
+                const img = new Image();
+                img.onload = function () {
+                    const canvas = document.createElement('canvas');
+                    let width = img.width;
+                    let height = img.height;
+                    const maxDimension = 1600; // Giới hạn chuẩn Full HD sắc nét mà siêu nhẹ
+
+                    if (width > maxDimension || height > maxDimension) {
+                        if (width > height) {
+                            height = Math.round((height * maxDimension) / width);
+                            width = maxDimension;
+                        } else {
+                            width = Math.round((width * maxDimension) / height);
+                            height = maxDimension;
+                        }
+                    }
+
+                    canvas.width = width;
+                    canvas.height = height;
+                    const ctx = canvas.getContext('2d');
+                    ctx.drawImage(img, 0, 0, width, height);
+
+                    // Nén ở mức chất lượng 0.78 (đẹp rõ nét nhưng chỉ ~250KB)
+                    const compressedBase64 = canvas.toDataURL("image/jpeg", 0.78);
+                    currentReportImageBase64 = compressedBase64;
+                    currentReportFileType = "image/jpeg";
+                    currentReportFileExt = "jpg";
+
+                    const approxKb = Math.round((compressedBase64.length * 3 / 4) / 1024);
+                    document.getElementById('imageFileSizeText').innerText = `${currentReportFileName} (~${approxKb} KB - Đã tối ưu)`;
+                    document.getElementById('imagePreviewContainer').classList.remove('hidden');
+                    document.getElementById('imagePreview').src = compressedBase64;
+                    document.getElementById('imagePreview').classList.remove('hidden');
+                };
+                img.src = e.target.result;
             };
             reader.readAsDataURL(file);
         }
@@ -2508,7 +2655,9 @@
             submitBtnText.innerText = "Đang gửi dữ liệu..."; 
             submitIcon.className = "fa-solid fa-spinner fa-spin";
 
-            history.pushState(null, document.title, location.href);
+            try {
+                history.pushState({ inUpload: true }, document.title, location.href);
+            } catch(e) {}
             uploadAbortController = new AbortController();
 
             if (appsScriptUrl) {
