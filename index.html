@@ -2195,28 +2195,28 @@
             const participantCount = m.participantIds ? m.participantIds.length : 0; const totalStudents = students.length;
             const matchedStorage = m.storageId ? storageFolders.find(s => s.id === m.storageId) : null;
             const deadlineText = formatMovementDeadline(m.deadline); const urgentInfo = !isExpired ? getMovementUrgentStatus(m.deadline) : { isUrgent: false };
-            const pinBadge = isPinnedItem ? `<span class="px-2.5 py-1 rounded-xl text-[11px] font-black bg-amber-500 text-white shadow-sm flex items-center gap-1"><i class="fa-solid fa-thumbtack text-[10px]"></i><span>Đã ghim</span></span>` : '';
+            const pinBadge = isPinnedItem ? `<span class="px-2.5 py-1 rounded-xl text-[11px] font-black bg-amber-500 text-white shadow-sm flex items-center gap-1 flex-shrink-0 whitespace-nowrap"><i class="fa-solid fa-thumbtack text-[10px]"></i><span>Đã ghim</span></span>` : '';
             
             if (isExpired) {
                 return `
                     <div class="p-4 sm:p-5 rounded-2xl border ${isPinnedItem ? 'border-amber-500 ring-2 ring-amber-500/30' : 'border-slate-700'} bg-slate-900/95 text-slate-100 flex flex-col gap-3 shadow-lg transition">
-                        <div class="flex flex-col sm:flex-row sm:items-start justify-between gap-3">
-                            <div class="space-y-2 flex-1">
+                        <div class="flex items-start justify-between gap-2.5">
+                            <div class="space-y-2 flex-1 min-w-0">
                                 <div class="flex flex-col sm:flex-row sm:items-center gap-2 flex-wrap">
-                                    <h4 class="text-base sm:text-lg font-black text-slate-100 tracking-tight leading-snug">${m.title}</h4>
+                                    <h4 class="text-base sm:text-lg font-black text-slate-100 tracking-tight leading-snug break-words">${m.title}</h4>
                                     <div class="flex items-center gap-1.5 flex-wrap">
                                         ${pinBadge}
                                         <span class="px-3 py-1 rounded-xl text-xs font-black bg-rose-950/80 text-rose-300 border border-rose-800 shadow-sm flex items-center gap-1.5"><i class="fa-solid fa-clock-rotate-left"></i><span>Đã hết hạn (${deadlineText})</span></span>
                                         ${matchedStorage ? `<span class="px-2.5 py-1 rounded-xl text-[11px] font-extrabold bg-slate-800 text-emerald-400 border border-slate-700 flex items-center gap-1"><i class="fa-solid fa-folder text-[10px]"></i><span>${matchedStorage.name}</span></span>` : ''}
                                     </div>
                                 </div>
-                                ${m.desc ? `<p class="text-xs text-slate-300 font-bold leading-relaxed">${m.desc}</p>` : ''}
+                                ${m.desc ? `<p class="text-xs text-slate-300 font-bold leading-relaxed break-words">${m.desc}</p>` : ''}
                             </div>
                             ${currentUserRole === 'admin' ? `
-                                <div class="self-end sm:self-auto flex items-center gap-1.5 flex-shrink-0">
-                                    <button onclick="togglePinMovement('${m.id}')" title="${isPinnedItem ? 'Bỏ ghim' : 'Ghim lên đầu'}" class="p-1.5 rounded-lg text-xs transition ${isPinnedItem ? 'bg-amber-500/20 text-amber-400 font-bold' : 'text-slate-400 hover:text-amber-400'}"><i class="fa-solid fa-thumbtack"></i></button>
-                                    <button onclick="openEditMovementModal('${m.id}')" class="text-slate-400 hover:text-indigo-400 text-xs p-1"><i class="fa-solid fa-pen-to-square"></i></button>
-                                    <button onclick="deleteMovement('${m.id}')" class="text-slate-400 hover:text-rose-400 text-xs p-1"><i class="fa-solid fa-trash-can"></i></button>
+                                <div class="flex items-center gap-1 flex-shrink-0 pt-0.5">
+                                    <button type="button" onclick="togglePinMovement('${m.id}')" title="${isPinnedItem ? 'Bỏ ghim' : 'Ghim lên đầu'}" class="p-2 sm:p-1.5 rounded-xl text-xs transition active:scale-90 ${isPinnedItem ? 'bg-amber-500 text-white font-bold shadow-sm' : 'bg-slate-800 text-slate-300 hover:text-amber-400'}"><i class="fa-solid fa-thumbtack text-xs"></i></button>
+                                    <button type="button" onclick="openEditMovementModal('${m.id}')" class="p-2 sm:p-1 text-slate-400 hover:text-indigo-400 text-xs"><i class="fa-solid fa-pen-to-square"></i></button>
+                                    <button type="button" onclick="deleteMovement('${m.id}')" class="p-2 sm:p-1 text-slate-400 hover:text-rose-400 text-xs"><i class="fa-solid fa-trash-can"></i></button>
                                 </div>` : ''}
                         </div>
                         <div class="pt-2 border-t border-slate-800 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
@@ -2240,10 +2240,10 @@
                 return `
                     <div class="urgent-card-glow p-4 sm:p-5 rounded-2xl border-2 ${isPinnedItem ? 'border-amber-500 ring-2 ring-amber-400/40' : 'border-rose-500'} bg-gradient-to-r from-rose-50 via-amber-50/70 to-white flex flex-col gap-3 transition relative overflow-hidden">
                         <div class="absolute -top-1 -right-1"><span class="flex h-3 w-3"><span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-rose-400 opacity-75"></span><span class="relative inline-flex rounded-full h-3 w-3 bg-rose-600"></span></span></div>
-                        <div class="flex flex-col sm:flex-row sm:items-start justify-between gap-3">
-                            <div class="space-y-2 flex-1">
+                        <div class="flex items-start justify-between gap-2.5">
+                            <div class="space-y-2 flex-1 min-w-0">
                                 <div class="flex flex-col sm:flex-row sm:items-center gap-2 flex-wrap">
-                                    <h4 class="text-base sm:text-lg font-black text-rose-950 tracking-tight leading-snug flex items-center gap-2"><i class="fa-solid fa-bell text-rose-600 animate-bounce"></i><span>${m.title}</span></h4>
+                                    <h4 class="text-base sm:text-lg font-black text-rose-950 tracking-tight leading-snug flex items-center gap-2 break-words"><i class="fa-solid fa-bell text-rose-600 animate-bounce flex-shrink-0"></i><span>${m.title}</span></h4>
                                     <div class="flex items-center gap-1.5 flex-wrap">
                                         ${pinBadge}
                                         <span class="urgent-badge-pulse px-3 py-1 rounded-xl text-xs font-black bg-gradient-to-r from-rose-600 to-red-600 text-white shadow-md shadow-rose-600/30 flex items-center gap-1.5 border border-rose-300"><i class="fa-solid fa-fire-flame-curved text-amber-300 animate-pulse"></i><span>${urgentInfo.label}</span></span>
@@ -2251,13 +2251,13 @@
                                         ${matchedStorage ? `<span class="px-2.5 py-1 rounded-xl text-[11px] font-extrabold bg-emerald-50 text-emerald-700 border border-emerald-200 flex items-center gap-1"><i class="fa-solid fa-folder text-[10px]"></i><span>${matchedStorage.name}</span></span>` : ''}
                                     </div>
                                 </div>
-                                ${m.desc ? `<p class="text-xs text-rose-900/80 font-bold leading-relaxed">${m.desc}</p>` : ''}
+                                ${m.desc ? `<p class="text-xs text-rose-900/80 font-bold leading-relaxed break-words">${m.desc}</p>` : ''}
                             </div>
                             ${currentUserRole === 'admin' ? `
-                                <div class="self-end sm:self-auto flex items-center gap-1.5 flex-shrink-0">
-                                    <button onclick="togglePinMovement('${m.id}')" title="${isPinnedItem ? 'Bỏ ghim' : 'Ghim lên đầu'}" class="p-1.5 rounded-lg text-xs transition ${isPinnedItem ? 'bg-amber-100 text-amber-700 font-bold' : 'text-slate-400 hover:text-amber-600'}"><i class="fa-solid fa-thumbtack"></i></button>
-                                    <button onclick="openEditMovementModal('${m.id}')" class="text-slate-400 hover:text-rose-600 text-xs p-1"><i class="fa-solid fa-pen-to-square"></i></button>
-                                    <button onclick="deleteMovement('${m.id}')" class="text-slate-400 hover:text-rose-600 text-xs p-1"><i class="fa-solid fa-trash-can"></i></button>
+                                <div class="flex items-center gap-1 flex-shrink-0 pt-0.5">
+                                    <button type="button" onclick="togglePinMovement('${m.id}')" title="${isPinnedItem ? 'Bỏ ghim' : 'Ghim lên đầu'}" class="p-2 sm:p-1.5 rounded-xl text-xs transition active:scale-90 ${isPinnedItem ? 'bg-amber-500 text-white font-bold shadow-sm' : 'bg-white border border-rose-200 text-slate-500 hover:text-amber-600'}"><i class="fa-solid fa-thumbtack text-xs"></i></button>
+                                    <button type="button" onclick="openEditMovementModal('${m.id}')" class="p-2 sm:p-1 text-slate-400 hover:text-rose-600 text-xs"><i class="fa-solid fa-pen-to-square"></i></button>
+                                    <button type="button" onclick="deleteMovement('${m.id}')" class="p-2 sm:p-1 text-slate-400 hover:text-rose-600 text-xs"><i class="fa-solid fa-trash-can"></i></button>
                                 </div>` : ''}
                         </div>
                         <div class="pt-2 border-t border-rose-200/80 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
@@ -2282,23 +2282,23 @@
 
             return `
                 <div class="light-card p-4 sm:p-5 rounded-2xl border ${isPinnedItem ? 'border-amber-400 ring-2 ring-amber-400/30 bg-amber-50/20' : 'border-purple-200 bg-white hover:border-purple-300'} flex flex-col gap-3 shadow-sm transition">
-                    <div class="flex flex-col sm:flex-row sm:items-start justify-between gap-3">
-                        <div class="space-y-2 flex-1">
+                    <div class="flex items-start justify-between gap-2.5">
+                        <div class="space-y-2 flex-1 min-w-0">
                             <div class="flex flex-col sm:flex-row sm:items-center gap-2 flex-wrap">
-                                <h4 class="text-base sm:text-lg font-black text-slate-900 tracking-tight leading-snug">${m.title}</h4>
+                                <h4 class="text-base sm:text-lg font-black text-slate-900 tracking-tight leading-snug break-words">${m.title}</h4>
                                 <div class="flex items-center gap-1.5 flex-wrap">
                                     ${pinBadge}
                                     <span class="px-3 py-1 rounded-xl text-xs font-black shadow-sm flex items-center gap-1.5 ${deadlineText === 'Vô thời hạn' ? 'bg-gradient-to-r from-indigo-500 to-purple-600 text-white shadow-indigo-500/20' : 'bg-gradient-to-r from-amber-500 to-orange-500 text-white shadow-orange-500/20'}"><i class="fa-solid ${deadlineText === 'Vô thời hạn' ? 'fa-infinity' : 'fa-hourglass-half'}"></i><span>${deadlineText}</span></span>
                                     ${matchedStorage ? `<span class="px-2.5 py-1 rounded-xl text-[11px] font-extrabold bg-emerald-50 text-emerald-700 border border-emerald-200 flex items-center gap-1"><i class="fa-solid fa-folder text-[10px]"></i><span>${matchedStorage.name}</span></span>` : ''}
                                 </div>
                             </div>
-                            ${m.desc ? `<p class="text-xs text-slate-600 font-bold leading-relaxed">${m.desc}</p>` : ''}
+                            ${m.desc ? `<p class="text-xs text-slate-600 font-bold leading-relaxed break-words">${m.desc}</p>` : ''}
                         </div>
                         ${currentUserRole === 'admin' ? `
-                            <div class="self-end sm:self-auto flex items-center gap-1.5 flex-shrink-0">
-                                <button onclick="togglePinMovement('${m.id}')" title="${isPinnedItem ? 'Bỏ ghim' : 'Ghim lên đầu'}" class="p-1.5 rounded-lg text-xs transition ${isPinnedItem ? 'bg-amber-100 text-amber-700 font-bold' : 'text-slate-400 hover:text-amber-600'}"><i class="fa-solid fa-thumbtack"></i></button>
-                                <button onclick="openEditMovementModal('${m.id}')" class="text-slate-400 hover:text-indigo-600 text-xs p-1"><i class="fa-solid fa-pen-to-square"></i></button>
-                                <button onclick="deleteMovement('${m.id}')" class="text-slate-400 hover:text-rose-600 text-xs p-1"><i class="fa-solid fa-trash-can"></i></button>
+                            <div class="flex items-center gap-1 flex-shrink-0 pt-0.5">
+                                <button type="button" onclick="togglePinMovement('${m.id}')" title="${isPinnedItem ? 'Bỏ ghim' : 'Ghim lên đầu'}" class="p-2 sm:p-1.5 rounded-xl text-xs transition active:scale-90 ${isPinnedItem ? 'bg-amber-500 text-white font-bold shadow-sm' : 'bg-slate-100 text-slate-500 hover:text-amber-600'}"><i class="fa-solid fa-thumbtack text-xs"></i></button>
+                                <button type="button" onclick="openEditMovementModal('${m.id}')" class="p-2 sm:p-1 text-slate-400 hover:text-indigo-600 text-xs"><i class="fa-solid fa-pen-to-square"></i></button>
+                                <button type="button" onclick="deleteMovement('${m.id}')" class="p-2 sm:p-1 text-slate-400 hover:text-rose-600 text-xs"><i class="fa-solid fa-trash-can"></i></button>
                             </div>` : ''}
                     </div>
                     <div class="pt-2 border-t border-slate-100 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
@@ -2438,22 +2438,22 @@
                 const isPinnedTask = task.isPinned === true || String(task.isPinned).toLowerCase() === 'true' || task.isPinned === 1;
                 const deadlineBadge = !task.deadline ? `<span class="px-2.5 py-1 rounded-xl text-xs font-black bg-sky-50 text-sky-700 border border-sky-200 shadow-sm flex items-center gap-1.5"><i class="fa-solid fa-infinity text-sky-600"></i><span>Không giới hạn</span></span>`
                     : `<span class="px-2.5 py-1 rounded-xl text-xs font-black bg-amber-50 text-amber-800 border border-amber-200 shadow-sm flex items-center gap-1.5"><i class="fa-solid fa-hourglass-half text-amber-600"></i><span>Hạn: ${isNaN(new Date(task.deadline).getTime()) ? task.deadline : `${new Date(task.deadline).toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' })} ${new Date(task.deadline).toLocaleDateString('vi-VN')}`}</span></span>`;
-                const pinBadge = isPinnedTask ? `<span class="px-2.5 py-1 rounded-xl text-xs font-black bg-amber-500 text-white shadow-sm flex items-center gap-1"><i class="fa-solid fa-thumbtack text-[10px]"></i><span>Đã ghim</span></span>` : '';
+                const pinBadge = isPinnedTask ? `<span class="px-2.5 py-1 rounded-xl text-xs font-black bg-amber-500 text-white shadow-sm flex items-center gap-1 flex-shrink-0 whitespace-nowrap"><i class="fa-solid fa-thumbtack text-[10px]"></i><span>Đã ghim</span></span>` : '';
                 return `
                     <div class="light-card p-4 sm:p-5 rounded-2xl border ${isPinnedTask ? 'border-amber-400 ring-2 ring-amber-400/30 bg-amber-50/20' : 'border-sky-200 hover:border-sky-300'} flex flex-col sm:flex-row sm:items-center justify-between gap-3.5 shadow-sm transition">
-                        <div class="space-y-1.5 flex-1">
+                        <div class="space-y-1.5 flex-1 min-w-0">
                             <div class="flex items-center gap-2 flex-wrap">
-                                <h4 class="text-base sm:text-lg font-black text-slate-900 flex items-center gap-2"><i class="fa-solid fa-book-bookmark text-sky-600 text-sm"></i><span>${task.title}</span></h4>
+                                <h4 class="text-base sm:text-lg font-black text-slate-900 flex items-center gap-2 break-words"><i class="fa-solid fa-book-bookmark text-sky-600 text-sm flex-shrink-0"></i><span>${task.title}</span></h4>
                                 ${pinBadge}
                                 ${deadlineBadge}
                             </div>
-                            ${task.note ? `<p class="text-xs text-slate-600 font-bold leading-relaxed">${task.note}</p>` : ''}
+                            ${task.note ? `<p class="text-xs text-slate-600 font-bold leading-relaxed break-words">${task.note}</p>` : ''}
                         </div>
                         <div class="flex items-center gap-2 flex-shrink-0 self-end sm:self-auto">
                             ${currentUserRole === 'admin' ? `
-                                <button onclick="togglePinAcademic('${task.id}')" title="${isPinnedTask ? 'Bỏ ghim' : 'Ghim lên đầu'}" class="p-1.5 rounded-lg text-xs transition ${isPinnedTask ? 'bg-amber-100 text-amber-700 font-bold' : 'text-slate-400 hover:text-amber-600'}"><i class="fa-solid fa-thumbtack"></i></button>
-                                <button onclick="openEditAcademicModal('${task.id}')" class="text-slate-400 hover:text-sky-600 text-xs p-1"><i class="fa-solid fa-pen-to-square"></i></button>
-                                <button onclick="deleteAcademicTask('${task.id}')" class="text-slate-400 hover:text-rose-600 text-xs p-1"><i class="fa-solid fa-trash-can"></i></button>
+                                <button type="button" onclick="togglePinAcademic('${task.id}')" title="${isPinnedTask ? 'Bỏ ghim' : 'Ghim lên đầu'}" class="p-2 sm:p-1.5 rounded-xl text-xs transition active:scale-90 ${isPinnedTask ? 'bg-amber-500 text-white font-bold shadow-sm' : 'bg-slate-100 text-slate-500 hover:text-amber-600'}"><i class="fa-solid fa-thumbtack text-xs"></i></button>
+                                <button type="button" onclick="openEditAcademicModal('${task.id}')" class="p-2 sm:p-1 text-slate-400 hover:text-sky-600 text-xs"><i class="fa-solid fa-pen-to-square"></i></button>
+                                <button type="button" onclick="deleteAcademicTask('${task.id}')" class="p-2 sm:p-1 text-slate-400 hover:text-rose-600 text-xs"><i class="fa-solid fa-trash-can"></i></button>
                             ` : ''}
                             <button onclick="copyToClipboard('${task.url.replace(/'/g, "\\'")}', 'link bài tập')" class="px-3 py-2 rounded-xl bg-sky-50 hover:bg-sky-100 text-sky-800 border border-sky-200 text-xs font-black shadow-sm transition flex items-center gap-1.5"><i class="fa-regular fa-copy"></i><span class="hidden sm:inline">Sao Chép</span></button>
                             <a href="${task.url}" onclick="openExternalLink(event, '${task.url.replace(/'/g, "\\'")}')" class="px-4 py-2 rounded-xl bg-sky-600 hover:bg-sky-700 text-white font-black text-xs shadow-md shadow-sky-600/20 transition flex items-center gap-1.5"><span>Làm Bài</span><i class="fa-solid fa-arrow-up-right-from-square text-[10px]"></i></a>
