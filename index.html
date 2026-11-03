@@ -1275,21 +1275,37 @@
         function populateReportMovementsDropdown() {
             const menu = document.getElementById('customMovementDropdownMenu');
             if (!menu) return;
-            // Chỉ lấy các phong trào còn hạn VÀ CÓ GÁN Ổ LƯU (nhận ảnh minh chứng)
-            const activeMovs = movements.filter(m => !isMovementExpired(m.deadline) && m.storageId && String(m.storageId).trim() !== "");
+
+            // Lọc phong trào: Còn hạn VÀ có chọn ổ lưu (storageId không rỗng, không phải "null", "undefined")
+            const activeMovs = movements.filter(m => {
+                if (isMovementExpired(m.deadline)) return false;
+                if (!m.storageId) return false;
+                const sId = String(m.storageId).trim();
+                return sId !== "" && sId !== "null" && sId !== "undefined";
+            });
+
             if (activeMovs.length === 0) {
-                menu.innerHTML = `<div class="p-3 text-xs text-slate-400 italic text-center">Không có phong trào nào cần nộp ảnh minh chứng.</div>`;
+                menu.innerHTML = `<div class="p-3 text-xs text-slate-400 italic text-center">Không có phong trào nào nhận nộp ảnh minh chứng lúc này.</div>`;
                 return;
             }
-            menu.innerHTML = activeMovs.map(m => `
-                <div onclick="selectCustomMovementOption('${m.id}', '${m.title.replace(/'/g, "\\'")}')" class="p-2.5 rounded-xl hover:bg-purple-50 cursor-pointer border border-transparent hover:border-purple-200 flex items-center justify-between gap-2 transition">
-                    <div class="overflow-hidden">
-                        <div class="text-xs font-black text-slate-900 truncate">${m.title}</div>
-                        <div class="text-[10px] text-slate-500 font-bold">${formatMovementDeadline(m.deadline)}</div>
+
+            menu.innerHTML = activeMovs.map(m => {
+                const matchedStorage = storageFolders.find(s => String(s.id).trim() === String(m.storageId).trim());
+                const storageLabel = matchedStorage ? matchedStorage.name : "Ổ Lưu";
+                return `
+                    <div onclick="selectCustomMovementOption('${m.id}', '${m.title.replace(/'/g, "\\'")}')" class="p-2.5 rounded-xl hover:bg-purple-50 cursor-pointer border border-transparent hover:border-purple-200 flex items-center justify-between gap-2 transition">
+                        <div class="overflow-hidden">
+                            <div class="text-xs font-black text-slate-900 truncate">${m.title}</div>
+                            <div class="text-[10px] text-slate-500 font-bold flex items-center gap-1.5 mt-0.5">
+                                <span>${formatMovementDeadline(m.deadline)}</span>
+                                <span>•</span>
+                                <span class="text-emerald-700 font-extrabold"><i class="fa-solid fa-folder text-[9px]"></i> ${storageLabel}</span>
+                            </div>
+                        </div>
+                        <i class="fa-solid fa-chevron-right text-xs text-slate-300"></i>
                     </div>
-                    <i class="fa-solid fa-chevron-right text-xs text-slate-300"></i>
-                </div>
-            `).join('');
+                `;
+            }).join('');
         }
 
         // BẮT BUỘC KHÓA TRÌNH DUYỆT KHI ĐÓNG TAB / TẮT APP
