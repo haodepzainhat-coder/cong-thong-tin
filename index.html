@@ -1177,12 +1177,6 @@
         let pendingLeaveAction = null;
         let savedHomeScrollY = 0; // Biến lưu lại vị trí cuộn trang chủ
 
-        // DANH SÁCH ID ĐƯỢC GHIM ĐỘC LẬP (ĐẢM BẢO 100% KHÔNG BỊ TRÔI MẤT KỂ CẢ KHI SHEET CHẬM)
-        let pinnedItemIds = {
-            movements: [],
-            academics: []
-        };
-
         // BẮT BUỘC KHÓA TRÌNH DUYỆT KHI ĐÓNG TAB / TẮT APP
         window.addEventListener('beforeunload', function (e) {
             if (isSubmittingReport) {
@@ -1429,39 +1423,12 @@
                     const cloudData = resJson.data;
                     if (cloudData.students && cloudData.students.length > 0) students = cloudData.students;
                     
-                    // CƠ CHẾ BẢO VỆ 15 GIÂY (Chống ghi đè khi Sheet chưa kịp lưu)
-                    let lastPinAction = 0;
-                    try { lastPinAction = parseInt(localStorage.getItem("cct_last_pin_action") || "0", 10); } catch(e) {}
-                    const isProtected = (Date.now() - lastPinAction < 15000);
-
-                    // Lấy danh sách ID đã ghim từ mây (chỉ khi không nằm trong 15s bảo vệ)
-                    if (cloudData.pinnedItemIds) {
-                        if (!isProtected) {
-                            pinnedItemIds = cloudData.pinnedItemIds;
-                            localStorage.setItem("cct_pinned_ids", JSON.stringify(pinnedItemIds));
-                        }
+                    if (cloudData.movements && Array.isArray(cloudData.movements)) {
+                        movements = cloudData.movements;
                     }
 
-                    if (cloudData.movements) {
-                        movements = cloudData.movements.map(m => {
-                            const isPinnedInList = pinnedItemIds.movements && pinnedItemIds.movements.includes(m.id);
-                            const sheetPinned = (m.isPinned === true || String(m.isPinned).toLowerCase() === 'true' || m.isPinned === 1);
-                            return {
-                                ...m,
-                                isPinned: isPinnedInList || sheetPinned
-                            };
-                        });
-                    }
-
-                    if (cloudData.academicTasks) {
-                        academicTasks = cloudData.academicTasks.map(t => {
-                            const isPinnedInList = pinnedItemIds.academics && pinnedItemIds.academics.includes(t.id);
-                            const sheetPinned = (t.isPinned === true || String(t.isPinned).toLowerCase() === 'true' || t.isPinned === 1);
-                            return {
-                                ...t,
-                                isPinned: isPinnedInList || sheetPinned
-                            };
-                        });
+                    if (cloudData.academicTasks && Array.isArray(cloudData.academicTasks)) {
+                        academicTasks = cloudData.academicTasks;
                     }
 
                     if (cloudData.storageFolders) storageFolders = cloudData.storageFolders;
@@ -1478,7 +1445,7 @@
                     populateStorageDropdowns(); 
                     populateReportMovementsDropdown();
                     updateCloudStatusBadge("connected");
-                    if (showNotify) showToast("Đã cập nhật dữ liệu mới nhất từ Google Sheet!", "success");
+                    if (showNotify) showToast("Đã cập nhật dữ liệu mới nhất!", "success");
                 }
             } catch (err) {
                 updateCloudStatusBadge("connected");
@@ -1496,20 +1463,18 @@
                     students: students, 
                     movements: movements, 
                     academicTasks: academicTasks, 
-                    storageFolders: storageFolders,
-                    pinnedItemIds: pinnedItemIds 
+                    storageFolders: storageFolders
                 }
             };
             const jsonPayload = JSON.stringify(payload);
 
             try {
-                // Công nghệ sendBeacon: Đảm bảo gửi ngầm thành công 100% khi đóng app mà không bị giới hạn dung lượng!
                 if (navigator.sendBeacon) {
                     const blob = new Blob([jsonPayload], { type: 'text/plain' });
                     const sent = navigator.sendBeacon(appsScriptUrl, blob);
                     if (sent) {
                         updateCloudStatusBadge("connected");
-                        if (!silent) showToast("Đã lưu dữ liệu an toàn!", "success");
+                        if (!silent) showToast("Đã lưu thứ tự thành công!", "success");
                         return;
                     }
                 }
@@ -1523,7 +1488,7 @@
                     body: jsonPayload 
                 });
                 updateCloudStatusBadge("connected");
-                if (!silent) showToast("Đã lưu dữ liệu lên Google Sheet thành công!", "success");
+                if (!silent) showToast("Đã lưu thứ tự lên đám mây!", "success");
             } catch (err) {
                 updateCloudStatusBadge("connected");
             }
@@ -1540,26 +1505,18 @@
             try {
                 const savedUrl = localStorage.getItem("cct_apps_script_url");
                 if (savedUrl) appsScriptUrl = savedUrl;
-                
-                const savedPins = localStorage.getItem("cct_pinned_ids");
-                if (savedPins) {
-                    pinnedItemIds = JSON.parse(savedPins);
-                }
-                if (!pinnedItemIds.movements) pinnedItemIds.movements = [];
-                if (!pinnedItemIds.academics) pinnedItemIds.academics = [];
 
-                const savedStudents = localStorage.getItem("cct_students"); students = savedStudents ? JSON.parse(savedStudents) : DEFAULT_STUDENTS_LIST;
+                const savedStudents = localStorage.getItem("cct_students"); 
+                students = savedStudents ? JSON.parse(savedStudents) : DEFAULT_STUDENTS_LIST;
+                
                 const savedMovements = localStorage.getItem("cct_movements"); 
-                movements = savedMovements ? JSON.parse(savedMovements).map(m => ({
-                    ...m,
-                    isPinned: (pinnedItemIds.movements && pinnedItemIds.movements.includes(m.id)) || m.isPinned === true || String(m.isPinned).toLowerCase() === 'true' || m.isPinned === 1
-                })) : DEFAULT_MOVEMENTS;
+                movements = savedMovements ? JSON.parse(savedMovements) : DEFAULT_MOVEMENTS;
+                
                 const savedAcademics = localStorage.getItem("cct_academics"); 
-                academicTasks = savedAcademics ? JSON.parse(savedAcademics).map(t => ({
-                    ...t,
-                    isPinned: (pinnedItemIds.academics && pinnedItemIds.academics.includes(t.id)) || t.isPinned === true || String(t.isPinned).toLowerCase() === 'true' || t.isPinned === 1
-                })) : DEFAULT_ACADEMICS;
-                const savedStorageFolders = localStorage.getItem("cct_storage_folders"); storageFolders = savedStorageFolders ? JSON.parse(savedStorageFolders) : DEFAULT_STORAGE_FOLDERS;
+                academicTasks = savedAcademics ? JSON.parse(savedAcademics) : DEFAULT_ACADEMICS;
+                
+                const savedStorageFolders = localStorage.getItem("cct_storage_folders"); 
+                storageFolders = savedStorageFolders ? JSON.parse(savedStorageFolders) : DEFAULT_STORAGE_FOLDERS;
             } catch (e) {
                 students = DEFAULT_STUDENTS_LIST; movements = DEFAULT_MOVEMENTS; academicTasks = DEFAULT_ACADEMICS; storageFolders = DEFAULT_STORAGE_FOLDERS;
             }
@@ -2150,99 +2107,75 @@
             const activeList = []; const expiredList = [];
             movements.forEach(m => isMovementExpired(m.deadline) ? expiredList.push(m) : activeList.push(m));
             
-            // Sắp xếp: Mục ĐÃ GHIM luôn luôn đứng đầu danh sách kể cả cho học sinh
-            const sortMovements = (list) => {
-                list.sort((a, b) => {
-                    const pinA = (a.isPinned === true || String(a.isPinned).toLowerCase() === 'true' || a.isPinned === 1) ? 1 : 0;
-                    const pinB = (b.isPinned === true || String(b.isPinned).toLowerCase() === 'true' || b.isPinned === 1) ? 1 : 0;
-                    if (pinA !== pinB) return pinB - pinA;
-                    if (!a.deadline && !b.deadline) return 0;
-                    if (!a.deadline) return 1;
-                    if (!b.deadline) return -1;
-                    return new Date(a.deadline) - new Date(b.deadline);
-                });
-            };
-
-            sortMovements(activeList);
-            sortMovements(expiredList);
-
+            // Giữ nguyên 100% thứ tự do Admin tự tay sắp xếp (không bị lệnh sort tự động can thiệp đè lên)
             activeContainer.innerHTML = activeList.length === 0 ? `<div class="light-card p-6 rounded-2xl text-center text-xs text-slate-400">Hiện không có phong trào nào đang diễn ra.</div>` : activeList.map(m => generateMovementHtml(m, false)).join('');
             expiredContainer.innerHTML = expiredList.length === 0 ? `<div class="light-card p-4 rounded-2xl text-center text-xs text-slate-400 italic">Chưa có phong trào nào hết hạn.</div>` : expiredList.map(m => generateMovementHtml(m, true)).join('');
         }
 
-        async function togglePinMovement(movementId) {
-            const m = movements.find(item => item.id === movementId);
-            if (!m) return;
-            
-            const nextPinned = !(m.isPinned === true || String(m.isPinned).toLowerCase() === 'true' || m.isPinned === 1);
-            m.isPinned = nextPinned;
-            
-            if (!pinnedItemIds.movements) pinnedItemIds.movements = [];
-            if (nextPinned) {
-                if (!pinnedItemIds.movements.includes(movementId)) pinnedItemIds.movements.push(movementId);
-            } else {
-                pinnedItemIds.movements = pinnedItemIds.movements.filter(id => id !== movementId);
-            }
+        async function moveMovement(movementId, direction) {
+            const index = movements.findIndex(item => item.id === movementId);
+            if (index === -1) return;
+            const newIndex = index + direction;
+            if (newIndex < 0 || newIndex >= movements.length) return;
+
+            // Đổi vị trí ngay trong mảng
+            const temp = movements[index];
+            movements[index] = movements[newIndex];
+            movements[newIndex] = temp;
 
             try {
-                localStorage.setItem("cct_pinned_ids", JSON.stringify(pinnedItemIds));
                 localStorage.setItem("cct_movements", JSON.stringify(movements));
-                localStorage.setItem("cct_last_pin_action", Date.now().toString()); // Chốt thời gian ghim
-            } catch(e) {}
+            } catch (e) {}
 
             renderMovementsCards();
-            showToast(m.isPinned ? `Đã ghim "${m.title}" lên đầu!` : `Đã bỏ ghim "${m.title}"!`, "info");
-            
+            showToast("Đã cập nhật vị trí phong trào!", "info");
+
             if (appsScriptUrl) {
-                await pushDataToGoogleSheet(true);
+                pushDataToGoogleSheet(true);
             }
         }
 
-        async function togglePinAcademic(taskId) {
-            const t = academicTasks.find(item => item.id === taskId);
-            if (!t) return;
-            
-            const nextPinned = !(t.isPinned === true || String(t.isPinned).toLowerCase() === 'true' || t.isPinned === 1);
-            t.isPinned = nextPinned;
-            
-            if (!pinnedItemIds.academics) pinnedItemIds.academics = [];
-            if (nextPinned) {
-                if (!pinnedItemIds.academics.includes(taskId)) pinnedItemIds.academics.push(taskId);
-            } else {
-                pinnedItemIds.academics = pinnedItemIds.academics.filter(id => id !== taskId);
-            }
+        async function moveAcademicTask(taskId, direction) {
+            const index = academicTasks.findIndex(item => item.id === taskId);
+            if (index === -1) return;
+            const newIndex = index + direction;
+            if (newIndex < 0 || newIndex >= academicTasks.length) return;
+
+            // Đổi vị trí ngay trong mảng
+            const temp = academicTasks[index];
+            academicTasks[index] = academicTasks[newIndex];
+            academicTasks[newIndex] = temp;
 
             try {
-                localStorage.setItem("cct_pinned_ids", JSON.stringify(pinnedItemIds));
                 localStorage.setItem("cct_academics", JSON.stringify(academicTasks));
-                localStorage.setItem("cct_last_pin_action", Date.now().toString()); // Chốt thời gian ghim
-            } catch(e) {}
+            } catch (e) {}
 
             renderAcademicTasks();
-            showToast(t.isPinned ? `Đã ghim "${t.title}" lên đầu!` : `Đã bỏ ghim "${t.title}"!`, "info");
-            
+            showToast("Đã cập nhật vị trí bài tập!", "info");
+
             if (appsScriptUrl) {
-                await pushDataToGoogleSheet(true);
+                pushDataToGoogleSheet(true);
             }
         }
 
         function generateMovementHtml(m, isExpired) {
             const trackParticipation = m.trackParticipation !== false;
-            const isPinnedItem = m.isPinned === true || String(m.isPinned).toLowerCase() === 'true' || m.isPinned === 1;
             const participantCount = m.participantIds ? m.participantIds.length : 0; const totalStudents = students.length;
             const matchedStorage = m.storageId ? storageFolders.find(s => s.id === m.storageId) : null;
             const deadlineText = formatMovementDeadline(m.deadline); const urgentInfo = !isExpired ? getMovementUrgentStatus(m.deadline) : { isUrgent: false };
-            const pinBadge = isPinnedItem ? `<span class="px-2.5 py-1 rounded-xl text-[11px] font-black bg-amber-500 text-white shadow-sm flex items-center gap-1 flex-shrink-0 whitespace-nowrap"><i class="fa-solid fa-thumbtack text-[10px]"></i><span>Đã ghim</span></span>` : '';
             
+            const curIdx = movements.findIndex(item => item.id === m.id);
+            const isFirst = curIdx === 0;
+            const isLast = curIdx === movements.length - 1;
+
             if (isExpired) {
                 return `
-                    <div class="p-4 sm:p-5 rounded-2xl border ${isPinnedItem ? 'border-amber-500 ring-2 ring-amber-500/30' : 'border-slate-700'} bg-slate-900/95 text-slate-100 flex flex-col gap-3 shadow-lg transition">
+                    <div class="p-4 sm:p-5 rounded-2xl border border-slate-700 bg-slate-900/95 text-slate-100 flex flex-col gap-3 shadow-lg transition">
                         <div class="flex items-start justify-between gap-2.5">
                             <div class="space-y-2 flex-1 min-w-0">
                                 <div class="flex flex-col sm:flex-row sm:items-center gap-2 flex-wrap">
                                     <h4 class="text-base sm:text-lg font-black text-slate-100 tracking-tight leading-snug break-words">${m.title}</h4>
                                     <div class="flex items-center gap-1.5 flex-wrap">
-                                        ${pinBadge}
                                         <span class="px-3 py-1 rounded-xl text-xs font-black bg-rose-950/80 text-rose-300 border border-rose-800 shadow-sm flex items-center gap-1.5"><i class="fa-solid fa-clock-rotate-left"></i><span>Đã hết hạn (${deadlineText})</span></span>
                                         ${matchedStorage ? `<span class="px-2.5 py-1 rounded-xl text-[11px] font-extrabold bg-slate-800 text-emerald-400 border border-slate-700 flex items-center gap-1"><i class="fa-solid fa-folder text-[10px]"></i><span>${matchedStorage.name}</span></span>` : ''}
                                     </div>
@@ -2251,7 +2184,10 @@
                             </div>
                             ${currentUserRole === 'admin' ? `
                                 <div class="flex items-center gap-1 flex-shrink-0 pt-0.5">
-                                    <button type="button" onclick="togglePinMovement('${m.id}')" title="${isPinnedItem ? 'Bỏ ghim' : 'Ghim lên đầu'}" class="p-2 sm:p-1.5 rounded-xl text-xs transition active:scale-90 ${isPinnedItem ? 'bg-amber-500 text-white font-bold shadow-sm' : 'bg-slate-800 text-slate-300 hover:text-amber-400'}"><i class="fa-solid fa-thumbtack text-xs"></i></button>
+                                    <div class="inline-flex rounded-xl bg-slate-800 p-0.5 border border-slate-700">
+                                        <button type="button" onclick="moveMovement('${m.id}', -1)" title="Di chuyển lên trên" ${isFirst ? 'disabled class="opacity-30 p-2 sm:p-1.5 text-slate-400 cursor-not-allowed"' : 'class="p-2 sm:p-1.5 rounded-lg text-slate-300 hover:text-white hover:bg-slate-700 transition active:scale-95"'}><i class="fa-solid fa-arrow-up text-xs"></i></button>
+                                        <button type="button" onclick="moveMovement('${m.id}', 1)" title="Di chuyển xuống dưới" ${isLast ? 'disabled class="opacity-30 p-2 sm:p-1.5 text-slate-400 cursor-not-allowed"' : 'class="p-2 sm:p-1.5 rounded-lg text-slate-300 hover:text-white hover:bg-slate-700 transition active:scale-95"'}><i class="fa-solid fa-arrow-down text-xs"></i></button>
+                                    </div>
                                     <button type="button" onclick="openEditMovementModal('${m.id}')" class="p-2 sm:p-1 text-slate-400 hover:text-indigo-400 text-xs"><i class="fa-solid fa-pen-to-square"></i></button>
                                     <button type="button" onclick="deleteMovement('${m.id}')" class="p-2 sm:p-1 text-slate-400 hover:text-rose-400 text-xs"><i class="fa-solid fa-trash-can"></i></button>
                                 </div>` : ''}
@@ -2275,14 +2211,13 @@
             }
             if (urgentInfo.isUrgent) {
                 return `
-                    <div class="urgent-card-glow p-4 sm:p-5 rounded-2xl border-2 ${isPinnedItem ? 'border-amber-500 ring-2 ring-amber-400/40' : 'border-rose-500'} bg-gradient-to-r from-rose-50 via-amber-50/70 to-white flex flex-col gap-3 transition relative overflow-hidden">
+                    <div class="urgent-card-glow p-4 sm:p-5 rounded-2xl border-2 border-rose-500 bg-gradient-to-r from-rose-50 via-amber-50/70 to-white flex flex-col gap-3 transition relative overflow-hidden">
                         <div class="absolute -top-1 -right-1"><span class="flex h-3 w-3"><span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-rose-400 opacity-75"></span><span class="relative inline-flex rounded-full h-3 w-3 bg-rose-600"></span></span></div>
                         <div class="flex items-start justify-between gap-2.5">
                             <div class="space-y-2 flex-1 min-w-0">
                                 <div class="flex flex-col sm:flex-row sm:items-center gap-2 flex-wrap">
                                     <h4 class="text-base sm:text-lg font-black text-rose-950 tracking-tight leading-snug flex items-center gap-2 break-words"><i class="fa-solid fa-bell text-rose-600 animate-bounce flex-shrink-0"></i><span>${m.title}</span></h4>
                                     <div class="flex items-center gap-1.5 flex-wrap">
-                                        ${pinBadge}
                                         <span class="urgent-badge-pulse px-3 py-1 rounded-xl text-xs font-black bg-gradient-to-r from-rose-600 to-red-600 text-white shadow-md shadow-rose-600/30 flex items-center gap-1.5 border border-rose-300"><i class="fa-solid fa-fire-flame-curved text-amber-300 animate-pulse"></i><span>${urgentInfo.label}</span></span>
                                         <span class="px-2.5 py-1 rounded-xl text-[11px] font-black bg-rose-100 text-rose-800 border border-rose-200 shadow-sm flex items-center gap-1"><i class="fa-solid fa-hourglass-end text-[10px] text-rose-600"></i><span>${deadlineText}</span></span>
                                         ${matchedStorage ? `<span class="px-2.5 py-1 rounded-xl text-[11px] font-extrabold bg-emerald-50 text-emerald-700 border border-emerald-200 flex items-center gap-1"><i class="fa-solid fa-folder text-[10px]"></i><span>${matchedStorage.name}</span></span>` : ''}
@@ -2292,7 +2227,10 @@
                             </div>
                             ${currentUserRole === 'admin' ? `
                                 <div class="flex items-center gap-1 flex-shrink-0 pt-0.5">
-                                    <button type="button" onclick="togglePinMovement('${m.id}')" title="${isPinnedItem ? 'Bỏ ghim' : 'Ghim lên đầu'}" class="p-2 sm:p-1.5 rounded-xl text-xs transition active:scale-90 ${isPinnedItem ? 'bg-amber-500 text-white font-bold shadow-sm' : 'bg-white border border-rose-200 text-slate-500 hover:text-amber-600'}"><i class="fa-solid fa-thumbtack text-xs"></i></button>
+                                    <div class="inline-flex rounded-xl bg-white p-0.5 border border-rose-200 shadow-sm">
+                                        <button type="button" onclick="moveMovement('${m.id}', -1)" title="Di chuyển lên trên" ${isFirst ? 'disabled class="opacity-30 p-2 sm:p-1.5 text-slate-400 cursor-not-allowed"' : 'class="p-2 sm:p-1.5 rounded-lg text-slate-600 hover:text-rose-600 hover:bg-rose-50 transition active:scale-95"'}><i class="fa-solid fa-arrow-up text-xs"></i></button>
+                                        <button type="button" onclick="moveMovement('${m.id}', 1)" title="Di chuyển xuống dưới" ${isLast ? 'disabled class="opacity-30 p-2 sm:p-1.5 text-slate-400 cursor-not-allowed"' : 'class="p-2 sm:p-1.5 rounded-lg text-slate-600 hover:text-rose-600 hover:bg-rose-50 transition active:scale-95"'}><i class="fa-solid fa-arrow-down text-xs"></i></button>
+                                    </div>
                                     <button type="button" onclick="openEditMovementModal('${m.id}')" class="p-2 sm:p-1 text-slate-400 hover:text-rose-600 text-xs"><i class="fa-solid fa-pen-to-square"></i></button>
                                     <button type="button" onclick="deleteMovement('${m.id}')" class="p-2 sm:p-1 text-slate-400 hover:text-rose-600 text-xs"><i class="fa-solid fa-trash-can"></i></button>
                                 </div>` : ''}
@@ -2318,13 +2256,12 @@
             }
 
             return `
-                <div class="light-card p-4 sm:p-5 rounded-2xl border ${isPinnedItem ? 'border-amber-400 ring-2 ring-amber-400/30 bg-amber-50/20' : 'border-purple-200 bg-white hover:border-purple-300'} flex flex-col gap-3 shadow-sm transition">
+                <div class="light-card p-4 sm:p-5 rounded-2xl border border-purple-200 bg-white hover:border-purple-300 flex flex-col gap-3 shadow-sm transition">
                     <div class="flex items-start justify-between gap-2.5">
                         <div class="space-y-2 flex-1 min-w-0">
                             <div class="flex flex-col sm:flex-row sm:items-center gap-2 flex-wrap">
                                 <h4 class="text-base sm:text-lg font-black text-slate-900 tracking-tight leading-snug break-words">${m.title}</h4>
                                 <div class="flex items-center gap-1.5 flex-wrap">
-                                    ${pinBadge}
                                     <span class="px-3 py-1 rounded-xl text-xs font-black shadow-sm flex items-center gap-1.5 ${deadlineText === 'Vô thời hạn' ? 'bg-gradient-to-r from-indigo-500 to-purple-600 text-white shadow-indigo-500/20' : 'bg-gradient-to-r from-amber-500 to-orange-500 text-white shadow-orange-500/20'}"><i class="fa-solid ${deadlineText === 'Vô thời hạn' ? 'fa-infinity' : 'fa-hourglass-half'}"></i><span>${deadlineText}</span></span>
                                     ${matchedStorage ? `<span class="px-2.5 py-1 rounded-xl text-[11px] font-extrabold bg-emerald-50 text-emerald-700 border border-emerald-200 flex items-center gap-1"><i class="fa-solid fa-folder text-[10px]"></i><span>${matchedStorage.name}</span></span>` : ''}
                                 </div>
@@ -2333,7 +2270,10 @@
                         </div>
                         ${currentUserRole === 'admin' ? `
                             <div class="flex items-center gap-1 flex-shrink-0 pt-0.5">
-                                <button type="button" onclick="togglePinMovement('${m.id}')" title="${isPinnedItem ? 'Bỏ ghim' : 'Ghim lên đầu'}" class="p-2 sm:p-1.5 rounded-xl text-xs transition active:scale-90 ${isPinnedItem ? 'bg-amber-500 text-white font-bold shadow-sm' : 'bg-slate-100 text-slate-500 hover:text-amber-600'}"><i class="fa-solid fa-thumbtack text-xs"></i></button>
+                                <div class="inline-flex rounded-xl bg-slate-100 p-0.5 border border-slate-200 shadow-sm">
+                                    <button type="button" onclick="moveMovement('${m.id}', -1)" title="Di chuyển lên trên" ${isFirst ? 'disabled class="opacity-30 p-2 sm:p-1.5 text-slate-400 cursor-not-allowed"' : 'class="p-2 sm:p-1.5 rounded-lg text-slate-600 hover:text-purple-600 hover:bg-white transition active:scale-95"'}><i class="fa-solid fa-arrow-up text-xs"></i></button>
+                                    <button type="button" onclick="moveMovement('${m.id}', 1)" title="Di chuyển xuống dưới" ${isLast ? 'disabled class="opacity-30 p-2 sm:p-1.5 text-slate-400 cursor-not-allowed"' : 'class="p-2 sm:p-1.5 rounded-lg text-slate-600 hover:text-purple-600 hover:bg-white transition active:scale-95"'}><i class="fa-solid fa-arrow-down text-xs"></i></button>
+                                </div>
                                 <button type="button" onclick="openEditMovementModal('${m.id}')" class="p-2 sm:p-1 text-slate-400 hover:text-indigo-600 text-xs"><i class="fa-solid fa-pen-to-square"></i></button>
                                 <button type="button" onclick="deleteMovement('${m.id}')" class="p-2 sm:p-1 text-slate-400 hover:text-rose-600 text-xs"><i class="fa-solid fa-trash-can"></i></button>
                             </div>` : ''}
@@ -2460,37 +2400,29 @@
             const container = document.getElementById('academicTasksContainer'); if (!container) return;
             if (academicTasks.length === 0) { container.innerHTML = `<div class="light-card p-6 rounded-2xl text-center text-xs text-slate-400">Chưa có bài tập nào.</div>`; return; }
             
-            // Sắp xếp: Mục được ghim ưu tiên lên đầu cho cả học sinh
-            const sortedTasks = [...academicTasks].sort((a, b) => {
-                const isPinA = (pinnedItemIds.academics && pinnedItemIds.academics.includes(a.id)) || a.isPinned === true || String(a.isPinned).toLowerCase() === 'true' || a.isPinned === 1;
-                const isPinB = (pinnedItemIds.academics && pinnedItemIds.academics.includes(b.id)) || b.isPinned === true || String(b.isPinned).toLowerCase() === 'true' || b.isPinned === 1;
-                const pinA = isPinA ? 1 : 0;
-                const pinB = isPinB ? 1 : 0;
-                if (pinA !== pinB) return pinB - pinA;
-                if (!a.deadline && !b.deadline) return 0;
-                if (!a.deadline) return 1;
-                if (!b.deadline) return -1;
-                return new Date(a.deadline) - new Date(b.deadline);
-            });
-
-            container.innerHTML = sortedTasks.map(task => {
-                const isPinnedTask = (pinnedItemIds.academics && pinnedItemIds.academics.includes(task.id)) || task.isPinned === true || String(task.isPinned).toLowerCase() === 'true' || task.isPinned === 1;
+            // Render chuẩn theo đúng thứ tự mảng mà Admin đã chủ động sắp xếp
+            container.innerHTML = academicTasks.map((task, idx) => {
                 const deadlineBadge = !task.deadline ? `<span class="px-2.5 py-1 rounded-xl text-xs font-black bg-sky-50 text-sky-700 border border-sky-200 shadow-sm flex items-center gap-1.5"><i class="fa-solid fa-infinity text-sky-600"></i><span>Không giới hạn</span></span>`
                     : `<span class="px-2.5 py-1 rounded-xl text-xs font-black bg-amber-50 text-amber-800 border border-amber-200 shadow-sm flex items-center gap-1.5"><i class="fa-solid fa-hourglass-half text-amber-600"></i><span>Hạn: ${isNaN(new Date(task.deadline).getTime()) ? task.deadline : `${new Date(task.deadline).toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' })} ${new Date(task.deadline).toLocaleDateString('vi-VN')}`}</span></span>`;
-                const pinBadge = isPinnedTask ? `<span class="px-2.5 py-1 rounded-xl text-xs font-black bg-amber-500 text-white shadow-sm flex items-center gap-1 flex-shrink-0 whitespace-nowrap"><i class="fa-solid fa-thumbtack text-[10px]"></i><span>Đã ghim</span></span>` : '';
+                
+                const isFirst = idx === 0;
+                const isLast = idx === academicTasks.length - 1;
+
                 return `
-                    <div class="light-card p-4 sm:p-5 rounded-2xl border ${isPinnedTask ? 'border-amber-400 ring-2 ring-amber-400/40 bg-amber-50/25' : 'border-sky-200 hover:border-sky-300'} flex flex-col sm:flex-row sm:items-center justify-between gap-3.5 shadow-sm transition">
+                    <div class="light-card p-4 sm:p-5 rounded-2xl border border-sky-200 hover:border-sky-300 flex flex-col sm:flex-row sm:items-center justify-between gap-3.5 shadow-sm transition">
                         <div class="space-y-1.5 flex-1 min-w-0">
                             <div class="flex items-center gap-2 flex-wrap">
                                 <h4 class="text-base sm:text-lg font-black text-slate-900 flex items-center gap-2 break-words"><i class="fa-solid fa-book-bookmark text-sky-600 text-sm flex-shrink-0"></i><span>${task.title}</span></h4>
-                                ${pinBadge}
                                 ${deadlineBadge}
                             </div>
                             ${task.note ? `<p class="text-xs text-slate-600 font-bold leading-relaxed break-words">${task.note}</p>` : ''}
                         </div>
                         <div class="flex items-center gap-2 flex-shrink-0 self-end sm:self-auto">
                             ${currentUserRole === 'admin' ? `
-                                <button type="button" onclick="togglePinAcademic('${task.id}')" title="${isPinnedTask ? 'Bỏ ghim' : 'Ghim lên đầu'}" class="p-2.5 sm:p-2 rounded-xl text-xs transition active:scale-90 ${isPinnedTask ? 'bg-amber-500 text-white font-bold shadow-md shadow-amber-500/30' : 'bg-slate-100 text-slate-600 hover:text-amber-600 border border-slate-200'}"><i class="fa-solid fa-thumbtack text-sm"></i></button>
+                                <div class="inline-flex rounded-xl bg-slate-100 p-0.5 border border-slate-200 shadow-sm">
+                                    <button type="button" onclick="moveAcademicTask('${task.id}', -1)" title="Đưa lên trên" ${isFirst ? 'disabled class="opacity-30 p-2 sm:p-1.5 text-slate-400 cursor-not-allowed"' : 'class="p-2 sm:p-1.5 rounded-lg text-slate-600 hover:text-sky-600 hover:bg-white transition active:scale-95"'}><i class="fa-solid fa-arrow-up text-xs"></i></button>
+                                    <button type="button" onclick="moveAcademicTask('${task.id}', 1)" title="Đưa xuống dưới" ${isLast ? 'disabled class="opacity-30 p-2 sm:p-1.5 text-slate-400 cursor-not-allowed"' : 'class="p-2 sm:p-1.5 rounded-lg text-slate-600 hover:text-sky-600 hover:bg-white transition active:scale-95"'}><i class="fa-solid fa-arrow-down text-xs"></i></button>
+                                </div>
                                 <button type="button" onclick="openEditAcademicModal('${task.id}')" class="p-2 sm:p-1 text-slate-400 hover:text-sky-600 text-xs"><i class="fa-solid fa-pen-to-square"></i></button>
                                 <button type="button" onclick="deleteAcademicTask('${task.id}')" class="p-2 sm:p-1 text-slate-400 hover:text-rose-600 text-xs"><i class="fa-solid fa-trash-can"></i></button>
                             ` : ''}
@@ -2500,12 +2432,24 @@
                     </div>`;
             }).join('');
         }
-
-        function toggleAcaDeadlineInputs() { document.getElementById('acaDeadlinePickersGroup')?.classList.toggle('opacity-40', document.getElementById('acaNoDeadlineCheckbox').checked); document.getElementById('acaDeadlinePickersGroup')?.classList.toggle('pointer-events-none', document.getElementById('acaNoDeadlineCheckbox').checked); }
-        function setAcaDeadlinePickers(d) {
-            const pad = n => String(n).padStart(2, '0'); d = d || new Date();
-            const setVal = (id, val) => { const el = document.getElementById(id); if (el) el.value = val; };
-            setVal('acaPickDay', pad(d.getDate())); setVal('acaPickMonth', pad(d.getMonth() + 1)); setVal('acaPickYear', String(d.getFullYear())); setVal('acaPickHour', pad(d.getHours())); setVal('acaPickMinute', pad(Math.round(d.getMinutes() / 5) * 5 >= 60 ? 55 : Math.round(d.getMinutes() / 5) * 5));
+        function handleSaveNewMovement() {
+            const editId = document.getElementById('editMovementId').value; const title = document.getElementById('newMovTitleInput').value.trim();
+            if (!title) { showToast("Vui lòng nhập tên phong trào!", "error"); return; }
+            const trackParticipation = document.getElementById('movTrackParticipationCheckbox')?.checked !== false;
+            const payload = { 
+                title: title, 
+                desc: document.getElementById('newMovDescInput').value.trim(), 
+                url: document.getElementById('newMovUrlInput').value.trim(), 
+                storageId: document.getElementById('newMovStorageSelect').value, 
+                deadline: getMovSelectedDeadlineString(),
+                trackParticipation: trackParticipation
+            };
+            if (editId) { const m = movements.find(item => item.id === editId); if (m) Object.assign(m, payload); showToast("Đã cập nhật!", "success"); } 
+            else { movements.unshift(Object.assign({ id: "mov_" + Date.now(), participantIds: [] }, payload)); showToast("Đã tạo mới!", "success"); }
+            saveStorageData(); 
+            if (currentUserRole === 'admin' && appsScriptUrl) pushDataToGoogleSheet(true);
+            closeCreateMovementModal(); 
+            renderMovementsCards();
         }
         function setQuickAcaDeadline(type) { document.getElementById('acaNoDeadlineCheckbox').checked = false; toggleAcaDeadlineInputs(); const d = new Date(); if (type === 'todayEnd') { d.setHours(23, 59, 0, 0); setAcaDeadlinePickers(d); document.getElementById('acaPickHour').value = "23"; document.getElementById('acaPickMinute').value = "59"; } else if (type === 'plus3Days') { d.setDate(d.getDate() + 3); d.setHours(22, 0, 0, 0); setAcaDeadlinePickers(d); document.getElementById('acaPickHour').value = "22"; document.getElementById('acaPickMinute').value = "00"; } }
         function getAcaSelectedDeadlineString() { if (document.getElementById('acaNoDeadlineCheckbox').checked) return ""; return `${document.getElementById('acaPickYear').value}-${document.getElementById('acaPickMonth').value}-${document.getElementById('acaPickDay').value}T${document.getElementById('acaPickHour').value}:${document.getElementById('acaPickMinute').value}`; }
@@ -2531,13 +2475,11 @@
         function handleSaveNewAcademic() {
             const editId = document.getElementById('editAcademicId').value; const title = document.getElementById('newAcaTitleInput').value.trim(); const url = document.getElementById('newAcaUrlInput').value.trim();
             if (!title || !url) { showToast("Vui lòng nhập tên và link!", "error"); return; }
-            const isPinned = document.getElementById('acaIsPinnedCheckbox')?.checked === true;
             const payload = { 
                 title: title, 
                 url: url, 
                 note: document.getElementById('newAcaNoteInput').value.trim(), 
-                deadline: getAcaSelectedDeadlineString(),
-                isPinned: isPinned
+                deadline: getAcaSelectedDeadlineString()
             };
             if (editId) { const task = academicTasks.find(t => t.id === editId); if (task) Object.assign(task, payload); showToast("Đã cập nhật!", "success"); }
             else { academicTasks.unshift(Object.assign({ id: "aca_" + Date.now() }, payload)); showToast("Đã đăng bài tập mới!", "success"); }
