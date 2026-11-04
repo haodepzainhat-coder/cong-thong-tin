@@ -1591,7 +1591,18 @@
                     }
 
                     if (cloudData.academicTasks && Array.isArray(cloudData.academicTasks)) {
-                        academicTasks = cloudData.academicTasks;
+                        academicTasks = cloudData.academicTasks.map(cloudTask => {
+                            // Bảo toàn category nếu Sheet trả về rỗng nhưng máy cục bộ đã lưu là 'tool'
+                            const localMatch = academicTasks.find(lt => lt.id === cloudTask.id);
+                            let resolvedCategory = cloudTask.category;
+                            if (!resolvedCategory || resolvedCategory === "undefined" || resolvedCategory === "") {
+                                resolvedCategory = (localMatch && localMatch.category) ? localMatch.category : "task";
+                            }
+                            return {
+                                ...cloudTask,
+                                category: resolvedCategory
+                            };
+                        });
                     }
 
                     if (cloudData.storageFolders) storageFolders = cloudData.storageFolders;
@@ -2797,9 +2808,9 @@
                 showToast(isTool ? "Đã thêm công cụ học tập mới!" : "Đã đăng bài tập mới!", "success"); 
             }
             saveStorageData(); 
-            if (currentUserRole === 'admin' && appsScriptUrl) pushDataToGoogleSheet(true);
-            closeCreateAcademicModal(); 
             renderAcademicTasks();
+            closeCreateAcademicModal(); 
+            if (currentUserRole === 'admin' && appsScriptUrl) pushDataToGoogleSheet(true);
         }
 
         function handleImageSelection(event) {
