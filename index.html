@@ -1195,6 +1195,16 @@
         let pendingLeaveAction = null;
         let savedHomeScrollY = 0; // Biến lưu lại vị trí cuộn trang chủ
 
+        // Hàm kiểm tra tự động xem một mục có phải là Công Cụ Học Tập hay không
+        function isAcademicToolItem(task) {
+            if (!task) return false;
+            if (task.category === 'tool') return true;
+            const titleLower = (task.title || '').toLowerCase();
+            const noteLower = (task.note || '').toLowerCase();
+            const toolKeywords = ['pomodoro', 'công cụ', 'tiện ích', 'tool', 'calculator', 'máy tính', 'flashcard', 'từ điển'];
+            return toolKeywords.some(kw => titleLower.includes(kw) || noteLower.includes(kw));
+        }
+
         // Hàm xóa dấu tiếng Việt hỗ trợ tìm kiếm và so khớp
         function removeVietnameseTones(str) {
             if (!str) return "";
@@ -1592,11 +1602,19 @@
 
                     if (cloudData.academicTasks && Array.isArray(cloudData.academicTasks)) {
                         academicTasks = cloudData.academicTasks.map(cloudTask => {
-                            // Bảo toàn category nếu Sheet trả về rỗng nhưng máy cục bộ đã lưu là 'tool'
+                            // Tự động nhận diện công cụ học tập thông minh dựa trên thuộc tính hoặc từ khóa (như POMODORO)
                             const localMatch = academicTasks.find(lt => lt.id === cloudTask.id);
                             let resolvedCategory = cloudTask.category;
                             if (!resolvedCategory || resolvedCategory === "undefined" || resolvedCategory === "") {
-                                resolvedCategory = (localMatch && localMatch.category) ? localMatch.category : "task";
+                                if (localMatch && localMatch.category) {
+                                    resolvedCategory = localMatch.category;
+                                } else if (isAcademicToolItem(cloudTask)) {
+                                    resolvedCategory = "tool";
+                                } else {
+                                    resolvedCategory = "task";
+                                }
+                            } else if (isAcademicToolItem(cloudTask)) {
+                                resolvedCategory = "tool";
                             }
                             return {
                                 ...cloudTask,
@@ -1687,7 +1705,13 @@
                 movements = savedMovements ? JSON.parse(savedMovements) : DEFAULT_MOVEMENTS;
                 
                 const savedAcademics = localStorage.getItem("cct_academics"); 
-                academicTasks = savedAcademics ? JSON.parse(savedAcademics) : DEFAULT_ACADEMICS;
+                const loadedAcademics = savedAcademics ? JSON.parse(savedAcademics) : DEFAULT_ACADEMICS;
+                academicTasks = (loadedAcademics || []).map(task => {
+                    if (isAcademicToolItem(task)) {
+                        return { ...task, category: 'tool' };
+                    }
+                    return task;
+                });
                 
                 const savedStorageFolders = localStorage.getItem("cct_storage_folders"); 
                 storageFolders = savedStorageFolders ? JSON.parse(savedStorageFolders) : DEFAULT_STORAGE_FOLDERS;
@@ -2609,9 +2633,9 @@
         function renderAcademicTasks() {
             const container = document.getElementById('academicTasksContainer'); if (!container) return;
 
-            // Đếm số lượng theo loại
-            const taskCount = academicTasks.filter(t => t.category !== 'tool').length;
-            const toolCount = academicTasks.filter(t => t.category === 'tool').length;
+            // Đếm số lượng theo loại với kiểm tra chuẩn xác
+            const taskCount = academicTasks.filter(t => !isAcademicToolItem(t)).length;
+            const toolCount = academicTasks.filter(t => isAcademicToolItem(t)).length;
             const countAllEl = document.getElementById('acaCountAll');
             const countTaskEl = document.getElementById('acaCountTask');
             const countToolEl = document.getElementById('acaCountTool');
@@ -2620,8 +2644,9 @@
             if (countToolEl) countToolEl.innerText = toolCount;
 
             const filteredList = academicTasks.filter(t => {
-                if (currentAcademicFilter === 'task') return t.category !== 'tool';
-                if (currentAcademicFilter === 'tool') return t.category === 'tool';
+                const isTool = isAcademicToolItem(t);
+                if (currentAcademicFilter === 'task') return !isTool;
+                if (currentAcademicFilter === 'tool') return isTool;
                 return true;
             });
 
@@ -2631,7 +2656,7 @@
             }
 
             container.innerHTML = filteredList.map(task => {
-                const isTool = task.category === 'tool';
+                const isTool = isAcademicToolItem(task);
                 const originalIndex = academicTasks.findIndex(t => t.id === task.id);
                 const isFirst = originalIndex === 0;
                 const isLast = originalIndex === academicTasks.length - 1;
