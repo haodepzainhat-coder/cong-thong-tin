@@ -485,7 +485,7 @@
                     <div id="adminCreateAcademicBtnContainer" class="hidden">
                         <button onclick="openCreateAcademicModal()" class="px-3.5 py-1.5 rounded-xl bg-sky-600 hover:bg-sky-700 text-xs text-white font-black flex items-center gap-1.5 shadow-sm transition">
                             <i class="fa-solid fa-plus"></i>
-                            <span>Thêm Bài Tập</span>
+                            <span>Thêm Bài / Công Cụ</span>
                         </button>
                     </div>
                     <div class="text-xs text-sky-700 font-black flex items-center gap-1.5">
@@ -493,6 +493,22 @@
                         <span>Góc Học Tập</span>
                     </div>
                 </div>
+            </div>
+
+            <!-- Bộ lọc Tab: Tất cả / Bài tập / Công cụ học tập -->
+            <div class="flex items-center gap-2 p-1.5 rounded-2xl bg-white border border-sky-200 shadow-sm overflow-x-auto custom-scrollbar">
+                <button type="button" id="acaTabBtn-all" onclick="setAcademicFilter('all')" class="px-3.5 py-1.5 rounded-xl text-xs font-black transition bg-sky-600 text-white shadow-sm flex items-center gap-1.5 whitespace-nowrap">
+                    <i class="fa-solid fa-layer-group"></i>
+                    <span>Tất Cả (<span id="acaCountAll">0</span>)</span>
+                </button>
+                <button type="button" id="acaTabBtn-task" onclick="setAcademicFilter('task')" class="px-3.5 py-1.5 rounded-xl text-xs font-bold text-slate-600 hover:text-sky-600 transition flex items-center gap-1.5 whitespace-nowrap">
+                    <i class="fa-solid fa-book-bookmark text-sky-600"></i>
+                    <span>Bài Tập & Tài Liệu (<span id="acaCountTask">0</span>)</span>
+                </button>
+                <button type="button" id="acaTabBtn-tool" onclick="setAcademicFilter('tool')" class="px-3.5 py-1.5 rounded-xl text-xs font-bold text-slate-600 hover:text-purple-600 transition flex items-center gap-1.5 whitespace-nowrap">
+                    <i class="fa-solid fa-screwdriver-wrench text-purple-600"></i>
+                    <span>Công Cụ Học Tập (<span id="acaCountTool">0</span>)</span>
+                </button>
             </div>
 
             <div id="academicTasksContainer" class="space-y-3"></div>
@@ -761,19 +777,34 @@
             </div>
             <input type="hidden" id="editAcademicId" value="">
             <div class="space-y-3">
+                <!-- Chọn loại: Bài Tập hoặc Công Cụ -->
                 <div>
-                    <label class="block text-[11px] font-bold text-slate-600 mb-1">Tên Bài Tập / Chuyên Đề <span class="text-rose-500">*</span></label>
-                    <input type="text" id="newAcaTitleInput" class="w-full px-3 py-2 rounded-xl bg-slate-50 border border-slate-300 text-xs text-slate-800 focus:outline-none focus:border-sky-600 focus:bg-white">
+                    <label class="block text-[11px] font-bold text-slate-600 mb-1">Loại Mục <span class="text-rose-500">*</span></label>
+                    <div class="grid grid-cols-2 gap-2">
+                        <label class="flex items-center gap-2 p-2.5 rounded-xl border border-sky-300 bg-sky-50/60 cursor-pointer text-xs font-black text-sky-900">
+                            <input type="radio" name="acaCategoryRadio" value="task" checked onchange="toggleAcaCategoryMode()" class="w-4 h-4 text-sky-600 focus:ring-sky-500">
+                            <span>📖 Bài Tập / Đề Thi</span>
+                        </label>
+                        <label class="flex items-center gap-2 p-2.5 rounded-xl border border-purple-300 bg-purple-50/60 cursor-pointer text-xs font-black text-purple-900">
+                            <input type="radio" name="acaCategoryRadio" value="tool" onchange="toggleAcaCategoryMode()" class="w-4 h-4 text-purple-600 focus:ring-purple-500">
+                            <span>🛠️ Công Cụ Hỗ Trợ</span>
+                        </label>
+                    </div>
+                </div>
+
+                <div>
+                    <label id="acaTitleLabel" class="block text-[11px] font-bold text-slate-600 mb-1">Tên Bài Tập / Chuyên Đề <span class="text-rose-500">*</span></label>
+                    <input type="text" id="newAcaTitleInput" placeholder="Ví dụ: Ôn luyện trắc nghiệm GK1, POMODORO..." class="w-full px-3 py-2 rounded-xl bg-slate-50 border border-slate-300 text-xs text-slate-800 focus:outline-none focus:border-sky-600 focus:bg-white">
                 </div>
                 <div>
-                    <label class="block text-[11px] font-bold text-slate-600 mb-1">Đường Link Làm Bài <span class="text-rose-500">*</span></label>
-                    <input type="url" id="newAcaUrlInput" class="w-full px-3 py-2 rounded-xl bg-slate-50 border border-slate-300 text-xs text-slate-800 focus:outline-none focus:border-sky-600 focus:bg-white">
+                    <label id="acaUrlLabel" class="block text-[11px] font-bold text-slate-600 mb-1">Đường Link Liên Kết <span class="text-rose-500">*</span></label>
+                    <input type="url" id="newAcaUrlInput" placeholder="https://..." class="w-full px-3 py-2 rounded-xl bg-slate-50 border border-slate-300 text-xs text-slate-800 focus:outline-none focus:border-sky-600 focus:bg-white">
                 </div>
                 <div>
-                    <label class="block text-[11px] font-bold text-slate-600 mb-1">Ghi Chú Hướng Dẫn</label>
-                    <textarea id="newAcaNoteInput" rows="2" class="w-full px-3 py-2 rounded-xl bg-slate-50 border border-slate-300 text-xs text-slate-800 focus:outline-none focus:border-sky-600 focus:bg-white"></textarea>
+                    <label class="block text-[11px] font-bold text-slate-600 mb-1">Ghi Chú Hướng Dẫn / Mô Tả</label>
+                    <textarea id="newAcaNoteInput" rows="2" placeholder="Ghi chú thêm về nội dung, hướng dẫn sử dụng..." class="w-full px-3 py-2 rounded-xl bg-slate-50 border border-slate-300 text-xs text-slate-800 focus:outline-none focus:border-sky-600 focus:bg-white"></textarea>
                 </div>
-                <div>
+                <div id="acaDeadlineContainer">
                     <label class="block text-[11px] font-bold text-slate-600 mb-1">Hạn Chót Hoàn Thành</label>
                     <div class="p-3.5 rounded-2xl bg-slate-50 border border-sky-200 space-y-3">
                         <div class="flex items-center justify-between pb-1.5 border-b border-sky-100">
@@ -803,7 +834,7 @@
             </div>
             <div class="flex gap-2 pt-2">
                 <button onclick="closeCreateAcademicModal()" class="w-1/2 py-2.5 rounded-xl bg-slate-100 text-slate-600 text-xs font-semibold hover:bg-slate-200">Hủy</button>
-                <button onclick="handleSaveNewAcademic()" id="saveAcaBtn" class="w-1/2 py-2.5 rounded-xl bg-sky-600 hover:bg-sky-700 text-white font-bold text-xs shadow-sm">Lưu Bài Tập</button>
+                <button onclick="handleSaveNewAcademic()" id="saveAcaBtn" class="w-1/2 py-2.5 rounded-xl bg-sky-600 hover:bg-sky-700 text-white font-bold text-xs shadow-sm">Lưu</button>
             </div>
         </div>
     </div>
@@ -1157,6 +1188,7 @@
         let currentReportFileExt = "jpg";
         let detailMovementSubTab = "joined";
         let currentViolationTimeFilter = "all";
+        let currentAcademicFilter = "all"; // 'all' | 'task' | 'tool'
         let isTrackingViolationsOpen = false;
         let isSubmittingReport = false;
         let uploadAbortController = null;
@@ -2530,30 +2562,93 @@
             saveStorageData();
             if (currentUserRole === 'admin' && appsScriptUrl) pushDataToGoogleSheet(true);
             renderAcademicTasks();
-            showToast("Đã xóa bài tập!", "info");
+            showToast("Đã xóa mục này!", "info");
+        }
+
+        function setAcademicFilter(filterType) {
+            currentAcademicFilter = filterType;
+            const btnAll = document.getElementById('acaTabBtn-all');
+            const btnTask = document.getElementById('acaTabBtn-task');
+            const btnTool = document.getElementById('acaTabBtn-tool');
+
+            const activeClass = "px-3.5 py-1.5 rounded-xl text-xs font-black transition bg-sky-600 text-white shadow-sm flex items-center gap-1.5 whitespace-nowrap";
+            const inactiveClass = "px-3.5 py-1.5 rounded-xl text-xs font-bold text-slate-600 hover:text-sky-600 transition flex items-center gap-1.5 whitespace-nowrap";
+
+            if (btnAll) btnAll.className = filterType === 'all' ? activeClass : inactiveClass;
+            if (btnTask) btnTask.className = filterType === 'task' ? activeClass : inactiveClass;
+            if (btnTool) btnTool.className = filterType === 'tool' ? activeClass : inactiveClass;
+
+            renderAcademicTasks();
+        }
+
+        function toggleAcaCategoryMode() {
+            const isTool = document.querySelector('input[name="acaCategoryRadio"][value="tool"]')?.checked;
+            const deadlineContainer = document.getElementById('acaDeadlineContainer');
+            const titleLabel = document.getElementById('acaTitleLabel');
+
+            if (isTool) {
+                if (deadlineContainer) deadlineContainer.classList.add('hidden');
+                if (titleLabel) titleLabel.innerHTML = 'Tên Công Cụ / Tiện Ích <span class="text-rose-500">*</span>';
+            } else {
+                if (deadlineContainer) deadlineContainer.classList.remove('hidden');
+                if (titleLabel) titleLabel.innerHTML = 'Tên Bài Tập / Chuyên Đề <span class="text-rose-500">*</span>';
+            }
         }
 
         function renderAcademicTasks() {
             const container = document.getElementById('academicTasksContainer'); if (!container) return;
-            if (academicTasks.length === 0) { container.innerHTML = `<div class="light-card p-6 rounded-2xl text-center text-xs text-slate-400">Chưa có bài tập nào.</div>`; return; }
-            
-            // Render chuẩn theo đúng thứ tự mảng mà Admin đã chủ động sắp xếp
-            container.innerHTML = academicTasks.map((task, idx) => {
-                const deadlineBadge = !task.deadline ? `<span class="px-2.5 py-1 rounded-xl text-xs font-black bg-sky-50 text-sky-700 border border-sky-200 shadow-sm flex items-center gap-1.5"><i class="fa-solid fa-infinity text-sky-600"></i><span>Không giới hạn</span></span>`
-                    : `<span class="px-2.5 py-1 rounded-xl text-xs font-black bg-amber-50 text-amber-800 border border-amber-200 shadow-sm flex items-center gap-1.5"><i class="fa-solid fa-hourglass-half text-amber-600"></i><span>Hạn: ${isNaN(new Date(task.deadline).getTime()) ? task.deadline : `${new Date(task.deadline).toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' })} ${new Date(task.deadline).toLocaleDateString('vi-VN')}`}</span></span>`;
 
-                const isFirst = idx === 0;
-                const isLast = idx === academicTasks.length - 1;
+            // Đếm số lượng theo loại
+            const taskCount = academicTasks.filter(t => t.category !== 'tool').length;
+            const toolCount = academicTasks.filter(t => t.category === 'tool').length;
+            const countAllEl = document.getElementById('acaCountAll');
+            const countTaskEl = document.getElementById('acaCountTask');
+            const countToolEl = document.getElementById('acaCountTool');
+            if (countAllEl) countAllEl.innerText = academicTasks.length;
+            if (countTaskEl) countTaskEl.innerText = taskCount;
+            if (countToolEl) countToolEl.innerText = toolCount;
+
+            const filteredList = academicTasks.filter(t => {
+                if (currentAcademicFilter === 'task') return t.category !== 'tool';
+                if (currentAcademicFilter === 'tool') return t.category === 'tool';
+                return true;
+            });
+
+            if (filteredList.length === 0) { 
+                container.innerHTML = `<div class="light-card p-6 rounded-2xl text-center text-xs text-slate-400 font-bold">Không có mục nào trong danh mục này.</div>`; 
+                return; 
+            }
+
+            container.innerHTML = filteredList.map(task => {
+                const isTool = task.category === 'tool';
+                const originalIndex = academicTasks.findIndex(t => t.id === task.id);
+                const isFirst = originalIndex === 0;
+                const isLast = originalIndex === academicTasks.length - 1;
+
+                // Thẻ badge phân loại
+                const typeBadge = isTool 
+                    ? `<span class="px-2.5 py-1 rounded-xl text-xs font-black bg-purple-50 text-purple-700 border border-purple-200 shadow-sm flex items-center gap-1.5"><i class="fa-solid fa-screwdriver-wrench text-purple-600"></i><span>Công cụ học tập</span></span>`
+                    : (!task.deadline 
+                        ? `<span class="px-2.5 py-1 rounded-xl text-xs font-black bg-sky-50 text-sky-700 border border-sky-200 shadow-sm flex items-center gap-1.5"><i class="fa-solid fa-infinity text-sky-600"></i><span>Không giới hạn</span></span>`
+                        : `<span class="px-2.5 py-1 rounded-xl text-xs font-black bg-amber-50 text-amber-800 border border-amber-200 shadow-sm flex items-center gap-1.5"><i class="fa-solid fa-hourglass-half text-amber-600"></i><span>Hạn: ${isNaN(new Date(task.deadline).getTime()) ? task.deadline : `${new Date(task.deadline).toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' })} ${new Date(task.deadline).toLocaleDateString('vi-VN')}`}</span></span>`);
+
+                // Nút hành động
+                const actionBtn = isTool
+                    ? `<a href="${task.url}" onclick="openExternalLink(event, '${task.url.replace(/'/g, "\\'")}')" class="px-4 py-2 rounded-xl bg-purple-600 hover:bg-purple-700 shadow-purple-600/20 text-white font-black text-xs shadow-md transition flex items-center gap-1.5 whitespace-nowrap"><span>Mở Công Cụ</span><i class="fa-solid fa-arrow-up-right-from-square text-[10px]"></i></a>`
+                    : `<a href="${task.url}" onclick="openExternalLink(event, '${task.url.replace(/'/g, "\\'")}')" class="px-4 py-2 rounded-xl bg-sky-600 hover:bg-sky-700 shadow-sky-600/20 text-white font-black text-xs shadow-md transition flex items-center gap-1.5 whitespace-nowrap"><span>Làm Bài</span><i class="fa-solid fa-arrow-up-right-from-square text-[10px]"></i></a>`;
+
+                const cardBorder = isTool ? "border-purple-200 hover:border-purple-300" : "border-sky-200 hover:border-sky-300";
+                const iconClass = isTool ? "fa-screwdriver-wrench text-purple-600" : "fa-book-bookmark text-sky-600";
 
                 return `
-                    <div class="light-card p-4 sm:p-5 rounded-2xl border border-sky-200 hover:border-sky-300 flex flex-col sm:flex-row sm:items-center justify-between gap-3.5 shadow-sm transition">
+                    <div class="light-card p-4 sm:p-5 rounded-2xl border ${cardBorder} flex flex-col sm:flex-row sm:items-center justify-between gap-3.5 shadow-sm transition">
                         <div class="space-y-1.5 flex-1 min-w-0">
                             <div class="flex items-center gap-2 flex-wrap">
                                 <h4 class="text-base sm:text-lg font-black text-slate-900 flex items-center gap-2 break-words">
-                                    <i class="fa-solid fa-book-bookmark text-sky-600 text-sm flex-shrink-0"></i>
+                                    <i class="fa-solid ${iconClass} text-sm flex-shrink-0"></i>
                                     <span>${task.title}</span>
                                 </h4>
-                                ${deadlineBadge}
+                                ${typeBadge}
                             </div>
                             ${task.note ? `<p class="text-xs text-slate-600 font-bold leading-relaxed break-words">${task.note}</p>` : ''}
                         </div>
@@ -2563,11 +2658,11 @@
                                     <button type="button" onclick="moveAcademicTask('${task.id}', -1)" title="Đưa lên trên" ${isFirst ? 'disabled class="opacity-30 p-2 sm:p-1.5 text-slate-400 cursor-not-allowed"' : 'class="p-2 sm:p-1.5 rounded-lg text-slate-600 hover:text-sky-600 hover:bg-white transition active:scale-95"'}><i class="fa-solid fa-arrow-up text-xs"></i></button>
                                     <button type="button" onclick="moveAcademicTask('${task.id}', 1)" title="Đưa xuống dưới" ${isLast ? 'disabled class="opacity-30 p-2 sm:p-1.5 text-slate-400 cursor-not-allowed"' : 'class="p-2 sm:p-1.5 rounded-lg text-slate-600 hover:text-sky-600 hover:bg-white transition active:scale-95"'}><i class="fa-solid fa-arrow-down text-xs"></i></button>
                                 </div>
-                                <button type="button" onclick="openEditAcademicModal('${task.id}')" title="Chỉnh sửa bài tập" class="p-2 rounded-xl bg-slate-50 hover:bg-sky-50 text-sky-600 border border-slate-200 text-xs shadow-sm transition active:scale-95"><i class="fa-solid fa-pen-to-square"></i></button>
-                                <button type="button" onclick="deleteAcademicTask('${task.id}')" title="Xóa bài tập" class="p-2 rounded-xl bg-slate-50 hover:bg-rose-50 text-rose-600 border border-slate-200 text-xs shadow-sm transition active:scale-95"><i class="fa-solid fa-trash-can"></i></button>
+                                <button type="button" onclick="openEditAcademicModal('${task.id}')" title="Chỉnh sửa" class="p-2 rounded-xl bg-slate-50 hover:bg-sky-50 text-sky-600 border border-slate-200 text-xs shadow-sm transition active:scale-95"><i class="fa-solid fa-pen-to-square"></i></button>
+                                <button type="button" onclick="deleteAcademicTask('${task.id}')" title="Xóa" class="p-2 rounded-xl bg-slate-50 hover:bg-rose-50 text-rose-600 border border-slate-200 text-xs shadow-sm transition active:scale-95"><i class="fa-solid fa-trash-can"></i></button>
                             ` : ''}
-                            <button onclick="copyToClipboard('${task.url.replace(/'/g, "\\'")}', 'link bài tập')" class="px-3 py-2 rounded-xl bg-sky-50 hover:bg-sky-100 text-sky-800 border border-sky-200 text-xs font-black shadow-sm transition flex items-center gap-1.5"><i class="fa-regular fa-copy"></i><span class="hidden sm:inline">Sao Chép</span></button>
-                            <a href="${task.url}" onclick="openExternalLink(event, '${task.url.replace(/'/g, "\\'")}')" class="px-4 py-2 rounded-xl bg-sky-600 hover:bg-sky-700 shadow-sky-600/20 text-white font-black text-xs shadow-md transition flex items-center gap-1.5"><span>Làm Bài</span><i class="fa-solid fa-arrow-up-right-from-square text-[10px]"></i></a>
+                            <button onclick="copyToClipboard('${task.url.replace(/'/g, "\\'")}', 'đường link')" class="px-3 py-2 rounded-xl bg-slate-50 hover:bg-slate-100 text-slate-700 border border-slate-200 text-xs font-black shadow-sm transition flex items-center gap-1.5"><i class="fa-regular fa-copy"></i><span class="hidden sm:inline">Sao Chép</span></button>
+                            ${actionBtn}
                         </div>
                     </div>`;
             }).join('');
@@ -2628,12 +2723,18 @@
 
         function openCreateAcademicModal() {
             document.getElementById('editAcademicId').value = '';
-            document.getElementById('acaModalTitle').innerHTML = '<i class="fa-solid fa-book-open text-sky-600"></i><span>Thêm Bài Tập Mới</span>';
-            document.getElementById('saveAcaBtn').innerText = 'Lưu Bài Tập';
+            document.getElementById('acaModalTitle').innerHTML = '<i class="fa-solid fa-plus-circle text-sky-600"></i><span>Thêm Mục Mới Vào Góc Học Tập</span>';
+            document.getElementById('saveAcaBtn').innerText = 'Lưu Lại';
             ['newAcaTitleInput', 'newAcaUrlInput', 'newAcaNoteInput'].forEach(id => {
                 const el = document.getElementById(id);
                 if (el) el.value = '';
             });
+
+            // Mặc định chọn bài tập
+            const radioTask = document.querySelector('input[name="acaCategoryRadio"][value="task"]');
+            if (radioTask) radioTask.checked = true;
+            toggleAcaCategoryMode();
+
             const noDeadlineCb = document.getElementById('acaNoDeadlineCheckbox');
             if (noDeadlineCb) noDeadlineCb.checked = true;
             toggleAcaDeadlineInputs();
@@ -2645,11 +2746,16 @@
             const task = academicTasks.find(item => item.id === id);
             if (!task) return;
             document.getElementById('editAcademicId').value = task.id;
-            document.getElementById('acaModalTitle').innerHTML = '<i class="fa-solid fa-pen-to-square text-sky-600"></i><span>Chỉnh Sửa Bài Tập</span>';
+            document.getElementById('acaModalTitle').innerHTML = '<i class="fa-solid fa-pen-to-square text-sky-600"></i><span>Chỉnh Sửa Mục Học Tập</span>';
             document.getElementById('saveAcaBtn').innerText = 'Cập Nhật';
             document.getElementById('newAcaTitleInput').value = task.title || '';
             document.getElementById('newAcaUrlInput').value = task.url || '';
             document.getElementById('newAcaNoteInput').value = task.note || '';
+
+            const isTool = task.category === 'tool';
+            const radio = document.querySelector(`input[name="acaCategoryRadio"][value="${isTool ? 'tool' : 'task'}"]`);
+            if (radio) radio.checked = true;
+            toggleAcaCategoryMode();
 
             const noDeadlineCb = document.getElementById('acaNoDeadlineCheckbox');
             if (noDeadlineCb) noDeadlineCb.checked = !task.deadline;
@@ -2663,23 +2769,32 @@
         }
 
         function handleSaveNewAcademic() {
-            const editId = document.getElementById('editAcademicId').value; const title = document.getElementById('newAcaTitleInput').value.trim(); const url = document.getElementById('newAcaUrlInput').value.trim();
+            const editId = document.getElementById('editAcademicId').value; 
+            const title = document.getElementById('newAcaTitleInput').value.trim(); 
+            const url = document.getElementById('newAcaUrlInput').value.trim();
             if (!title || !url) { showToast("Vui lòng nhập tên và link!", "error"); return; }
+
+            const isTool = document.querySelector('input[name="acaCategoryRadio"][value="tool"]')?.checked;
+            const category = isTool ? 'tool' : 'task';
+            const deadline = isTool ? "" : getAcaSelectedDeadlineString();
+
             const payload = { 
                 title: title, 
                 url: url, 
                 note: document.getElementById('newAcaNoteInput').value.trim(), 
-                deadline: getAcaSelectedDeadlineString()
+                deadline: deadline,
+                category: category
             };
+
             if (editId) { 
                 const task = academicTasks.find(t => t.id === editId); 
                 if (task) {
                     Object.assign(task, payload); 
-                    showToast("Đã cập nhật bài tập!", "success"); 
+                    showToast("Đã cập nhật thành công!", "success"); 
                 }
             } else { 
                 academicTasks.unshift(Object.assign({ id: "aca_" + Date.now() }, payload)); 
-                showToast("Đã đăng bài tập mới!", "success"); 
+                showToast(isTool ? "Đã thêm công cụ học tập mới!" : "Đã đăng bài tập mới!", "success"); 
             }
             saveStorageData(); 
             if (currentUserRole === 'admin' && appsScriptUrl) pushDataToGoogleSheet(true);
