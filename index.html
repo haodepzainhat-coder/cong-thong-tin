@@ -2512,11 +2512,25 @@
         }
         function deleteMovement(id) { 
             movements = movements.filter(m => m.id !== id); 
+            try {
+                localStorage.setItem("cct_movements", JSON.stringify(movements));
+            } catch (e) {}
             saveStorageData(); 
             if (currentUserRole === 'admin' && appsScriptUrl) pushDataToGoogleSheet(true);
             renderMovementsCards(); 
             populateReportMovementsDropdown(); 
-            showToast("Đã xóa!", "info"); 
+            showToast("Đã xóa phong trào!", "info"); 
+        }
+
+        function deleteAcademicTask(id) {
+            academicTasks = academicTasks.filter(task => task.id !== id);
+            try {
+                localStorage.setItem("cct_academics", JSON.stringify(academicTasks));
+            } catch (e) {}
+            saveStorageData();
+            if (currentUserRole === 'admin' && appsScriptUrl) pushDataToGoogleSheet(true);
+            renderAcademicTasks();
+            showToast("Đã xóa bài tập!", "info");
         }
 
         function renderAcademicTasks() {
