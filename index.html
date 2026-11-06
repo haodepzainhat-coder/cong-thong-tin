@@ -574,7 +574,7 @@
 
                     <div class="space-y-1.5">
                         <label class="block text-xs font-bold text-slate-700">Ảnh Minh Chứng <span class="text-rose-500">*</span></label>
-                        <div id="imageUploadArea" class="border-2 border-dashed border-slate-300 hover:border-emerald-500 rounded-2xl p-4 text-center cursor-pointer transition bg-slate-50 hover:bg-emerald-50/30 relative overflow-hidden">
+                        <div id="imageUploadArea" class="border-2 border-dashed border-slate-300 hover:border-emerald-500 rounded-2xl p-4 text-center cursor-pointer transition bg-slate-50 hover:bg-emerald-50/30 relative overflow-hidden focus:outline-none focus:ring-2 focus:ring-emerald-400" tabindex="0">
                             <!-- Chặn file tài liệu, chỉ mở thẳng kho ảnh/camera -->
                             <input type="file" id="reportFileInput" accept="image/*" onchange="handleImageSelection(event)" class="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10">
                             
@@ -584,6 +584,10 @@
                                 </div>
                                 <div class="text-xs text-slate-700 font-semibold">Chạm để chụp ảnh hoặc chọn ảnh từ máy</div>
                                 <div class="text-[11px] text-slate-500">Chỉ nhận định dạng hình ảnh (Không gửi file)</div>
+                                <div class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-xl bg-slate-200/80 text-slate-700 text-[10px] font-black tracking-wide border border-slate-300">
+                                    <i class="fa-solid fa-paste text-emerald-600"></i>
+                                    <span>Máy tính: Nhấn Ctrl + V để dán ảnh đã chép</span>
+                                </div>
                             </div>
                             <div id="imagePreviewContainer" class="hidden relative z-20">
                                 <img id="imagePreview" src="" alt="Minh chứng" class="max-h-48 rounded-xl mx-auto shadow-md border border-slate-200">
@@ -1195,6 +1199,678 @@
         let pendingLeaveAction = null;
         let savedHomeScrollY = 0; // Biến lưu lại vị trí cuộn trang chủ
 
+        // Khôi phục dữ liệu từ bộ nhớ trình duyệt hoặc dùng dữ liệu mặc định
+        function loadStorageData() {
+            try {
+                const s = localStorage.getItem("cct_students");
+                students = s ? JSON.parse(s) : JSON.parse(JSON.stringify(DEFAULT_STUDENTS_LIST));
+
+                const m = localStorage.getItem("cct_movements");
+                movements = m ? JSON.parse(m) : JSON.parse(JSON.stringify(DEFAULT_MOVEMENTS));
+
+                const a = localStorage.getItem("cct_academics");
+                academicTasks = a ? JSON.parse(a) : JSON.parse(JSON.stringify(DEFAULT_ACADEMICS));
+
+                const f = localStorage.getItem("cct_storages");
+                storageFolders = f ? JSON.parse(f) : JSON.parse(JSON.stringify(DEFAULT_STORAGE_FOLDERS));
+
+                const r = localStorage.getItem("cct_role");
+                if (r === "admin" || r === "student") {
+                    currentUserRole = r;
+                }
+
+                const url = localStorage.getItem("cct_apps_script_url");
+                if (url) {
+                    appsScriptUrl = url;
+                }
+            } catch (e) {
+                students = JSON.parse(JSON.stringify(DEFAULT_STUDENTS_LIST));
+                movements = JSON.parse(JSON.stringify(DEFAULT_MOVEMENTS));
+                academicTasks = JSON.parse(JSON.stringify(DEFAULT_ACADEMICS));
+                storageFolders = JSON.parse(JSON.stringify(DEFAULT_STORAGE_FOLDERS));
+            }
+        }
+
+        // Lưu dữ liệu vào bộ nhớ máy (localStorage)
+        function saveStorageData() {
+            try {
+                localStorage.setItem("cct_students", JSON.stringify(students));
+                localStorage.setItem("cct_movements", JSON.stringify(movements));
+                localStorage.setItem("cct_academics", JSON.stringify(academicTasks));
+                localStorage.setItem("cct_storages", JSON.stringify(storageFolders));
+                localStorage.setItem("cct_role", currentUserRole);
+                localStorage.setItem("cct_apps_script_url", appsScriptUrl);
+            } catch (e) {
+                console.error("Lỗi khi lưu localStorage:", e);
+            }
+        }
+
+        // Cập nhật giao diện theo vai trò (Học sinh / Admin)
+        function updateRoleUI() {
+            const roleBtn = document.getElementById('roleSwitchBtn');
+            const roleIcon = document.getElementById('roleIcon');
+            const adminBar = document.getElementById('adminSettingsBar');
+            const adminMovBtn = document.getElementById('adminCreateMovementBtnContainer');
+            const adminAcaBtn = document.getElementById('adminCreateAcademicBtnContainer');
+            const adminStoreManager = document.getElementById('adminStorageFoldersManager');
+            const adminVioExcel = document.getElementById('adminQuickExportExcelBtn');
+
+            if (currentUserRole === 'admin') {
+                if (roleBtn) {
+                    roleBtn.className = "w-10 h-10 rounded-2xl flex items-center justify-center transition-all duration-300 transform active:scale-95 shadow-sm border bg-amber-500 hover:bg-amber-600 text-slate-900 border-amber-300";
+                    roleBtn.title = "Đang ở chế độ Quản Trị Viên (Admin) - Nhấn để đổi";
+                }
+                if (roleIcon) roleIcon.className = "fa-solid fa-shield-halved text-base";
+                if (adminBar) adminBar.classList.remove('hidden');
+                if (adminMovBtn) adminMovBtn.classList.remove('hidden');
+                if (adminAcaBtn) adminAcaBtn.classList.remove('hidden');
+                if (adminStoreManager) adminStoreManager.classList.remove('hidden');
+                if (adminVioExcel) adminVioExcel.classList.remove('hidden');
+            } else {
+                if (roleBtn) {
+                    roleBtn.className = "w-10 h-10 rounded-2xl flex items-center justify-center transition-all duration-300 transform active:scale-95 shadow-sm border bg-indigo-50 hover:bg-indigo-100 text-indigo-700 border-indigo-200";
+                    roleBtn.title = "Đang ở chế độ Học Sinh - Nhấn để chuyển vai trò";
+                }
+                if (roleIcon) roleIcon.className = "fa-solid fa-user-graduate text-base";
+                if (adminBar) adminBar.classList.add('hidden');
+                if (adminMovBtn) adminMovBtn.classList.add('hidden');
+                if (adminAcaBtn) adminAcaBtn.classList.add('hidden');
+                if (adminStoreManager) adminStoreManager.classList.add('hidden');
+                if (adminVioExcel) adminVioExcel.classList.add('hidden');
+            }
+        }
+
+        function openRoleModal() {
+            document.getElementById('initRoleModal')?.classList.remove('hidden');
+        }
+
+        function closeRoleModal() {
+            document.getElementById('initRoleModal')?.classList.add('hidden');
+        }
+
+        function selectUserRole(role) {
+            currentUserRole = role;
+            saveStorageData();
+            updateRoleUI();
+            closeRoleModal();
+            renderStudentsList();
+            renderMovementsCards();
+            renderAcademicTasks();
+            showToast(role === 'admin' ? "Đã chuyển sang quyền Quản Trị Viên!" : "Đã chuyển sang chế độ Học Sinh", "info");
+        }
+
+        function promptAdminPasswordModal() {
+            closeRoleModal();
+            const passInput = document.getElementById('adminPasswordInput');
+            if (passInput) passInput.value = '';
+            document.getElementById('adminPasswordModal')?.classList.remove('hidden');
+            setTimeout(() => passInput?.focus(), 150);
+        }
+
+        function closeAdminPasswordModal() {
+            document.getElementById('adminPasswordModal')?.classList.add('hidden');
+        }
+
+        function verifyAdminPassword() {
+            const input = document.getElementById('adminPasswordInput');
+            const pass = input ? input.value : "";
+            if (pass === ADMIN_FIXED_PASSWORD) {
+                closeAdminPasswordModal();
+                selectUserRole('admin');
+            } else {
+                showToast("Mật khẩu Quản Trị Viên không đúng!", "error");
+            }
+        }
+
+        // Chuyển về màn hình chính và giữ vị trí cuộn mượt mà
+        function goHomeHub() {
+            if (!checkBeforeLeavingAction(() => goHomeHub())) return;
+
+            document.getElementById('section-home-hub')?.classList.remove('hidden');
+            document.getElementById('section-violations')?.classList.add('hidden');
+            document.getElementById('section-activities')?.classList.add('hidden');
+            document.getElementById('section-academic')?.classList.add('hidden');
+            document.getElementById('section-reports')?.classList.add('hidden');
+
+            // Khôi phục vị trí cuộn màn hình trước đó
+            if (savedHomeScrollY > 0) {
+                setTimeout(() => {
+                    window.scrollTo({ top: savedHomeScrollY, behavior: 'instant' });
+                }, 10);
+            }
+        }
+
+        // Chuyển chuyên mục
+        function switchSection(sectionKey) {
+            // Lưu lại vị trí cuộn trên màn hình chính
+            savedHomeScrollY = window.scrollY || window.pageYOffset || 0;
+
+            document.getElementById('section-home-hub')?.classList.add('hidden');
+            document.getElementById('section-violations')?.classList.add('hidden');
+            document.getElementById('section-activities')?.classList.add('hidden');
+            document.getElementById('section-academic')?.classList.add('hidden');
+            document.getElementById('section-reports')?.classList.add('hidden');
+
+            const targetSection = document.getElementById(`section-${sectionKey}`);
+            if (targetSection) {
+                targetSection.classList.remove('hidden');
+                targetSection.classList.add('animate-section-in');
+            }
+
+            window.scrollTo({ top: 0, behavior: 'instant' });
+
+            if (sectionKey === 'violations') {
+                renderStudentsList();
+            } else if (sectionKey === 'activities') {
+                renderMovementsCards();
+            } else if (sectionKey === 'academic') {
+                renderAcademicTasks();
+            } else if (sectionKey === 'reports') {
+                populateReportMovementsDropdown();
+            }
+        }
+
+        // Khởi tạo các ô lọc thời gian
+        function initTimePickerInputs() {
+            const now = new Date();
+            const pad = n => String(n).padStart(2, '0');
+            const setVal = (id, val) => { const el = document.getElementById(id); if (el) el.value = val; };
+
+            setVal('customSelectDay', pad(now.getDate()));
+            setVal('customSelectMonth', pad(now.getMonth() + 1));
+            setVal('customSelectYear', String(now.getFullYear()));
+            setVal('customSelectWeekNum', getISOWeekString(now).split('-')[1]);
+            setVal('customSelectWeekYear', String(now.getFullYear()));
+            setVal('customSelectOnlyMonth', pad(now.getMonth() + 1));
+            setVal('customSelectOnlyMonthYear', String(now.getFullYear()));
+            setVal('customSelectOnlyYear', String(now.getFullYear()));
+            setVal('excelSelectWeekNum', getISOWeekString(now).split('-')[1]);
+            setVal('excelSelectWeekYear', String(now.getFullYear()));
+            setVal('excelSelectMonth', pad(now.getMonth() + 1));
+            setVal('excelSelectMonthYear', String(now.getFullYear()));
+        }
+
+        // Quản lý ổ lưu
+        function renderStorageFolders() {
+            const container = document.getElementById('storageFoldersListContainer');
+            if (!container) return;
+            if (storageFolders.length === 0) {
+                container.innerHTML = `<div class="p-3 text-xs text-slate-400 italic col-span-2 text-center">Chưa có ổ lưu nào. Hãy tạo ổ lưu để gắn với phong trào.</div>`;
+                return;
+            }
+            container.innerHTML = storageFolders.map(s => `
+                <div class="p-3 rounded-2xl bg-white border border-emerald-200 shadow-sm flex items-center justify-between gap-2">
+                    <div class="overflow-hidden">
+                        <div class="text-xs font-black text-slate-800 truncate">${s.name}</div>
+                        ${s.desc ? `<div class="text-[10px] text-slate-500 truncate">${s.desc}</div>` : ''}
+                    </div>
+                    <div class="flex items-center gap-1">
+                        ${s.url ? `<a href="${s.url}" target="_blank" class="p-1.5 rounded-lg text-emerald-600 hover:bg-emerald-50 text-xs"><i class="fa-solid fa-arrow-up-right-from-square"></i></a>` : ''}
+                        <button onclick="deleteStorageFolder('${s.id}')" class="p-1.5 rounded-lg text-rose-500 hover:bg-rose-50 text-xs"><i class="fa-solid fa-trash-can"></i></button>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function populateStorageDropdowns() {
+            const selects = ['newMovStorageSelect'];
+            selects.forEach(id => {
+                const el = document.getElementById(id);
+                if (!el) return;
+                const opts = [`<option value="">-- Để trống (Không nhận ảnh) --</option>`]
+                    .concat(storageFolders.map(s => `<option value="${s.id}">${s.name}</option>`));
+                el.innerHTML = opts.join('');
+            });
+        }
+
+        function openCreateStorageModal() {
+            document.getElementById('editStorageId').value = '';
+            document.getElementById('storageModalTitle').innerHTML = '<i class="fa-solid fa-folder-plus text-emerald-600"></i><span>Tạo Ổ Lưu Mới</span>';
+            document.getElementById('saveStorageBtn').innerText = 'Tạo Ổ Lưu';
+            ['newStorageNameInput', 'newStorageUrlInput', 'newStorageDescInput'].forEach(id => {
+                const el = document.getElementById(id);
+                if (el) el.value = '';
+            });
+            document.getElementById('createStorageModal')?.classList.remove('hidden');
+        }
+
+        function closeCreateStorageModal() {
+            document.getElementById('createStorageModal')?.classList.add('hidden');
+        }
+
+        function handleSaveNewStorage() {
+            const name = document.getElementById('newStorageNameInput')?.value.trim();
+            if (!name) {
+                showToast("Vui lòng nhập tên ổ lưu!", "error");
+                return;
+            }
+            const newStorage = {
+                id: "store_" + Date.now(),
+                name: name,
+                url: document.getElementById('newStorageUrlInput')?.value.trim() || '',
+                desc: document.getElementById('newStorageDescInput')?.value.trim() || ''
+            };
+            storageFolders.push(newStorage);
+            saveStorageData();
+            renderStorageFolders();
+            populateStorageDropdowns();
+            populateReportMovementsDropdown();
+            closeCreateStorageModal();
+            showToast("Đã tạo ổ lưu mới thành công!", "success");
+            if (currentUserRole === 'admin' && appsScriptUrl) pushDataToGoogleSheet(true);
+        }
+
+        function deleteStorageFolder(id) {
+            storageFolders = storageFolders.filter(s => s.id !== id);
+            saveStorageData();
+            renderStorageFolders();
+            populateStorageDropdowns();
+            populateReportMovementsDropdown();
+            showToast("Đã xóa ổ lưu!", "info");
+            if (currentUserRole === 'admin' && appsScriptUrl) pushDataToGoogleSheet(true);
+        }
+
+        // Cập nhật trạng thái kết nối Google Sheet
+        function updateCloudStatusBadge(status) {
+            const headerBadge = document.getElementById('headerSyncStatusBadge');
+            const headerText = document.getElementById('headerSyncStatusText');
+            const adminBadge = document.getElementById('cloudStatusBadge');
+
+            if (status === "connected") {
+                if (headerBadge) headerBadge.className = "inline-flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 rounded-2xl text-[11px] font-black bg-emerald-50 text-emerald-800 border border-emerald-300 shadow-sm";
+                if (headerText) headerText.innerHTML = '<span class="inline-block w-2 h-2 rounded-full bg-emerald-500 mr-1"></span>Đã kết nối';
+                if (adminBadge) adminBadge.innerHTML = '<span class="w-2 h-2 rounded-full bg-emerald-500"></span><span>Đã nối Sheet</span>';
+            } else if (status === "syncing") {
+                if (headerBadge) headerBadge.className = "inline-flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 rounded-2xl text-[11px] font-black bg-amber-50 text-amber-800 border border-amber-300 shadow-sm";
+                if (headerText) headerText.innerHTML = '<span class="inline-block w-2 h-2 rounded-full bg-amber-500 animate-ping mr-1"></span>Đang đồng bộ';
+                if (adminBadge) adminBadge.innerHTML = '<span class="w-2 h-2 rounded-full bg-amber-500 animate-pulse"></span><span>Đang đồng bộ</span>';
+            } else {
+                if (headerBadge) headerBadge.className = "inline-flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 rounded-2xl text-[11px] font-black bg-slate-100 text-slate-700 border border-slate-300 shadow-sm";
+                if (headerText) headerText.innerHTML = '<span class="inline-block w-2 h-2 rounded-full bg-slate-400 mr-1"></span>Ngoại tuyến';
+                if (adminBadge) adminBadge.innerHTML = '<span class="w-2 h-2 rounded-full bg-slate-400"></span><span>Chưa nối Sheet</span>';
+            }
+        }
+
+        // Tải dữ liệu mới nhất từ Google Apps Script
+        async function fetchLatestDataFromSheet(showSuccessToast = false) {
+            if (!appsScriptUrl) return;
+            updateCloudStatusBadge("syncing");
+            try {
+                const res = await fetch(appsScriptUrl + "?t=" + Date.now());
+                const json = await res.json();
+                if (json && json.status === "success" && json.data) {
+                    const d = json.data;
+                    if (d.students && Array.isArray(d.students) && d.students.length > 0) students = d.students;
+                    if (d.movements && Array.isArray(d.movements)) movements = d.movements;
+                    if (d.academicTasks && Array.isArray(d.academicTasks)) academicTasks = d.academicTasks;
+                    if (d.storageFolders && Array.isArray(d.storageFolders)) storageFolders = d.storageFolders;
+                    saveStorageData();
+                    renderStudentsList();
+                    renderMovementsCards();
+                    renderAcademicTasks();
+                    renderStorageFolders();
+                    populateStorageDropdowns();
+                    populateReportMovementsDropdown();
+                    updateCloudStatusBadge("connected");
+                    if (showSuccessToast) showToast("Đã cập nhật dữ liệu từ đám mây!", "success");
+                } else {
+                    updateCloudStatusBadge("connected");
+                }
+            } catch (err) {
+                console.error("Lỗi fetch dữ liệu Sheet:", err);
+                updateCloudStatusBadge("connected");
+            }
+        }
+
+        // Đẩy toàn bộ dữ liệu lên Google Apps Script
+        async function pushDataToGoogleSheet(silent = false) {
+            if (!appsScriptUrl) return;
+            if (!silent) updateCloudStatusBadge("syncing");
+            try {
+                await fetch(appsScriptUrl, {
+                    method: "POST",
+                    mode: "no-cors",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({
+                        action: "syncAllData",
+                        data: {
+                            adminPassword: ADMIN_FIXED_PASSWORD,
+                            students: students,
+                            movements: movements,
+                            academicTasks: academicTasks,
+                            storageFolders: storageFolders
+                        }
+                    })
+                });
+                if (!silent) {
+                    updateCloudStatusBadge("connected");
+                    showToast("Đã đồng bộ lên Google Sheet!", "success");
+                }
+            } catch (e) {
+                console.error("Lỗi khi push dữ liệu:", e);
+                if (!silent) updateCloudStatusBadge("connected");
+            }
+        }
+
+        function handleQuickReloadPage(btnEl) {
+            const icon = btnEl ? btnEl.querySelector('i') : null;
+            if (icon) icon.classList.add('fa-spin');
+            if (btnEl) btnEl.disabled = true;
+
+            fetchLatestDataFromSheet(true).finally(() => {
+                if (icon) icon.classList.remove('fa-spin');
+                if (btnEl) btnEl.disabled = false;
+            });
+        }
+
+        function openAppsScriptModal() {
+            const input = document.getElementById('appsScriptUrlInput');
+            if (input) input.value = appsScriptUrl || '';
+            document.getElementById('appsScriptModal')?.classList.remove('hidden');
+        }
+
+        function closeAppsScriptModal() {
+            document.getElementById('appsScriptModal')?.classList.add('hidden');
+        }
+
+        function saveAppsScriptUrl() {
+            const val = document.getElementById('appsScriptUrlInput')?.value.trim();
+            if (val) {
+                appsScriptUrl = val;
+                saveStorageData();
+                closeAppsScriptModal();
+                showToast("Đã lưu URL Apps Script!", "success");
+                fetchLatestDataFromSheet(true);
+            }
+        }
+
+        function syncDataWithGoogleSheet() {
+            fetchLatestDataFromSheet(true);
+        }
+
+        // Đếm số phong trào một học sinh đã tham gia
+        function getStudentJoinedMovementsCount(studentId) {
+            return movements.filter(m => m.participantIds && m.participantIds.includes(studentId)).length;
+        }
+
+        // Logic lọc theo dõi vi phạm
+        function toggleTrackingViolationsSection(forceState) {
+            const panel = document.getElementById('trackingViolationsPanel');
+            const label = document.getElementById('trackingToggleLabel');
+            const icon = document.getElementById('trackingToggleIcon');
+            if (!panel) return;
+
+            if (typeof forceState === 'boolean') {
+                isTrackingViolationsOpen = forceState;
+            } else {
+                isTrackingViolationsOpen = !isTrackingViolationsOpen;
+            }
+
+            if (isTrackingViolationsOpen) {
+                panel.classList.remove('hidden');
+                if (label) label.innerText = "Bấm để thu gọn";
+                if (icon) icon.className = "fa-solid fa-chevron-up text-[11px] transition duration-200";
+                renderTrackingViolatedStudents();
+            } else {
+                panel.classList.add('hidden');
+                if (label) label.innerText = "Bấm để xem";
+                if (icon) icon.className = "fa-solid fa-chevron-down text-[11px] transition duration-200";
+            }
+        }
+
+        function isDateInViolationFilter(dateStr, filterType) {
+            if (!dateStr) return false;
+            if (filterType === 'all') return true;
+            if (filterType === 'day') return dateStr === selectedFilterDate;
+            if (filterType === 'week') {
+                try {
+                    const d = new Date(dateStr);
+                    return getISOWeekString(d) === selectedFilterWeek;
+                } catch (e) { return false; }
+            }
+            if (filterType === 'month') return dateStr.startsWith(selectedFilterMonth);
+            if (filterType === 'year') return dateStr.startsWith(String(selectedFilterYear));
+            return true;
+        }
+
+        function setViolationTimeFilter(type) {
+            currentViolationTimeFilter = type;
+            ['all', 'day', 'week', 'month', 'year'].forEach(t => {
+                const btn = document.getElementById(`vFilterBtn-${t}`);
+                if (btn) {
+                    btn.className = t === type
+                        ? "px-2.5 py-1.5 rounded-xl transition whitespace-nowrap bg-rose-600 text-white shadow-sm"
+                        : "px-2.5 py-1.5 rounded-xl transition whitespace-nowrap text-slate-600 hover:text-rose-600";
+                }
+            });
+
+            const customWrapper = document.getElementById('customTimePickerWrapper');
+            if (type === 'all') {
+                if (customWrapper) customWrapper.classList.add('hidden');
+            } else {
+                if (customWrapper) customWrapper.classList.remove('hidden');
+                ['day', 'week', 'month', 'year'].forEach(p => {
+                    const c = document.getElementById(`pickerContainer-${p}`);
+                    if (c) c.classList.toggle('hidden', p !== type);
+                });
+            }
+
+            renderStudentsList();
+            if (isTrackingViolationsOpen) renderTrackingViolatedStudents();
+        }
+
+        function resetToCurrentTimeFilter() {
+            const now = new Date();
+            selectedFilterDate = getLocalISODate(now);
+            selectedFilterWeek = getISOWeekString(now);
+            selectedFilterMonth = getLocalISODate(now).slice(0, 7);
+            selectedFilterYear = now.getFullYear();
+            initTimePickerInputs();
+            renderStudentsList();
+            if (isTrackingViolationsOpen) renderTrackingViolatedStudents();
+            showToast("Đã quay về mốc thời gian hiện tại!", "info");
+        }
+
+        function handleCompositeDateChange() {
+            const y = document.getElementById('customSelectYear')?.value;
+            const m = document.getElementById('customSelectMonth')?.value;
+            const d = document.getElementById('customSelectDay')?.value;
+            if (y && m && d) {
+                selectedFilterDate = `${y}-${m}-${d}`;
+                renderStudentsList();
+                if (isTrackingViolationsOpen) renderTrackingViolatedStudents();
+            }
+        }
+
+        function handleCompositeWeekChange() {
+            const y = document.getElementById('customSelectWeekYear')?.value;
+            const w = document.getElementById('customSelectWeekNum')?.value;
+            if (y && w) {
+                selectedFilterWeek = `${y}-${w}`;
+                const num = parseInt(w.replace('W', ''), 10);
+                const range = getDateRangeOfISOWeek(num, parseInt(y, 10));
+                const badgeText = document.getElementById('weekDateRangeText');
+                if (badgeText) badgeText.innerText = range.fullText;
+                renderStudentsList();
+                if (isTrackingViolationsOpen) renderTrackingViolatedStudents();
+            }
+        }
+
+        function handleWeekYearChange() {
+            const y = document.getElementById('customSelectWeekYear')?.value;
+            if (y) {
+                const wSelect = document.getElementById('customSelectWeekNum');
+                if (wSelect) wSelect.innerHTML = generateWeekOptionsWithDates(parseInt(y, 10));
+                handleCompositeWeekChange();
+            }
+        }
+
+        function handleCompositeMonthChange() {
+            const y = document.getElementById('customSelectOnlyMonthYear')?.value;
+            const m = document.getElementById('customSelectOnlyMonth')?.value;
+            if (y && m) {
+                selectedFilterMonth = `${y}-${m}`;
+                renderStudentsList();
+                if (isTrackingViolationsOpen) renderTrackingViolatedStudents();
+            }
+        }
+
+        function handleCompositeYearChange() {
+            const y = document.getElementById('customSelectOnlyYear')?.value;
+            if (y) {
+                selectedFilterYear = parseInt(y, 10);
+                renderStudentsList();
+                if (isTrackingViolationsOpen) renderTrackingViolatedStudents();
+            }
+        }
+
+        function updateViolationStatsSummary() {
+            let totalVios = 0;
+            const violatedStudentIds = new Set();
+            const countsByType = {};
+
+            students.forEach(s => {
+                const active = (s.violations || []).filter(v => isDateInViolationFilter(v.date, currentViolationTimeFilter));
+                if (active.length > 0) {
+                    totalVios += active.length;
+                    violatedStudentIds.add(s.id);
+                    active.forEach(v => {
+                        const t = v.title || "Khác";
+                        countsByType[t] = (countsByType[t] || 0) + 1;
+                    });
+                }
+            });
+
+            const statTotal = document.getElementById('statTotalViolationsCount');
+            const statStudents = document.getElementById('statStudentsViolatedCount');
+            const statTop = document.getElementById('statTopViolationType');
+
+            if (statTotal) statTotal.innerText = totalVios;
+            if (statStudents) statStudents.innerText = violatedStudentIds.size;
+
+            let topName = "Không có";
+            let maxCount = 0;
+            Object.entries(countsByType).forEach(([name, c]) => {
+                if (c > maxCount) {
+                    maxCount = c;
+                    topName = `${name} (${c})`;
+                }
+            });
+            if (statTop) statTop.innerText = topName;
+        }
+
+        function renderTrackingViolatedStudents() {
+            const container = document.getElementById('trackingViolatedStudentsList');
+            const badge = document.getElementById('trackingViolatedStudentsBadge');
+            if (!container) return;
+
+            const list = [];
+            students.forEach(s => {
+                const filtered = (s.violations || []).filter(v => isDateInViolationFilter(v.date, currentViolationTimeFilter));
+                if (filtered.length > 0) {
+                    list.push({ student: s, count: filtered.length, list: filtered });
+                }
+            });
+
+            if (badge) badge.innerText = list.length;
+
+            if (list.length === 0) {
+                container.innerHTML = `<div class="p-4 rounded-2xl bg-white border border-rose-100 text-center text-xs text-slate-400 font-bold">Không có học sinh nào vi phạm trong mốc thời gian này.</div>`;
+                return;
+            }
+
+            container.innerHTML = list.map(item => `
+                <div class="p-3 rounded-2xl bg-white border border-rose-200 shadow-sm flex items-center justify-between gap-2">
+                    <div class="overflow-hidden">
+                        <div class="text-xs font-black text-slate-900 truncate">#${item.student.stt} - ${item.student.name}</div>
+                        <div class="text-[10px] text-rose-600 font-bold mt-0.5 truncate">${item.list.map(v => v.title).join(', ')}</div>
+                    </div>
+                    <div class="flex items-center gap-1.5 flex-shrink-0">
+                        <span class="px-2 py-0.5 rounded-full text-xs font-black bg-rose-100 text-rose-700">${item.count} lỗi</span>
+                        <button onclick="openStudentDetailModal('${item.student.id}')" class="px-2.5 py-1 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold transition">Xem</button>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        // Modal Xuất Excel
+        function openExportExcelModal() {
+            document.getElementById('exportExcelModal')?.classList.remove('hidden');
+            updateExcelWeekHint();
+        }
+
+        function closeExportExcelModal() {
+            document.getElementById('exportExcelModal')?.classList.add('hidden');
+        }
+
+        let excelExportMode = 'week';
+        function setExcelExportMode(mode) {
+            excelExportMode = mode;
+            ['week', 'month', 'all'].forEach(m => {
+                const btn = document.getElementById(`excelModeBtn-${m}`);
+                if (btn) {
+                    btn.className = m === mode
+                        ? "py-2.5 px-3 rounded-2xl font-black text-xs border transition flex flex-col items-center gap-1 bg-emerald-600 text-white border-emerald-600 shadow-sm"
+                        : "py-2.5 px-3 rounded-2xl font-black text-xs border transition flex flex-col items-center gap-1 bg-white text-slate-700 border-slate-300 hover:bg-slate-50";
+                }
+            });
+
+            document.getElementById('excelOptionContainer-week')?.classList.toggle('hidden', mode !== 'week');
+            document.getElementById('excelOptionContainer-month')?.classList.toggle('hidden', mode !== 'month');
+        }
+
+        function updateExcelWeekHint() {
+            const wSelect = document.getElementById('excelSelectWeekNum');
+            const ySelect = document.getElementById('excelSelectWeekYear');
+            const hint = document.getElementById('excelWeekRangeHint');
+            if (wSelect && ySelect && hint) {
+                const w = parseInt((wSelect.value || "W01").replace('W', ''), 10);
+                const y = parseInt(ySelect.value || "2026", 10);
+                hint.innerText = getDateRangeOfISOWeek(w, y).fullText;
+            }
+        }
+
+        function executeExcelExport() {
+            let csv = "\uFEFFSTT,Họ và tên,Tổng vi phạm,Chi tiết vi phạm,Số phong trào tham gia\n";
+            const incVio = document.getElementById('excelIncViolations')?.checked;
+            const incMov = document.getElementById('excelIncMovements')?.checked;
+            const onlyViolated = document.getElementById('excelOnlyViolated')?.checked;
+
+            students.forEach(s => {
+                let vios = s.violations || [];
+                if (excelExportMode === 'week') {
+                    const wVal = document.getElementById('excelSelectWeekNum')?.value;
+                    const yVal = document.getElementById('excelSelectWeekYear')?.value;
+                    const targetWeek = `${yVal}-${wVal}`;
+                    vios = vios.filter(v => {
+                        try { return getISOWeekString(new Date(v.date)) === targetWeek; } catch (e) { return false; }
+                    });
+                } else if (excelExportMode === 'month') {
+                    const mVal = document.getElementById('excelSelectMonth')?.value;
+                    const yVal = document.getElementById('excelSelectMonthYear')?.value;
+                    const targetMonth = `${yVal}-${mVal}`;
+                    vios = vios.filter(v => v.date && v.date.startsWith(targetMonth));
+                }
+
+                if (onlyViolated && vios.length === 0) return;
+
+                const vioDetails = incVio ? vios.map(v => `${v.title} (${v.date})`).join('; ') : "";
+                const movCount = incMov ? getStudentJoinedMovementsCount(s.id) : 0;
+                csv += `"${s.stt}","${s.name}","${vios.length}","${vioDetails.replace(/"/g, '""')}","${movCount}"\n`;
+            });
+
+            const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `Bao_Cao_${excelExportMode}_${Date.now()}.csv`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            closeExportExcelModal();
+            showToast("Đã tải tệp báo cáo về máy!", "success");
+        }
+
         // Hàm kiểm tra tự động xem một mục có phải là Công Cụ Học Tập hay không
         function isAcademicToolItem(task) {
             if (!task) return false;
@@ -1546,6 +2222,9 @@
             renderViolationPresetsList();
             goHomeHub();
 
+            // Lắng nghe sự kiện dán ảnh (Ctrl + V) từ Clipboard trên máy tính
+            setupClipboardPasteHandler();
+
             if (appsScriptUrl) {
                 fetchLatestDataFromSheet(false);
             } else {
@@ -1553,594 +2232,26 @@
             }
         };
 
-        function updateCloudStatusBadge(state) {
-            const badge = document.getElementById('cloudStatusBadge');
-            const headerBadge = document.getElementById('headerSyncStatusBadge');
+        function setupClipboardPasteHandler() {
+            window.addEventListener('paste', function(e) {
+                // Kiểm tra xem người dùng có đang ở mục Báo Cáo Minh Chứng không
+                const reportSection = document.getElementById('section-reports');
+                if (!reportSection || reportSection.classList.contains('hidden')) return;
 
-            if (headerBadge) {
-                if (state === "connected") {
-                    headerBadge.className = "inline-flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 rounded-2xl text-[11px] font-black bg-emerald-50 text-emerald-800 border border-emerald-200 shadow-sm transition-all duration-300";
-                    headerBadge.innerHTML = `<span class="w-2 h-2 rounded-full bg-emerald-500"></span><span id="headerSyncStatusText" class="truncate max-w-[85px] sm:max-w-none">Đã kết nối</span>`;
-                } else if (state === "syncing") {
-                    headerBadge.className = "inline-flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 rounded-2xl text-[11px] font-black bg-amber-50 text-amber-800 border border-amber-200 shadow-sm transition-all duration-300";
-                    headerBadge.innerHTML = `<span class="w-2 h-2 rounded-full bg-amber-500 animate-ping"></span><span id="headerSyncStatusText" class="truncate max-w-[85px] sm:max-w-none">Đang kết nối...</span>`;
-                } else {
-                    headerBadge.className = "inline-flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 rounded-2xl text-[11px] font-black bg-slate-100 text-slate-600 border border-slate-300 shadow-sm transition-all duration-300";
-                    headerBadge.innerHTML = `<span class="w-2 h-2 rounded-full bg-slate-400"></span><span id="headerSyncStatusText" class="truncate max-w-[85px] sm:max-w-none">Chưa kết nối</span>`;
-                }
-            }
+                const clipboardData = e.clipboardData || window.clipboardData;
+                if (!clipboardData || !clipboardData.items) return;
 
-            if (!badge) return;
-            if (state === "connected") {
-                badge.className = "ml-2 inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-black bg-emerald-100 text-emerald-800 border border-emerald-200";
-                badge.innerHTML = `<span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span><span>Đã nối Sheet</span>`;
-            } else if (state === "syncing") {
-                badge.className = "ml-2 inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-black bg-amber-100 text-amber-800 border border-amber-200";
-                badge.innerHTML = `<span class="w-2 h-2 rounded-full bg-amber-500 animate-ping"></span><span>Đang đồng bộ...</span>`;
-            } else {
-                badge.className = "ml-2 inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-black bg-slate-200 text-slate-700";
-                badge.innerHTML = `<span class="w-2 h-2 rounded-full bg-slate-400"></span><span>Chưa nối Sheet</span>`;
-            }
-        }
-
-        async function fetchLatestDataFromSheet(showNotify = false) {
-            if (!appsScriptUrl) return;
-            updateCloudStatusBadge("syncing");
-            const syncIcon = document.getElementById('cloudSyncIcon');
-            if (syncIcon) syncIcon.classList.add('fa-spin');
-            try {
-                const urlWithNoCache = appsScriptUrl + (appsScriptUrl.includes('?') ? '&' : '?') + "t=" + new Date().getTime();
-                const response = await fetch(urlWithNoCache);
-                const resJson = await response.json();
-                if (resJson && resJson.status === "success" && resJson.data) {
-                    const cloudData = resJson.data;
-                    if (cloudData.students && cloudData.students.length > 0) students = cloudData.students;
-                    
-                    if (cloudData.movements && Array.isArray(cloudData.movements)) {
-                        movements = cloudData.movements;
+                const items = clipboardData.items;
+                for (let i = 0; i < items.length; i++) {
+                    if (items[i].type && items[i].type.indexOf('image') !== -1) {
+                        const file = items[i].getAsFile();
+                        if (file) {
+                            e.preventDefault();
+                            processAndCompressImageFile(file, `anh_dan_${Date.now()}.png`);
+                            showToast("Đã nhận ảnh dán từ Clipboard!", "success");
+                            break;
+                        }
                     }
-
-                    if (cloudData.academicTasks && Array.isArray(cloudData.academicTasks)) {
-                        academicTasks = cloudData.academicTasks.map(cloudTask => {
-                            // Tự động nhận diện công cụ học tập thông minh dựa trên thuộc tính hoặc từ khóa (như POMODORO)
-                            const localMatch = academicTasks.find(lt => lt.id === cloudTask.id);
-                            let resolvedCategory = cloudTask.category;
-                            if (!resolvedCategory || resolvedCategory === "undefined" || resolvedCategory === "") {
-                                if (localMatch && localMatch.category) {
-                                    resolvedCategory = localMatch.category;
-                                } else if (isAcademicToolItem(cloudTask)) {
-                                    resolvedCategory = "tool";
-                                } else {
-                                    resolvedCategory = "task";
-                                }
-                            } else if (isAcademicToolItem(cloudTask)) {
-                                resolvedCategory = "tool";
-                            }
-                            return {
-                                ...cloudTask,
-                                category: resolvedCategory
-                            };
-                        });
-                    }
-
-                    if (cloudData.storageFolders) storageFolders = cloudData.storageFolders;
-                    
-                    localStorage.setItem("cct_students", JSON.stringify(students));
-                    localStorage.setItem("cct_movements", JSON.stringify(movements));
-                    localStorage.setItem("cct_academics", JSON.stringify(academicTasks));
-                    localStorage.setItem("cct_storage_folders", JSON.stringify(storageFolders));
-                    
-                    renderStudentsList(); 
-                    renderMovementsCards(); 
-                    renderAcademicTasks(); 
-                    renderStorageFolders(); 
-                    populateStorageDropdowns(); 
-                    populateReportMovementsDropdown();
-                    updateCloudStatusBadge("connected");
-                    if (showNotify) showToast("Đã cập nhật dữ liệu mới nhất!", "success");
-                }
-            } catch (err) {
-                updateCloudStatusBadge("connected");
-            } finally {
-                if (syncIcon) syncIcon.classList.remove('fa-spin');
-            }
-        }
-
-        async function pushDataToGoogleSheet(silent = false) {
-            if (!appsScriptUrl) return;
-            updateCloudStatusBadge("syncing");
-            const payload = {
-                action: "syncAllData",
-                data: { 
-                    students: students, 
-                    movements: movements, 
-                    academicTasks: academicTasks, 
-                    storageFolders: storageFolders
-                }
-            };
-            const jsonPayload = JSON.stringify(payload);
-
-            try {
-                if (navigator.sendBeacon) {
-                    const blob = new Blob([jsonPayload], { type: 'text/plain' });
-                    const sent = navigator.sendBeacon(appsScriptUrl, blob);
-                    if (sent) {
-                        updateCloudStatusBadge("connected");
-                        if (!silent) showToast("Đã lưu thứ tự thành công!", "success");
-                        return;
-                    }
-                }
-            } catch (e) {}
-
-            try {
-                await fetch(appsScriptUrl, { 
-                    method: "POST", 
-                    mode: "no-cors", 
-                    headers: { "Content-Type": "text/plain" }, 
-                    body: jsonPayload 
-                });
-                updateCloudStatusBadge("connected");
-                if (!silent) showToast("Đã lưu thứ tự lên đám mây!", "success");
-            } catch (err) {
-                updateCloudStatusBadge("connected");
-            }
-        }
-
-        async function syncDataWithGoogleSheet() {
-            if (!appsScriptUrl) {
-                openAppsScriptModal(); showToast("Vui lòng dán Link Apps Script trước!", "info"); return;
-            }
-            await fetchLatestDataFromSheet(true);
-        }
-
-        function loadStorageData() {
-            try {
-                const savedUrl = localStorage.getItem("cct_apps_script_url");
-                if (savedUrl) appsScriptUrl = savedUrl;
-
-                const savedStudents = localStorage.getItem("cct_students"); 
-                students = savedStudents ? JSON.parse(savedStudents) : DEFAULT_STUDENTS_LIST;
-                
-                const savedMovements = localStorage.getItem("cct_movements"); 
-                movements = savedMovements ? JSON.parse(savedMovements) : DEFAULT_MOVEMENTS;
-                
-                const savedAcademics = localStorage.getItem("cct_academics"); 
-                const loadedAcademics = savedAcademics ? JSON.parse(savedAcademics) : DEFAULT_ACADEMICS;
-                academicTasks = (loadedAcademics || []).map(task => {
-                    if (isAcademicToolItem(task)) {
-                        return { ...task, category: 'tool' };
-                    }
-                    return task;
-                });
-                
-                const savedStorageFolders = localStorage.getItem("cct_storage_folders"); 
-                storageFolders = savedStorageFolders ? JSON.parse(savedStorageFolders) : DEFAULT_STORAGE_FOLDERS;
-            } catch (e) {
-                students = DEFAULT_STUDENTS_LIST; movements = DEFAULT_MOVEMENTS; academicTasks = DEFAULT_ACADEMICS; storageFolders = DEFAULT_STORAGE_FOLDERS;
-            }
-        }
-
-        function initTimePickerInputs() {
-            const pad = n => String(n).padStart(2, '0');
-            const now = new Date();
-            const cDay = pad(now.getDate()); const cMonth = pad(now.getMonth() + 1); const cYear = String(now.getFullYear());
-            const cWeek = getISOWeekString(now).split('-W')[1] || 'W01';
-            const setVal = (id, val) => { const el = document.getElementById(id); if (el) el.value = val; };
-            setVal('customSelectDay', cDay); setVal('customSelectMonth', cMonth); setVal('customSelectYear', cYear);
-            setVal('customSelectWeekNum', 'W' + pad(parseInt(cWeek.replace('W', ''), 10))); setVal('customSelectWeekYear', cYear);
-            setVal('customSelectOnlyMonth', cMonth); setVal('customSelectOnlyMonthYear', cYear); setVal('customSelectOnlyYear', cYear);
-            updateWeekBadgeText();
-        }
-
-        function updateWeekBadgeText() {
-            const weekVal = document.getElementById('customSelectWeekNum')?.value || 'W01';
-            const yearVal = Number(document.getElementById('customSelectWeekYear')?.value) || new Date().getFullYear();
-            const weekNumInt = parseInt(weekVal.replace('W', ''), 10);
-            const range = getDateRangeOfISOWeek(weekNumInt, yearVal);
-            const badgeText = document.getElementById('weekDateRangeText');
-            if (badgeText) badgeText.innerText = `${range.startStr} - ${range.endStr}`;
-        }
-
-        function handleCompositeDateChange() {
-            const day = document.getElementById('customSelectDay')?.value || '01'; const month = document.getElementById('customSelectMonth')?.value || '01'; const year = document.getElementById('customSelectYear')?.value || String(new Date().getFullYear());
-            selectedFilterDate = `${year}-${month}-${day}`;
-            const descEl = document.getElementById('currentPeriodDescription');
-            if (descEl) descEl.innerText = `Ngày ${day}/${month}/${year}`;
-            renderStudentsList(); if (isTrackingViolationsOpen) renderTrackingViolatedStudents();
-        }
-
-        function handleCompositeWeekChange() {
-            const weekVal = document.getElementById('customSelectWeekNum')?.value || 'W01'; const yearVal = document.getElementById('customSelectWeekYear')?.value || String(new Date().getFullYear());
-            selectedFilterWeek = `${yearVal}-${weekVal}`; selectedFilterYear = Number(yearVal);
-            updateWeekBadgeText();
-            const weekNumInt = parseInt(weekVal.replace('W', ''), 10);
-            const range = getDateRangeOfISOWeek(weekNumInt, selectedFilterYear);
-            const descEl = document.getElementById('currentPeriodDescription');
-            if (descEl) descEl.innerText = `Tuần ${weekNumInt} (${range.startStr} - ${range.endStr}/${yearVal})`;
-            renderStudentsList(); if (isTrackingViolationsOpen) renderTrackingViolatedStudents();
-        }
-
-        function handleWeekYearChange() {
-            const yearVal = Number(document.getElementById('customSelectWeekYear')?.value) || new Date().getFullYear();
-            const selectWeek = document.getElementById('customSelectWeekNum');
-            if (selectWeek) {
-                const currentWeek = selectWeek.value; selectWeek.innerHTML = generateWeekOptionsWithDates(yearVal); selectWeek.value = currentWeek;
-            }
-            handleCompositeWeekChange();
-        }
-
-        function handleCompositeMonthChange() {
-            const month = document.getElementById('customSelectOnlyMonth')?.value || '01'; const year = document.getElementById('customSelectOnlyMonthYear')?.value || String(new Date().getFullYear());
-            selectedFilterMonth = `${year}-${month}`;
-            const descEl = document.getElementById('currentPeriodDescription');
-            if (descEl) descEl.innerText = `Tháng ${month}/${year}`;
-            renderStudentsList(); if (isTrackingViolationsOpen) renderTrackingViolatedStudents();
-        }
-
-        function handleCompositeYearChange() {
-            const year = document.getElementById('customSelectOnlyYear')?.value || String(new Date().getFullYear());
-            selectedFilterYear = Number(year);
-            const descEl = document.getElementById('currentPeriodDescription');
-            if (descEl) descEl.innerText = `Năm ${year}`;
-            renderStudentsList(); if (isTrackingViolationsOpen) renderTrackingViolatedStudents();
-        }
-
-        function resetToCurrentTimeFilter() {
-            const now = new Date();
-            selectedFilterDate = getLocalISODate(now); selectedFilterWeek = getISOWeekString(now); selectedFilterMonth = getLocalISODate(now).slice(0, 7); selectedFilterYear = now.getFullYear();
-            initTimePickerInputs();
-            if (currentViolationTimeFilter === 'day') handleCompositeDateChange();
-            else if (currentViolationTimeFilter === 'week') handleCompositeWeekChange();
-            else if (currentViolationTimeFilter === 'month') handleCompositeMonthChange();
-            else if (currentViolationTimeFilter === 'year') handleCompositeYearChange();
-            else { renderStudentsList(); if (isTrackingViolationsOpen) renderTrackingViolatedStudents(); }
-            showToast("Đã đồng bộ về thời điểm hiện tại!", "info");
-        }
-
-        function saveStorageData() {
-            try {
-                localStorage.setItem("cct_apps_script_url", appsScriptUrl);
-                localStorage.setItem("cct_students", JSON.stringify(students));
-                localStorage.setItem("cct_movements", JSON.stringify(movements));
-                localStorage.setItem("cct_academics", JSON.stringify(academicTasks));
-                localStorage.setItem("cct_storage_folders", JSON.stringify(storageFolders));
-                if (currentUserRole === 'admin' && appsScriptUrl) pushDataToGoogleSheet(true);
-            } catch (e) {}
-        }
-
-        function openCreateStorageModal() {
-            document.getElementById('editStorageId').value = '';
-            document.getElementById('storageModalTitle').innerHTML = '<i class="fa-solid fa-folder-plus text-emerald-600"></i><span>Tạo Ổ Lưu</span>';
-            document.getElementById('saveStorageBtn').innerText = 'Lưu';
-            document.getElementById('newStorageNameInput').value = ''; document.getElementById('newStorageUrlInput').value = ''; document.getElementById('newStorageDescInput').value = '';
-            document.getElementById('createStorageModal').classList.remove('hidden');
-        }
-
-        function openEditStorageModal(storageId) {
-            const s = storageFolders.find(item => item.id === storageId); if (!s) return;
-            document.getElementById('editStorageId').value = s.id;
-            document.getElementById('storageModalTitle').innerHTML = '<i class="fa-solid fa-pen-to-square text-emerald-600"></i><span>Chỉnh Sửa Ổ Lưu</span>';
-            document.getElementById('saveStorageBtn').innerText = 'Cập Nhật';
-            document.getElementById('newStorageNameInput').value = s.name || ''; document.getElementById('newStorageUrlInput').value = s.url || ''; document.getElementById('newStorageDescInput').value = s.desc || '';
-            document.getElementById('createStorageModal').classList.remove('hidden');
-        }
-
-        function closeCreateStorageModal() { document.getElementById('createStorageModal').classList.add('hidden'); }
-
-        function handleSaveNewStorage() {
-            const editId = document.getElementById('editStorageId').value;
-            const name = document.getElementById('newStorageNameInput').value.trim(); const url = document.getElementById('newStorageUrlInput').value.trim(); const desc = document.getElementById('newStorageDescInput').value.trim();
-            if (!name) { showToast("Vui lòng nhập tên ổ lưu!", "error"); return; }
-            if (editId) {
-                const s = storageFolders.find(item => item.id === editId);
-                if (s) { s.name = name; s.url = url; s.desc = desc; showToast("Đã cập nhật ổ lưu!", "success"); }
-            } else {
-                storageFolders.push({ id: "store_" + Date.now(), name: name, url: url, desc: desc });
-                showToast("Đã tạo ổ lưu mới!", "success");
-            }
-            saveStorageData(); closeCreateStorageModal(); renderStorageFolders(); populateStorageDropdowns(); renderMovementsCards();
-        }
-
-        function deleteStorageFolder(storageId) {
-            storageFolders = storageFolders.filter(s => s.id !== storageId);
-            saveStorageData(); renderStorageFolders(); populateStorageDropdowns(); renderMovementsCards(); showToast("Đã xóa ổ lưu!", "info");
-        }
-
-        function renderStorageFolders() {
-            const container = document.getElementById('storageFoldersListContainer'); if (!container) return;
-            if (storageFolders.length === 0) { container.innerHTML = `<div class="p-3 text-xs text-slate-400 italic col-span-2">Chưa có ổ lưu nào.</div>`; return; }
-            container.innerHTML = storageFolders.map(s => `
-                <div class="p-2.5 rounded-xl bg-white border border-emerald-200/80 flex items-center justify-between gap-2 shadow-sm">
-                    <div class="space-y-0.5 overflow-hidden">
-                        <div class="flex items-center gap-1.5">
-                            <i class="fa-solid fa-folder text-emerald-600 text-xs"></i>
-                            <span class="font-bold text-xs text-slate-800 truncate">${s.name}</span>
-                        </div>
-                        ${s.desc ? `<p class="text-[10px] text-slate-500 truncate">${s.desc}</p>` : ''}
-                    </div>
-                    <div class="flex items-center gap-1.5 flex-shrink-0">
-                        ${s.url ? `
-                            <button onclick="copyToClipboard('${s.url.replace(/'/g, "\\'")}', 'link ổ lưu')" class="p-1 text-slate-400 hover:text-emerald-600 text-xs" title="Sao chép link ổ lưu">
-                                <i class="fa-regular fa-copy"></i>
-                            </button>
-                            <a href="${s.url}" onclick="openExternalLink(event, '${s.url.replace(/'/g, "\\'")}')" class="p-1 text-slate-400 hover:text-emerald-600 text-xs" title="Mở link ổ lưu">
-                                <i class="fa-solid fa-arrow-up-right-from-square"></i>
-                            </a>
-                        ` : ''}
-                        ${currentUserRole === 'admin' ? `
-                            <button onclick="openEditStorageModal('${s.id}')" class="p-1 text-slate-400 hover:text-indigo-600 text-xs"><i class="fa-solid fa-pen-to-square"></i></button>
-                            <button onclick="deleteStorageFolder('${s.id}')" class="p-1 text-slate-400 hover:text-rose-600 text-xs"><i class="fa-solid fa-trash-can"></i></button>
-                        ` : ''}
-                    </div>
-                </div>
-            `).join('');
-        }
-
-        function populateStorageDropdowns() {
-            const select = document.getElementById('newMovStorageSelect'); if (!select) return;
-            select.innerHTML = `<option value="">-- Để trống (Không nhận ảnh) --</option>` + storageFolders.map(s => `<option value="${s.id}">${s.name}</option>`).join('');
-        }
-
-        function openAppsScriptModal() { document.getElementById('appsScriptUrlInput').value = appsScriptUrl || ''; document.getElementById('appsScriptModal').classList.remove('hidden'); }
-        function closeAppsScriptModal() { document.getElementById('appsScriptModal').classList.add('hidden'); }
-        function saveAppsScriptUrl() {
-            appsScriptUrl = document.getElementById('appsScriptUrlInput').value.trim(); localStorage.setItem("cct_apps_script_url", appsScriptUrl);
-            closeAppsScriptModal(); showToast("Đã lưu Link! Đang kết nối...", "success"); fetchLatestDataFromSheet(true);
-        }
-
-        function openRoleModal() { document.getElementById('initRoleModal').classList.remove('hidden'); }
-        function closeRoleModal() { document.getElementById('initRoleModal').classList.add('hidden'); }
-        function selectUserRole(role) {
-            currentUserRole = role; document.getElementById('initRoleModal').classList.add('hidden'); updateRoleUI();
-            showToast(role === 'admin' ? "Đã đăng nhập Quản Trị Viên!" : "Đang truy cập chế độ Học Sinh.", "success");
-        }
-        function promptAdminPasswordModal() {
-            document.getElementById('initRoleModal').classList.add('hidden'); document.getElementById('adminPasswordInput').value = ''; document.getElementById('adminPasswordModal').classList.remove('hidden');
-        }
-        function closeAdminPasswordModal() { document.getElementById('adminPasswordModal').classList.add('hidden'); }
-        function verifyAdminPassword() {
-            if (document.getElementById('adminPasswordInput').value === ADMIN_FIXED_PASSWORD) {
-                currentUserRole = "admin"; closeAdminPasswordModal(); updateRoleUI(); showToast("Xác thực Admin thành công!", "success");
-            } else { showToast("Sai mật khẩu Admin!", "error"); }
-        }
-
-        function updateRoleUI() {
-            const roleBtn = document.getElementById('roleSwitchBtn'); const roleIcon = document.getElementById('roleIcon'); const adminBar = document.getElementById('adminSettingsBar');
-            const adminMovBtn = document.getElementById('adminCreateMovementBtnContainer'); const adminAcaBtn = document.getElementById('adminCreateAcademicBtnContainer');
-            const adminStorageManager = document.getElementById('adminStorageFoldersManager'); const adminExportBtn = document.getElementById('adminQuickExportExcelBtn');
-
-            if (currentUserRole === 'admin') {
-                roleBtn.className = "w-10 h-10 rounded-2xl flex items-center justify-center transition shadow-sm bg-amber-50 text-amber-700 border border-amber-200 hover:bg-amber-100";
-                roleIcon.className = "fa-solid fa-shield-halved text-base"; adminBar.classList.remove('hidden');
-                if (adminMovBtn) adminMovBtn.classList.remove('hidden'); if (adminAcaBtn) adminAcaBtn.classList.remove('hidden');
-                if (adminStorageManager) adminStorageManager.classList.remove('hidden'); if (adminExportBtn) adminExportBtn.classList.remove('hidden');
-            } else {
-                roleBtn.className = "w-10 h-10 rounded-2xl flex items-center justify-center transition shadow-sm bg-indigo-50 text-indigo-700 border border-indigo-200 hover:bg-indigo-100";
-                roleIcon.className = "fa-solid fa-user-graduate text-base"; adminBar.classList.add('hidden');
-                if (adminMovBtn) adminMovBtn.classList.add('hidden'); if (adminAcaBtn) adminAcaBtn.classList.add('hidden');
-                if (adminStorageManager) adminStorageManager.classList.add('hidden'); if (adminExportBtn) adminExportBtn.classList.add('hidden');
-            }
-            renderStudentsList(); renderMovementsCards(); renderAcademicTasks(); renderStorageFolders();
-        }
-
-        let excelExportMode = "week";
-        function openExportExcelModal() {
-            const pad = n => String(n).padStart(2, '0'); const now = new Date(); const cYear = String(now.getFullYear()); const cMonth = pad(now.getMonth() + 1);
-            const weekParts = getISOWeekString(now).split('-');
-            const setVal = (id, val) => { const el = document.getElementById(id); if (el) el.value = val; };
-            setVal('excelSelectWeekNum', weekParts[1] || 'W01'); setVal('excelSelectWeekYear', weekParts[0] || cYear); setVal('excelSelectMonth', cMonth); setVal('excelSelectMonthYear', cYear);
-            updateExcelWeekHint(); setExcelExportMode(excelExportMode); document.getElementById('exportExcelModal').classList.remove('hidden');
-        }
-        function closeExportExcelModal() { document.getElementById('exportExcelModal').classList.add('hidden'); }
-        function setExcelExportMode(mode) {
-            excelExportMode = mode;
-            const btnWeek = document.getElementById('excelModeBtn-week'); const btnMonth = document.getElementById('excelModeBtn-month'); const btnAll = document.getElementById('excelModeBtn-all');
-            const containerWeek = document.getElementById('excelOptionContainer-week'); const containerMonth = document.getElementById('excelOptionContainer-month');
-            const activeClass = "py-2.5 px-3 rounded-2xl font-black text-xs border transition flex flex-col items-center gap-1 bg-emerald-600 text-white border-emerald-600 shadow-sm";
-            const inactiveClass = "py-2.5 px-3 rounded-2xl font-black text-xs border transition flex flex-col items-center gap-1 bg-white text-slate-700 border-slate-300 hover:bg-slate-50";
-            if (btnWeek) btnWeek.className = mode === 'week' ? activeClass : inactiveClass;
-            if (btnMonth) btnMonth.className = mode === 'month' ? activeClass : inactiveClass;
-            if (btnAll) btnAll.className = mode === 'all' ? activeClass : inactiveClass;
-            if (containerWeek) containerWeek.classList.toggle('hidden', mode !== 'week'); if (containerMonth) containerMonth.classList.toggle('hidden', mode !== 'month');
-        }
-        function updateExcelWeekHint() {
-            const week = document.getElementById('excelSelectWeekNum')?.value || 'W01'; const year = Number(document.getElementById('excelSelectWeekYear')?.value) || new Date().getFullYear();
-            const range = getDateRangeOfISOWeek(parseInt(week.replace('W', ''), 10), year);
-            const hint = document.getElementById('excelWeekRangeHint'); if (hint) hint.innerText = `${range.startStr} - ${range.endStr}`;
-        }
-        function executeExcelExport() {
-            const incViolations = document.getElementById('excelIncViolations').checked; const incMovements = document.getElementById('excelIncMovements').checked; const onlyViolated = document.getElementById('excelOnlyViolated').checked;
-            let periodTitle = ""; let filterChecker = () => true;
-
-            if (excelExportMode === 'week') {
-                const weekVal = document.getElementById('excelSelectWeekNum').value; const yearVal = document.getElementById('excelSelectWeekYear').value;
-                const weekNumInt = parseInt(weekVal.replace('W', ''), 10); const range = getDateRangeOfISOWeek(weekNumInt, Number(yearVal));
-                periodTitle = `Tuần ${weekNumInt} (${range.startStr} - ${range.endStr}/${yearVal})`;
-                filterChecker = (dateStr) => { if (!dateStr) return false; return getISOWeekString(new Date(dateStr)) === `${yearVal}-${weekVal}`; };
-            } else if (excelExportMode === 'month') {
-                const monthVal = document.getElementById('excelSelectMonth').value; const yearVal = document.getElementById('excelSelectMonthYear').value;
-                periodTitle = `Tháng ${monthVal}/${yearVal}`;
-                filterChecker = (dateStr) => { if (!dateStr) return false; return dateStr.slice(0, 7) === `${yearVal}-${monthVal}`; };
-            } else { periodTitle = "Tất cả thời gian"; filterChecker = () => true; }
-
-            const rows = [];
-            rows.push([`"BÁO CÁO TỔNG HỢP NỀ NẾP & PHONG TRÀO"`]); rows.push([`"Chu kỳ: ${periodTitle}"`]); rows.push([`"Xuất lúc: ${new Date().toLocaleString('vi-VN')}"`]); rows.push([]);
-            const colHeaders = ["STT", "Họ và Tên"];
-            if (incViolations) colHeaders.push("Tổng Lỗi", "Chi Tiết Lỗi");
-            if (incMovements) colHeaders.push("Số Phong Trào", "Chi Tiết Phong Trào");
-            rows.push(colHeaders.map(c => `"${c}"`));
-            let exportedCount = 0;
-
-            students.forEach(s => {
-                const viosInPeriod = (s.violations || []).filter(v => filterChecker(v.date));
-                const joinedMovs = movements.filter(m => m.participantIds && m.participantIds.includes(s.id));
-                if (onlyViolated && viosInPeriod.length === 0) return;
-                exportedCount++;
-                const rowData = [s.stt, `"${s.name}"`];
-                if (incViolations) {
-                    rowData.push(viosInPeriod.length);
-                    rowData.push(viosInPeriod.length === 0 ? `"Không có"` : `"${viosInPeriod.map((v, i) => `${i + 1}. [${v.session || 'Sáng'} - ${v.date || 'N/A'}] ${v.title}${v.note ? ' (' + v.note + ')' : ''}`).join('\n').replace(/"/g, '""')}"`);
-                }
-                if (incMovements) {
-                    rowData.push(joinedMovs.length);
-                    rowData.push(joinedMovs.length === 0 ? `"Chưa tham gia"` : `"${joinedMovs.map((m, i) => `${i + 1}. ${m.title}`).join('\n').replace(/"/g, '""')}"`);
-                }
-                rows.push(rowData);
-            });
-
-            if (exportedCount === 0) { showToast("Không có dữ liệu phù hợp!", "info"); return; }
-            const csvContent = "\uFEFF" + rows.map(r => r.join(",")).join("\r\n");
-            const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
-            const link = document.createElement("a"); link.href = URL.createObjectURL(blob); link.download = `Bao_Cao_${Date.now()}.csv`;
-            document.body.appendChild(link); link.click(); document.body.removeChild(link);
-            closeExportExcelModal(); showToast(`Đã xuất báo cáo thành công!`, "success");
-        }
-
-        function doGoHomeHub() {
-            const hub = document.getElementById('section-home-hub');
-            hub.classList.remove('hidden');
-            hub.classList.remove('animate-section-in');
-            void hub.offsetWidth;
-            hub.classList.add('animate-section-in');
-
-            ['violations', 'activities', 'academic', 'reports'].forEach(k => document.getElementById('section-' + k).classList.add('hidden'));
-            
-            // Khôi phục lại đúng vị trí cuộn trước đó ở Trang Chủ, không giật về đỉnh trang
-            window.scrollTo({ top: savedHomeScrollY, behavior: 'instant' });
-        }
-
-        function goHomeHub() {
-            if (!checkBeforeLeavingAction(doGoHomeHub)) return;
-            doGoHomeHub();
-        }
-
-        function doSwitchSection(targetKey) {
-            // Lưu lại vị trí cuộn hiện tại của Trang Chủ trước khi vào mục con
-            savedHomeScrollY = window.pageYOffset || document.documentElement.scrollTop || 0;
-
-            document.getElementById('section-home-hub').classList.add('hidden');
-            ['violations', 'activities', 'academic', 'reports'].forEach(k => document.getElementById('section-' + k).classList.add('hidden'));
-            const targetSection = document.getElementById('section-' + targetKey);
-            if (targetSection) { 
-                targetSection.classList.remove('hidden'); 
-                targetSection.classList.remove('animate-section-in');
-                void targetSection.offsetWidth;
-                targetSection.classList.add('animate-section-in');
-                window.scrollTo({ top: 0, behavior: 'instant' }); 
-            }
-        }
-
-        function switchSection(targetKey) {
-            if (!checkBeforeLeavingAction(() => doSwitchSection(targetKey))) return;
-            doSwitchSection(targetKey);
-        }
-
-        function toggleTrackingViolationsSection(forceState = null) {
-            isTrackingViolationsOpen = forceState !== null ? forceState : !isTrackingViolationsOpen;
-            const panel = document.getElementById('trackingViolationsPanel'); const label = document.getElementById('trackingToggleLabel'); const icon = document.getElementById('trackingToggleIcon');
-            if (!panel) return;
-            if (isTrackingViolationsOpen) {
-                panel.classList.remove('hidden'); if (label) label.innerText = "Thu gọn"; if (icon) icon.className = "fa-solid fa-chevron-up text-[11px] transition duration-200";
-                renderTrackingViolatedStudents();
-            } else {
-                panel.classList.add('hidden'); if (label) label.innerText = "Bấm để xem"; if (icon) icon.className = "fa-solid fa-chevron-down text-[11px] transition duration-200";
-            }
-        }
-
-        function getStudentJoinedMovementsCount(studentId) { return movements.filter(m => m.participantIds && m.participantIds.includes(studentId)).length; }
-
-        function updateViolationStatsSummary() {
-            let totalViolations = 0; const violatedStudentIds = new Set(); const violationCounts = {};
-            students.forEach(s => {
-                const activeVios = (s.violations || []).filter(v => isDateInViolationFilter(v.date, currentViolationTimeFilter));
-                if (activeVios.length > 0) {
-                    totalViolations += activeVios.length; violatedStudentIds.add(s.id);
-                    activeVios.forEach(v => { const title = v.title || 'Lỗi khác'; violationCounts[title] = (violationCounts[title] || 0) + 1; });
-                }
-            });
-            let topViolationTitle = "Không có", maxCount = 0;
-            for (const [title, count] of Object.entries(violationCounts)) { if (count > maxCount) { maxCount = count; topViolationTitle = `${title} (${count} lần)`; } }
-            const totalEl = document.getElementById('statTotalViolationsCount'); const studentCountEl = document.getElementById('statStudentsViolatedCount'); const topEl = document.getElementById('statTopViolationType');
-            if (totalEl) totalEl.innerText = totalViolations; if (studentCountEl) studentCountEl.innerText = violatedStudentIds.size;
-            if (topEl) { topEl.innerText = topViolationTitle; topEl.title = topViolationTitle; }
-        }
-
-        function renderTrackingViolatedStudents() {
-            const container = document.getElementById('trackingViolatedStudentsList'); const badge = document.getElementById('trackingViolatedStudentsBadge'); if (!container) return;
-            const violatedStudents = [];
-            students.forEach(s => {
-                const viosInPeriod = (s.violations || []).filter(v => isDateInViolationFilter(v.date, currentViolationTimeFilter));
-                if (viosInPeriod.length > 0) violatedStudents.push({ student: s, activeViolations: viosInPeriod });
-            });
-            if (badge) badge.innerText = violatedStudents.length;
-            if (violatedStudents.length === 0) {
-                container.innerHTML = `<div class="p-4 rounded-2xl bg-white/90 border border-rose-200 text-center text-xs text-slate-500 font-bold"><i class="fa-solid fa-circle-check text-emerald-600 text-base mb-1 block"></i>Tuyệt vời! Không có học sinh nào vi phạm trong mốc thời gian này.</div>`; return; }
-            container.innerHTML = violatedStudents.map(({ student, activeViolations }) => `
-                <div class="p-3 rounded-2xl bg-white border border-rose-200/90 shadow-sm flex flex-col gap-2">
-                    <div class="flex items-center justify-between gap-2">
-                        <div class="flex items-center gap-2.5 overflow-hidden">
-                            <div class="w-8 h-8 rounded-xl bg-rose-100 text-rose-700 font-black flex items-center justify-center text-xs flex-shrink-0">#${student.stt}</div>
-                            <div class="truncate"><h6 class="text-xs sm:text-sm font-black text-slate-900 truncate">${student.name}</h6><span class="text-[10px] text-rose-600 font-extrabold">${activeViolations.length} lỗi</span></div>
-                        </div>
-                        <button onclick="openStudentDetailModal('${student.id}')" class="px-2.5 py-1 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-800 text-[11px] font-bold border border-slate-300 transition flex items-center gap-1"><i class="fa-regular fa-eye text-indigo-600"></i><span>Xem hồ sơ</span></button>
-                    </div>
-                    <div class="space-y-1 pt-1 border-t border-slate-100">
-                        ${activeViolations.map(v => `
-                            <div class="flex items-center justify-between text-[11px] text-slate-600 bg-rose-50/50 px-2 py-1 rounded-lg">
-                                <div class="flex items-center gap-1.5 truncate"><span class="w-1.5 h-1.5 rounded-full bg-rose-500 flex-shrink-0"></span><span class="font-bold text-rose-900 truncate">${v.title}</span></div>
-                                <div class="flex items-center gap-1 text-[10px] text-slate-400 font-semibold flex-shrink-0 ml-2"><span>${v.session || ''}</span><span>${v.date ? '• ' + v.date : ''}</span></div>
-                            </div>
-                        `).join('')}
-                    </div>
-                </div>
-            `).join('');
-        }
-
-        function isDateInViolationFilter(dateStr, filter) {
-            if (!dateStr || filter === 'all') return true; const targetDate = new Date(dateStr); if (isNaN(targetDate.getTime())) return true;
-            if (filter === 'day') return dateStr === selectedFilterDate;
-            if (filter === 'week') return getISOWeekString(targetDate) === selectedFilterWeek;
-            if (filter === 'month') return dateStr.slice(0, 7) === selectedFilterMonth;
-            if (filter === 'year') return targetDate.getFullYear() === Number(selectedFilterYear);
-            return true;
-        }
-
-        function setViolationTimeFilter(filterType) {
-            currentViolationTimeFilter = filterType; const now = new Date();
-            selectedFilterDate = getLocalISODate(now); selectedFilterWeek = getISOWeekString(now); selectedFilterMonth = getLocalISODate(now).slice(0, 7); selectedFilterYear = now.getFullYear();
-            initTimePickerInputs();
-            ['all', 'day', 'week', 'month', 'year'].forEach(f => {
-                const btn = document.getElementById(`vFilterBtn-${f}`); if (!btn) return;
-                btn.className = f === filterType ? "px-2.5 py-1.5 rounded-xl transition whitespace-nowrap bg-rose-600 text-white shadow-sm" : "px-2.5 py-1.5 rounded-xl transition whitespace-nowrap text-slate-600 hover:text-rose-600";
-            });
-            const wrapper = document.getElementById('customTimePickerWrapper');
-            if (wrapper) wrapper.classList.toggle('hidden', filterType === 'all');
-            ['day', 'week', 'month', 'year'].forEach(f => {
-                const el = document.getElementById('pickerContainer-' + f); if (el) el.classList.toggle('hidden', filterType !== f);
-            });
-            if (filterType === 'week') handleCompositeWeekChange();
-            const pickerLabel = document.getElementById('customPickerLabel');
-            if (pickerLabel) pickerLabel.innerText = { day: 'Chọn ngày cần xem:', week: 'Chọn tuần cần xem:', month: 'Chọn tháng cần xem:', year: 'Chọn năm học cần xem:' }[filterType] || 'Lựa chọn mốc thời gian:';
-            renderStudentsList(); if (isTrackingViolationsOpen) renderTrackingViolatedStudents();
-        }
-
-        function handleQuickReloadPage(btnEl) {
-            if (!checkBeforeLeavingAction(() => handleQuickReloadPage(btnEl))) return;
-            const icon = btnEl ? btnEl.querySelector('i') : null;
-            if (icon) icon.classList.add('fa-spin');
-            if (btnEl) btnEl.disabled = true;
-
-            showToast("Đang làm mới dữ liệu...", "info");
-
-            fetchLatestDataFromSheet(false).finally(() => {
-                try {
-                    setTimeout(() => {
-                        window.location.reload();
-                    }, 400);
-                } catch (e) {
-                    if (icon) icon.classList.remove('fa-spin');
-                    if (btnEl) btnEl.disabled = false;
-                    showToast("Đã làm mới dữ liệu thành công!", "success");
                 }
             });
         }
@@ -2843,20 +2954,26 @@
             if (!file.type.startsWith('image/')) {
                 showToast("Vui lòng chỉ chọn tệp hình ảnh, không gửi tài liệu!", "error"); cancelImageSelection(); return;
             }
+            processAndCompressImageFile(file, file.name);
+        }
+
+        // Hàm chung xử lý và nén ảnh (dùng cho cả tải file và dán Ctrl + V)
+        function processAndCompressImageFile(file, fallbackName) {
             let fileExt = "jpg";
-            if (file.name && file.name.lastIndexOf(".") !== -1) {
-                fileExt = file.name.substring(file.name.lastIndexOf(".") + 1).toLowerCase();
+            const actualName = file.name || fallbackName || `minhchung_${Date.now()}.jpg`;
+            if (actualName && actualName.lastIndexOf(".") !== -1) {
+                fileExt = actualName.substring(actualName.lastIndexOf(".") + 1).toLowerCase();
             } else if (file.type && file.type.includes("/")) {
                 fileExt = file.type.split("/")[1].toLowerCase().replace("jpeg", "jpg");
             }
 
-            currentReportFileName = file.name || "minhchung.jpg"; 
+            currentReportFileName = actualName; 
             currentReportFileType = file.type || "image/jpeg";
             currentReportFileExt = fileExt;
 
             document.getElementById('imageUploadPlaceholder').classList.add('hidden');
             
-            // Tối ưu nén ảnh tự động bằng HTML5 Canvas để giảm kích thước và tải siêu nhanh
+            // Nén ảnh bằng Canvas
             const reader = new FileReader();
             reader.onerror = function() { showToast("Không thể đọc tệp này!", "error"); cancelImageSelection(); };
             reader.onload = function (e) {
@@ -2865,7 +2982,7 @@
                     const canvas = document.createElement('canvas');
                     let width = img.width;
                     let height = img.height;
-                    const maxDimension = 1600; // Giới hạn chuẩn Full HD sắc nét mà siêu nhẹ
+                    const maxDimension = 1600; // Giới hạn Full HD
 
                     if (width > maxDimension || height > maxDimension) {
                         if (width > height) {
@@ -2882,7 +2999,6 @@
                     const ctx = canvas.getContext('2d');
                     ctx.drawImage(img, 0, 0, width, height);
 
-                    // Nén ở mức chất lượng 0.78 (đẹp rõ nét nhưng chỉ ~250KB)
                     const compressedBase64 = canvas.toDataURL("image/jpeg", 0.78);
                     currentReportImageBase64 = compressedBase64;
                     currentReportFileType = "image/jpeg";
