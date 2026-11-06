@@ -163,9 +163,9 @@
         </div>
 
         <div class="flex items-center gap-2 sm:gap-3">
-            <!-- Huy hiệu trạng thái kết nối Sheet (Đã loại bỏ hoàn toàn chấm vàng và hiệu ứng giật animate-ping) -->
+            <!-- Huy hiệu trạng thái kết nối Sheet (Đã tách bạch 1 chấm duy nhất) -->
             <div id="headerSyncStatusBadge" class="inline-flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 rounded-2xl text-[11px] font-black bg-emerald-50 text-emerald-800 border border-emerald-300 shadow-sm transition-all duration-300">
-                <span class="w-2 h-2 rounded-full bg-emerald-500"></span>
+                <span id="headerSyncDot" class="w-2 h-2 rounded-full bg-emerald-500"></span>
                 <span id="headerSyncStatusText" class="truncate max-w-[85px] sm:max-w-none">Đã kết nối</span>
             </div>
 
@@ -1473,33 +1473,41 @@
         // Cập nhật trạng thái kết nối Google Sheet
         function updateCloudStatusBadge(status) {
             const headerBadge = document.getElementById('headerSyncStatusBadge');
+            const headerDot = document.getElementById('headerSyncDot');
+            const headerText = document.getElementById('headerSyncStatusText');
             const adminBadge = document.getElementById('cloudStatusBadge');
 
             if (status === "connected") {
                 if (headerBadge) {
                     headerBadge.className = "inline-flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 rounded-2xl text-[11px] font-black bg-emerald-50 text-emerald-800 border border-emerald-300 shadow-sm transition-all duration-300";
-                    headerBadge.innerHTML = `
-                        <span class="w-2 h-2 rounded-full bg-emerald-500"></span>
-                        <span id="headerSyncStatusText" class="truncate max-w-[85px] sm:max-w-none">Đã kết nối</span>
-                    `;
+                }
+                if (headerDot) {
+                    headerDot.className = "w-2 h-2 rounded-full bg-emerald-500";
+                }
+                if (headerText) {
+                    headerText.innerText = "Đã kết nối";
                 }
                 if (adminBadge) adminBadge.innerHTML = '<span class="w-2 h-2 rounded-full bg-emerald-500"></span><span>Đã nối Sheet</span>';
             } else if (status === "syncing") {
                 if (headerBadge) {
                     headerBadge.className = "inline-flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 rounded-2xl text-[11px] font-black bg-amber-50 text-amber-800 border border-amber-300 shadow-sm transition-all duration-300";
-                    headerBadge.innerHTML = `
-                        <span class="w-2 h-2 rounded-full bg-amber-500 animate-pulse"></span>
-                        <span id="headerSyncStatusText" class="truncate max-w-[85px] sm:max-w-none">Đang đồng bộ</span>
-                    `;
+                }
+                if (headerDot) {
+                    headerDot.className = "w-2 h-2 rounded-full bg-amber-500 animate-pulse";
+                }
+                if (headerText) {
+                    headerText.innerText = "Đang đồng bộ";
                 }
                 if (adminBadge) adminBadge.innerHTML = '<span class="w-2 h-2 rounded-full bg-amber-500 animate-pulse"></span><span>Đang đồng bộ</span>';
             } else {
                 if (headerBadge) {
                     headerBadge.className = "inline-flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 rounded-2xl text-[11px] font-black bg-slate-100 text-slate-700 border border-slate-300 shadow-sm transition-all duration-300";
-                    headerBadge.innerHTML = `
-                        <span class="w-2 h-2 rounded-full bg-slate-400"></span>
-                        <span id="headerSyncStatusText" class="truncate max-w-[85px] sm:max-w-none">Ngoại tuyến</span>
-                    `;
+                }
+                if (headerDot) {
+                    headerDot.className = "w-2 h-2 rounded-full bg-slate-400";
+                }
+                if (headerText) {
+                    headerText.innerText = "Ngoại tuyến";
                 }
                 if (adminBadge) adminBadge.innerHTML = '<span class="w-2 h-2 rounded-full bg-slate-400"></span><span>Chưa nối Sheet</span>';
             }
