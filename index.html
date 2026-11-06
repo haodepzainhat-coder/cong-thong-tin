@@ -1938,7 +1938,7 @@
                 return sClean.includes(clean) || clean.includes(sClean);
             });
 
-            return { match: partials.length === 1 ? partials[0] : null, suggestions: partials };
+            return { match: null, suggestions: partials };
         }
 
         function handleBotNameInput() {
@@ -1947,29 +1947,56 @@
             const hiddenId = document.getElementById('botMatchedStudentId');
             if (!box || !hiddenId) return;
 
+            // Mỗi khi người dùng gõ sửa tay, reset trạng thái chọn
+            hiddenId.value = '';
+
             if (!val.trim()) {
                 box.classList.add('hidden');
-                hiddenId.value = '';
                 return;
             }
 
-            const { match, suggestions } = smartMatchStudent(val);
-            if (match) {
-                hiddenId.value = match.id;
+            const cleanVal = removeVietnameseTones(val.toLowerCase().trim());
+            // Kiểm tra xem chuỗi vừa nhập có trùng hoàn toàn với 1 học sinh nào không
+            const exactStudent = students.find(s => removeVietnameseTones(s.name.toLowerCase().trim()) === cleanVal);
+
+            if (exactStudent) {
+                hiddenId.value = exactStudent.id;
                 box.classList.remove('hidden');
-                box.innerHTML = `<div class="flex items-center gap-1.5 text-emerald-800 font-bold"><i class="fa-solid fa-circle-check text-emerald-600"></i><span>Đã khớp học sinh: <b>#${match.stt} - ${match.name}</b></span></div>`;
-            } else if (suggestions.length > 0) {
-                hiddenId.value = '';
+                box.innerHTML = `
+                    <div class="flex items-center justify-between p-2 rounded-xl bg-emerald-100 text-emerald-800 border border-emerald-300">
+                        <div class="flex items-center gap-1.5 font-black">
+                            <i class="fa-solid fa-circle-check text-emerald-600"></i>
+                            <span>Khớp chính xác: <b>#${exactStudent.stt} - ${exactStudent.name}</b></span>
+                        </div>
+                    </div>`;
+                return;
+            }
+
+            // Nếu chưa trùng hoàn toàn, hiển thị danh sách đề xuất để bắt buộc nhấp chọn
+            const { suggestions } = smartMatchStudent(val);
+            if (suggestions.length > 0) {
                 box.classList.remove('hidden');
-                box.innerHTML = `<div class="text-xs font-bold text-slate-700 mb-1">Gợi ý gần đúng:</div>` + suggestions.slice(0, 3).map(s => `
-                    <div onclick="selectBotStudent('${s.id}', '${s.name.replace(/'/g, "\\'")}')" class="p-1.5 rounded-lg bg-white hover:bg-emerald-100 cursor-pointer text-xs font-semibold text-slate-800 flex items-center justify-between mb-1">
-                        <span>#${s.stt} - ${s.name}</span>
-                        <i class="fa-solid fa-check text-emerald-600 text-xs"></i>
+                box.innerHTML = `
+                    <div class="text-[11px] font-black text-amber-800 mb-1.5 flex items-center gap-1">
+                        <i class="fa-solid fa-hand-pointer text-amber-600"></i>
+                        <span>Chạm vào đúng tên bạn bên dưới để xác nhận:</span>
                     </div>
-                `).join('');
+                    <div class="space-y-1">` + suggestions.slice(0, 5).map(s => `
+                        <div onclick="selectBotStudent('${s.id}', '${s.name.replace(/'/g, "\\'")}')" 
+                             class="p-2 rounded-xl bg-white hover:bg-emerald-50 border border-slate-200 hover:border-emerald-400 cursor-pointer text-xs font-black text-slate-800 flex items-center justify-between transition shadow-sm active:scale-[0.98]">
+                            <span>#${s.stt} - ${s.name}</span>
+                            <span class="text-[11px] text-emerald-700 font-extrabold flex items-center gap-1 bg-emerald-50 px-2 py-0.5 rounded-lg border border-emerald-200">
+                                <i class="fa-solid fa-check"></i> Chọn tên này
+                            </span>
+                        </div>
+                    `).join('') + `</div>`;
             } else {
-                hiddenId.value = '';
-                box.classList.add('hidden');
+                box.classList.remove('hidden');
+                box.innerHTML = `
+                    <div class="p-2 rounded-xl bg-rose-50 text-rose-700 border border-rose-200 text-xs font-bold flex items-center gap-1.5">
+                        <i class="fa-solid fa-circle-exclamation text-rose-500 flex-shrink-0"></i>
+                        <span>Không tìm thấy học sinh nào có tên này trong danh sách lớp!</span>
+                    </div>`;
             }
         }
 
@@ -1980,8 +2007,30 @@
             if (input) input.value = name;
             if (hiddenId) hiddenId.value = id;
             if (box) {
+                const matched = students.find(s => s.id === id);
                 box.classList.remove('hidden');
-                box.innerHTML = `<div class="flex items-center gap-1.5 text-emerald-800 font-bold"><i class="fa-solid fa-circle-check text-emerald-600"></i><span>Đã chọn: <b>${name}</b></span></div>`;
+                box.innerHTML = `
+                    <div class="p-2.5 rounded-xl bg-emerald-100/90 text-emerald-900 border border-emerald-300 shadow-sm flex items-center justify-between">
+                        <div class="flex items-center gap-2 text-xs font-black">
+                            <i class="fa-solid fa-circle-check text-emerald-600 text-sm"></i>
+                            <span>Đã xác nhận: <b>#${matched ? matched.stt : ''} - ${name}</b></span>
+                        </div>
+                        <button type="button" onclick="clearSelectedBotStudent()" class="text-emerald-700 hover:text-rose-600 p-1 text-xs" title="Chọn lại tên khác">
+                            <i class="fa-solid fa-rotate-left"></i>
+                        </button>
+                    </div>`;
+            }
+        }
+
+        function clearSelectedBotStudent() {
+            const input = document.getElementById('reportSenderInput');
+            const hiddenId = document.getElementById('botMatchedStudentId');
+            const box = document.getElementById('botSuggestionBox');
+            if (hiddenId) hiddenId.value = '';
+            if (box) box.classList.add('hidden');
+            if (input) {
+                input.focus();
+                handleBotNameInput();
             }
         }
 
@@ -1991,6 +2040,7 @@
             if (!menu) return;
             const isHidden = menu.classList.contains('hidden');
             if (isHidden) {
+                populateReportMovementsDropdown();
                 menu.classList.remove('hidden');
                 if (arrow) arrow.className = "fa-solid fa-chevron-up text-slate-400 text-xs transition duration-200";
             } else {
@@ -1999,17 +2049,21 @@
             }
         }
 
-        function selectCustomMovementOption(movId, title) {
-            const input = document.getElementById('reportMovementSelect');
+        function selectCustomMovementOption(id, title) {
+            const hiddenInput = document.getElementById('reportMovementSelect');
             const label = document.getElementById('customMovementPickerLabel');
             const icon = document.getElementById('customMovementPickerIcon');
-            if (input) input.value = movId;
+            const menu = document.getElementById('customMovementDropdownMenu');
+            const arrow = document.getElementById('customMovementPickerArrow');
+
+            if (hiddenInput) hiddenInput.value = id;
             if (label) {
                 label.innerText = title;
                 label.className = "font-black truncate text-slate-900";
             }
             if (icon) icon.className = "fa-solid fa-award text-purple-600";
-            toggleCustomMovementDropdown();
+            if (menu) menu.classList.add('hidden');
+            if (arrow) arrow.className = "fa-solid fa-chevron-down text-slate-400 text-xs transition duration-200";
         }
 
         function populateReportMovementsDropdown() {
@@ -3048,27 +3102,61 @@
         async function handleReportSubmit(e) {
             e.preventDefault();
             if (isSubmittingReport) { showToast("Đang xử lý, vui lòng chờ...", "info"); return; }
-            const senderName = document.getElementById('reportSenderInput').value.trim(); const matchedId = document.getElementById('botMatchedStudentId').value; const movementId = document.getElementById('reportMovementSelect').value;
-            if (!senderName) { showToast("Vui lòng nhập họ và tên!", "error"); return; }
-            if (!movementId) { showToast("Vui lòng chọn phong trào!", "error"); return; }
-            if (!currentReportImageBase64) { showToast("Vui lòng chọn ảnh minh chứng!", "error"); return; }
+            const senderName = document.getElementById('reportSenderInput').value.trim(); 
+            const matchedId = document.getElementById('botMatchedStudentId').value; 
+            const movementId = document.getElementById('reportMovementSelect').value;
+
+            if (!senderName) { 
+                showToast("Vui lòng nhập họ và tên của bạn!", "error"); 
+                document.getElementById('reportSenderInput')?.focus();
+                return; 
+            }
+
+            // Kiểm tra: Phải chọn đúng gợi ý hoặc nhập trùng hoàn toàn với 1 học sinh trong lớp
+            let student = null;
+            if (matchedId) {
+                student = students.find(s => s.id === matchedId);
+            }
+            if (!student) {
+                const cleanInput = removeVietnameseTones(senderName.toLowerCase().trim());
+                student = students.find(s => removeVietnameseTones(s.name.toLowerCase().trim()) === cleanInput);
+            }
+
+            if (!student) {
+                showToast("Bạn phải chọn đúng tên trong đề xuất hoặc nhập đúng chính xác Họ Tên trong danh sách lớp!", "error");
+                const box = document.getElementById('botSuggestionBox');
+                if (box) {
+                    box.classList.remove('hidden');
+                    box.innerHTML = `
+                        <div class="p-2.5 rounded-xl bg-rose-100 text-rose-900 border border-rose-300 text-xs font-black flex items-center gap-2">
+                            <i class="fa-solid fa-hand text-rose-600"></i>
+                            <span>Vui lòng nhấp chọn tên của bạn trong danh sách gợi ý để tiếp tục!</span>
+                        </div>`;
+                }
+                return;
+            }
+
+            if (!movementId) { showToast("Vui lòng chọn phong trào cần nộp!", "error"); return; }
+            if (!currentReportImageBase64) { showToast("Vui lòng tải lên ảnh minh chứng!", "error"); return; }
 
             const chosenMovement = movements.find(m => m.id === movementId);
             if (!chosenMovement) { showToast("Phong trào này không tồn tại. Chọn lại!", "error"); return; }
             if (isMovementExpired(chosenMovement.deadline)) { showToast("Phong trào này đã hết hạn, không thể nộp thêm!", "error"); return; }
 
-            let student = matchedId ? students.find(s => s.id === matchedId) : smartMatchStudent(senderName).match;
             let matchedStorage = chosenMovement.storageId ? storageFolders.find(s => s.id === chosenMovement.storageId) : null;
             let botMsg = "";
 
             if (student) {
                 if (!chosenMovement.participantIds) chosenMovement.participantIds = [];
-                if (!chosenMovement.participantIds.includes(student.id)) { chosenMovement.participantIds.push(student.id); botMsg = `Đã tự động cập nhật bạn ${student.name} vào danh sách!`; }
+                if (!chosenMovement.participantIds.includes(student.id)) { 
+                    chosenMovement.participantIds.push(student.id); 
+                    botMsg = `Đã tự động ghi nhận bạn #${student.stt} - ${student.name} tham gia!`; 
+                }
             }
 
-            const senderDisplayName = student ? student.name : senderName;
+            const senderDisplayName = student.name;
             const cleanExtension = (typeof currentReportFileExt !== 'undefined' && currentReportFileExt) ? currentReportFileExt : "jpg";
-            const finalFileName = `${student ? `${student.stt}_` : ''}${senderDisplayName}_${currentReportFileName || `minhchung.${cleanExtension}`}`;
+            const finalFileName = `${student.stt}_${senderDisplayName}_${currentReportFileName || `minhchung.${cleanExtension}`}`;
 
             const submitBtn = document.getElementById('submitReportBtn'); const submitBtnText = document.getElementById('submitReportBtnText'); const submitIcon = document.getElementById('submitReportIcon');
             isSubmittingReport = true; 
