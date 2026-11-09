@@ -2465,13 +2465,44 @@
             const finalTitle = document.getElementById('vioCustomInput').value.trim() || selectedVioPreset;
             if (!finalTitle) { showToast("Vui lòng chọn hoặc nhập lỗi vi phạm!", "error"); return; }
             if (!student.violations) student.violations = [];
-            student.violations.unshift({ title: finalTitle, session: document.getElementById('vioSessionInput').value, date: document.getElementById('vioDateInput').value, note: document.getElementById('vioNoteInput').value.trim(), timestamp: new Date().toISOString() });
-            saveStorageData(); closeRecordViolationModal(); renderStudentsList(); if (isTrackingViolationsOpen) renderTrackingViolatedStudents();
+            
+            const vioDate = document.getElementById('vioDateInput')?.value || getLocalISODate();
+            const vioSession = document.getElementById('vioSessionInput')?.value || "Sáng";
+            const vioNote = document.getElementById('vioNoteInput')?.value.trim() || "";
+
+            student.violations.unshift({ 
+                title: finalTitle, 
+                session: vioSession, 
+                date: vioDate, 
+                note: vioNote, 
+                timestamp: new Date().toISOString() 
+            });
+
+            saveStorageData(); 
+            closeRecordViolationModal(); 
+            renderStudentsList(); 
+            if (isTrackingViolationsOpen) renderTrackingViolatedStudents();
             showToast(`Đã ghi lỗi cho ${student.name}`, "success");
+
+            // Tự động đẩy dữ liệu lên Google Sheet ngay lập tức
+            if (currentUserRole === 'admin' && appsScriptUrl) {
+                pushDataToGoogleSheet(true);
+            }
         }
+
         function deleteStudentViolation(studentId, index) {
             const student = students.find(s => s.id === studentId); if (!student || !student.violations) return;
-            student.violations.splice(index, 1); saveStorageData(); renderStudentDetailViolations(student); renderStudentsList(); if (isTrackingViolationsOpen) renderTrackingViolatedStudents(); showToast("Đã xóa vi phạm", "info");
+            student.violations.splice(index, 1); 
+            saveStorageData(); 
+            renderStudentDetailViolations(student); 
+            renderStudentsList(); 
+            if (isTrackingViolationsOpen) renderTrackingViolatedStudents(); 
+            showToast("Đã xóa vi phạm", "info");
+
+            // Tự động đồng bộ việc xóa lỗi lên Google Sheet
+            if (currentUserRole === 'admin' && appsScriptUrl) {
+                pushDataToGoogleSheet(true);
+            }
         }
 
         function isMovementExpired(deadlineStr) { if (!deadlineStr) return false; return new Date(deadlineStr) < new Date(); }
