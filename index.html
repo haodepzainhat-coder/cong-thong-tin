@@ -284,14 +284,22 @@
 
         <!-- ================= CHUYÊN MỤC 1: VI PHẠM ================= -->
         <section id="section-violations" class="hidden space-y-4">
-            <div class="flex items-center justify-between pb-2 border-b border-slate-200">
+            <div class="flex items-center justify-between pb-2 border-b border-slate-200 flex-wrap gap-2">
                 <button onclick="goHomeHub()" class="px-3.5 py-1.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-xs text-white font-extrabold flex items-center gap-2 shadow-sm transition">
                     <i class="fa-solid fa-chevron-left text-[10px]"></i>
                     <span>Quay lại Trang Chủ</span>
                 </button>
-                <div class="text-xs text-rose-600 font-black flex items-center gap-1.5">
-                    <i class="fa-solid fa-triangle-exclamation"></i>
-                    <span>Mục Vi Phạm</span>
+                <div class="flex items-center gap-2">
+                    <div id="adminRecordActivityBtnContainer" class="hidden">
+                        <button onclick="openRecordActivityModal()" class="px-3.5 py-1.5 rounded-xl bg-purple-600 hover:bg-purple-700 text-xs text-white font-black flex items-center gap-1.5 shadow-sm transition active:scale-95">
+                            <i class="fa-solid fa-medal"></i>
+                            <span>Ghi Nhận Hoạt Động</span>
+                        </button>
+                    </div>
+                    <div class="text-xs text-rose-600 font-black flex items-center gap-1.5">
+                        <i class="fa-solid fa-triangle-exclamation"></i>
+                        <span>Mục Vi Phạm</span>
+                    </div>
                 </div>
             </div>
 
@@ -1019,6 +1027,60 @@
         </div>
     </div>
 
+    <!-- Modal 8: Ghi Nhận Hoạt Động Thủ Công (Admin) -->
+    <div id="recordActivityModal" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-sm p-4">
+        <div class="light-card w-full max-w-lg rounded-3xl shadow-2xl p-5 sm:p-6 space-y-4 max-h-[90vh] flex flex-col">
+            <div class="flex items-center justify-between">
+                <div>
+                    <h3 class="text-sm sm:text-base font-bold text-slate-800 flex items-center gap-2">
+                        <i class="fa-solid fa-medal text-purple-600"></i>
+                        <span>Ghi Nhận Hoạt Động</span>
+                    </h3>
+                    <p id="recordActivitySubtitle" class="text-xs text-purple-600 font-semibold">Tự nhập hoạt động & chọn học sinh tham gia</p>
+                </div>
+                <button onclick="closeRecordActivityModal()" class="w-7 h-7 rounded-full bg-slate-100 text-slate-500 hover:text-slate-800 flex items-center justify-center text-xs"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            <div class="space-y-3 overflow-y-auto custom-scrollbar pr-1 flex-1">
+                <div>
+                    <label class="block text-[11px] font-bold text-slate-600 mb-1">Tên Hoạt Động <span class="text-rose-500">*</span></label>
+                    <input type="text" id="actTitleInput" placeholder="Ví dụ: Trực cờ đỏ, Hỗ trợ văn nghệ, Dọn vệ sinh..." class="w-full px-3 py-2 rounded-xl bg-slate-50 border border-slate-300 text-xs text-slate-800 font-bold focus:outline-none focus:border-purple-500 focus:bg-white">
+                </div>
+                <div class="grid grid-cols-2 gap-2">
+                    <div>
+                        <label class="block text-[11px] font-bold text-slate-600 mb-1">Buổi</label>
+                        <select id="actSessionInput" class="w-full px-3 py-2 rounded-xl bg-slate-50 border border-slate-300 text-xs text-slate-800 focus:outline-none focus:border-purple-500">
+                            <option value="Sáng">Buổi Sáng</option><option value="Chiều">Buổi Chiều</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-[11px] font-bold text-slate-600 mb-1">Ngày</label>
+                        <input type="date" id="actDateInput" class="w-full px-3 py-2 rounded-xl bg-slate-50 border border-slate-300 text-xs text-slate-800 focus:outline-none focus:border-purple-500">
+                    </div>
+                </div>
+                <div>
+                    <div class="flex items-center justify-between mb-1">
+                        <label class="block text-[11px] font-bold text-slate-600">Chọn Học Sinh Tham Gia (<span id="actSelectedCountBadge" class="text-purple-700 font-black">0</span>)</label>
+                        <div class="flex items-center gap-2 text-[11px] font-bold">
+                            <button type="button" onclick="toggleSelectAllActivityStudents(true)" class="text-purple-600 hover:underline">Chọn tất cả</button>
+                            <span class="text-slate-300">|</span>
+                            <button type="button" onclick="toggleSelectAllActivityStudents(false)" class="text-slate-500 hover:underline">Bỏ chọn</button>
+                        </div>
+                    </div>
+                    <input type="text" id="actStudentSearchInput" oninput="renderActivityStudentsChecklist()" placeholder="Tìm nhanh tên học sinh..." class="w-full px-3 py-2 rounded-xl bg-slate-50 border border-slate-300 text-xs text-slate-800 focus:outline-none focus:border-purple-500 mb-2">
+                    <div id="actStudentsChecklist" class="space-y-1.5 max-h-48 overflow-y-auto custom-scrollbar border border-slate-200 rounded-xl p-2 bg-slate-50"></div>
+                </div>
+                <div>
+                    <label class="block text-[11px] font-bold text-slate-600 mb-1">Ghi chú (Không bắt buộc)</label>
+                    <textarea id="actNoteInput" rows="2" placeholder="Nhập ghi chú thêm nếu có..." class="w-full px-3 py-2 rounded-xl bg-slate-50 border border-slate-300 text-xs text-slate-800 focus:outline-none focus:border-purple-500"></textarea>
+                </div>
+            </div>
+            <div class="flex gap-2 pt-2 border-t border-slate-200">
+                <button onclick="closeRecordActivityModal()" class="w-1/2 py-2.5 rounded-xl bg-slate-100 text-slate-600 text-xs font-semibold hover:bg-slate-200">Hủy</button>
+                <button onclick="handleSaveManualActivity()" class="w-1/2 py-2.5 rounded-xl bg-purple-600 hover:bg-purple-700 text-white font-bold text-xs shadow-sm">Lưu Ghi Nhận</button>
+            </div>
+        </div>
+    </div>
+
     <!-- Modal 7: Chi Tiết Phong Trào -->
     <div id="movementDetailModal" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-sm p-4">
         <div class="light-card w-full max-w-3xl rounded-3xl shadow-2xl p-5 sm:p-6 space-y-4 max-h-[90vh] flex flex-col">
@@ -1254,6 +1316,7 @@
             const adminAcaBtn = document.getElementById('adminCreateAcademicBtnContainer');
             const adminStoreManager = document.getElementById('adminStorageFoldersManager');
             const adminVioExcel = document.getElementById('adminQuickExportExcelBtn');
+            const adminRecActBtn = document.getElementById('adminRecordActivityBtnContainer');
 
             if (currentUserRole === 'admin') {
                 if (roleBtn) {
@@ -1266,6 +1329,7 @@
                 if (adminAcaBtn) adminAcaBtn.classList.remove('hidden');
                 if (adminStoreManager) adminStoreManager.classList.remove('hidden');
                 if (adminVioExcel) adminVioExcel.classList.remove('hidden');
+                if (adminRecActBtn) adminRecActBtn.classList.remove('hidden');
             } else {
                 if (roleBtn) {
                     roleBtn.className = "w-10 h-10 rounded-2xl flex items-center justify-center transition-all duration-300 transform active:scale-95 shadow-sm border bg-indigo-50 hover:bg-indigo-100 text-indigo-700 border-indigo-200";
@@ -1277,6 +1341,7 @@
                 if (adminAcaBtn) adminAcaBtn.classList.add('hidden');
                 if (adminStoreManager) adminStoreManager.classList.add('hidden');
                 if (adminVioExcel) adminVioExcel.classList.add('hidden');
+                if (adminRecActBtn) adminRecActBtn.classList.add('hidden');
             }
         }
 
@@ -1610,9 +1675,12 @@
             fetchLatestDataFromSheet(true);
         }
 
-        // Đếm số phong trào một học sinh đã tham gia
+        // Đếm số phong trào & hoạt động một học sinh đã tham gia
         function getStudentJoinedMovementsCount(studentId) {
-            return movements.filter(m => m.participantIds && m.participantIds.includes(studentId)).length;
+            const movCount = movements.filter(m => m.participantIds && m.participantIds.includes(studentId)).length;
+            const stu = students.find(s => s.id === studentId);
+            const actCount = stu ? (stu.violations || []).filter(v => v.type === 'activity').length : 0;
+            return movCount + actCount;
         }
 
         // Logic lọc theo dõi vi phạm
@@ -1752,7 +1820,7 @@
             const countsByType = {};
 
             students.forEach(s => {
-                const active = (s.violations || []).filter(v => isDateInViolationFilter(v.date, currentViolationTimeFilter));
+                const active = (s.violations || []).filter(v => v.type !== 'activity' && isDateInViolationFilter(v.date, currentViolationTimeFilter));
                 if (active.length > 0) {
                     totalVios += active.length;
                     violatedStudentIds.add(s.id);
@@ -1788,7 +1856,7 @@
 
             const list = [];
             students.forEach(s => {
-                const filtered = (s.violations || []).filter(v => isDateInViolationFilter(v.date, currentViolationTimeFilter));
+                const filtered = (s.violations || []).filter(v => v.type !== 'activity' && isDateInViolationFilter(v.date, currentViolationTimeFilter));
                 if (filtered.length > 0) {
                     list.push({ student: s, count: filtered.length, list: filtered });
                 }
@@ -1859,7 +1927,7 @@
             const onlyViolated = document.getElementById('excelOnlyViolated')?.checked;
 
             students.forEach(s => {
-                let vios = s.violations || [];
+                let vios = (s.violations || []).filter(v => v.type !== 'activity');
                 if (excelExportMode === 'week') {
                     const wVal = document.getElementById('excelSelectWeekNum')?.value;
                     const yVal = document.getElementById('excelSelectWeekYear')?.value;
@@ -2367,8 +2435,9 @@
             if (filteredStudents.length === 0) { container.innerHTML = `<div class="p-6 text-center text-xs text-slate-400 font-bold">Không tìm thấy học sinh.</div>`; updateViolationStatsSummary(); return; }
 
             container.innerHTML = filteredStudents.map(student => {
-                const activeVios = (student.violations || []).filter(v => isDateInViolationFilter(v.date, currentViolationTimeFilter));
-                const totalVioAllTime = (student.violations || []).length;
+                const onlyVios = (student.violations || []).filter(v => v.type !== 'activity');
+                const activeVios = onlyVios.filter(v => isDateInViolationFilter(v.date, currentViolationTimeFilter));
+                const totalVioAllTime = onlyVios.length;
                 let vioBadge = totalVioAllTime === 0 
                     ? `<div class="px-3 py-1.5 rounded-2xl bg-emerald-50 text-emerald-800 border-2 border-emerald-300 shadow-sm flex items-center gap-1.5"><i class="fa-solid fa-circle-check text-emerald-600 text-xs"></i><span class="text-xs font-black">0 Vi phạm</span></div>`
                     : `<div class="px-3 py-1.5 rounded-2xl bg-rose-600 text-white shadow-md shadow-rose-600/30 border border-rose-400 flex items-center gap-1.5"><i class="fa-solid fa-triangle-exclamation text-amber-300 text-xs animate-bounce"></i><span class="text-xs font-black">${currentViolationTimeFilter !== 'all' ? `${activeVios.length}/${totalVioAllTime}` : totalVioAllTime} Vi phạm</span></div>`;
@@ -2383,7 +2452,7 @@
                         <div class="flex items-center gap-2 flex-wrap sm:flex-nowrap justify-between sm:justify-end">
                             <div class="flex items-center gap-2">${movementBadge}${vioBadge}</div>
                             <div class="flex items-center gap-1.5 ml-1">
-                                ${currentUserRole === 'admin' ? `<button onclick="openRecordViolationModal('${student.id}')" class="px-3 py-2 rounded-xl bg-rose-50 hover:bg-rose-100 text-rose-700 font-black text-xs border border-rose-200 transition flex items-center gap-1 shadow-sm"><i class="fa-solid fa-plus text-[10px]"></i><span>Ghi lỗi</span></button>` : ''}
+                                ${currentUserRole === 'admin' ? `<button onclick="openRecordActivityModal('${student.id}')" class="px-3 py-2 rounded-xl bg-purple-50 hover:bg-purple-100 text-purple-700 font-black text-xs border border-purple-200 transition flex items-center gap-1 shadow-sm"><i class="fa-solid fa-plus text-[10px]"></i><span>Ghi nhận</span></button><button onclick="openRecordViolationModal('${student.id}')" class="px-3 py-2 rounded-xl bg-rose-50 hover:bg-rose-100 text-rose-700 font-black text-xs border border-rose-200 transition flex items-center gap-1 shadow-sm"><i class="fa-solid fa-plus text-[10px]"></i><span>Ghi lỗi</span></button>` : ''}
                                 <button onclick="openStudentDetailModal('${student.id}')" class="px-3.5 py-2 rounded-xl bg-slate-900 hover:bg-slate-800 text-white font-black text-xs shadow-sm transition flex items-center gap-1.5"><i class="fa-regular fa-eye text-xs"></i><span>Chi tiết</span></button>
                             </div>
                         </div>
@@ -2402,17 +2471,18 @@
         function closeStudentDetailModal() { document.getElementById('studentDetailModal').classList.add('hidden'); currentDetailStudentId = null; }
         
         function renderStudentDetailViolations(student) {
-            const listContainer = document.getElementById('detailViolationsList'); const vios = student.violations || [];
-            document.getElementById('detailViolationCountBadge').innerText = `${vios.length} lỗi`;
-            if (vios.length === 0) { listContainer.innerHTML = `<div class="p-4 rounded-2xl bg-emerald-50 border border-emerald-200 text-center text-xs text-emerald-800 font-bold">Học sinh không có vi phạm nào!</div>`; return; }
-            listContainer.innerHTML = vios.map((v, idx) => `
+            const listContainer = document.getElementById('detailViolationsList');
+            const viosWithIdx = (student.violations || []).map((v, realIdx) => ({ v, realIdx })).filter(item => item.v.type !== 'activity');
+            document.getElementById('detailViolationCountBadge').innerText = `${viosWithIdx.length} lỗi`;
+            if (viosWithIdx.length === 0) { listContainer.innerHTML = `<div class="p-4 rounded-2xl bg-emerald-50 border border-emerald-200 text-center text-xs text-emerald-800 font-bold">Học sinh không có vi phạm nào!</div>`; return; }
+            listContainer.innerHTML = viosWithIdx.map(({ v, realIdx }) => `
                 <div class="p-2.5 rounded-2xl bg-white border border-rose-200 shadow-sm flex items-start justify-between gap-2">
                     <div class="space-y-0.5 overflow-hidden">
                         <div class="text-xs font-black text-rose-900 truncate">${v.title}</div>
                         <div class="text-[10px] text-slate-500 font-semibold flex items-center gap-2"><span>Buổi: ${v.session || 'Sáng'}</span><span>•</span><span>Ngày: ${v.date || ''}</span></div>
                         ${v.note ? `<div class="text-[10px] text-slate-600 italic mt-0.5">"${v.note}"</div>` : ''}
                     </div>
-                    ${currentUserRole === 'admin' ? `<button onclick="deleteStudentViolation('${student.id}', ${idx})" class="text-slate-400 hover:text-rose-600 p-1 text-xs"><i class="fa-solid fa-trash-can"></i></button>` : ''}
+                    ${currentUserRole === 'admin' ? `<button onclick="deleteStudentViolation('${student.id}', ${realIdx})" class="text-slate-400 hover:text-rose-600 p-1 text-xs"><i class="fa-solid fa-trash-can"></i></button>` : ''}
                 </div>
             `).join('');
         }
@@ -2427,15 +2497,173 @@
             const listContainer = document.getElementById('detailMovementsList');
             const joinedMovements = movements.filter(m => m.participantIds && m.participantIds.includes(student.id));
             const notJoinedMovements = movements.filter(m => !m.participantIds || !m.participantIds.includes(student.id));
-            document.getElementById('detailJoinedCount').innerText = joinedMovements.length; document.getElementById('detailNotJoinedCount').innerText = notJoinedMovements.length;
-            const targetList = detailMovementSubTab === 'joined' ? joinedMovements : notJoinedMovements;
-            if (targetList.length === 0) { listContainer.innerHTML = `<div class="p-4 text-center text-xs text-slate-400 italic">Danh sách trống.</div>`; return; }
-            listContainer.innerHTML = targetList.map(m => `
-                <div class="p-2.5 rounded-2xl bg-white border border-slate-200 shadow-sm flex items-center justify-between gap-2">
-                    <div class="overflow-hidden"><div class="text-xs font-bold text-slate-800 truncate">${m.title}</div><div class="text-[10px] text-slate-400 font-semibold">${formatMovementDeadline(m.deadline)}</div></div>
-                    ${m.url ? `<a href="${m.url}" onclick="openExternalLink(event, '${m.url.replace(/'/g, "\\'")}')" class="text-purple-600 hover:text-purple-800 p-1 text-xs"><i class="fa-solid fa-arrow-up-right-from-square"></i></a>` : ''}
-                </div>
-            `).join('');
+            const manualActs = (student.violations || []).map((v, realIdx) => ({ v, realIdx })).filter(item => item.v.type === 'activity');
+            document.getElementById('detailJoinedCount').innerText = joinedMovements.length + manualActs.length;
+            document.getElementById('detailNotJoinedCount').innerText = notJoinedMovements.length;
+
+            if (detailMovementSubTab === 'joined') {
+                if (joinedMovements.length === 0 && manualActs.length === 0) {
+                    listContainer.innerHTML = `<div class="p-4 text-center text-xs text-slate-400 italic">Danh sách trống.</div>`;
+                    return;
+                }
+                const manualHtml = manualActs.map(({ v, realIdx }) => `
+                    <div class="p-2.5 rounded-2xl bg-purple-50/70 border border-purple-200 shadow-sm flex items-start justify-between gap-2">
+                        <div class="space-y-0.5 overflow-hidden">
+                            <div class="flex items-center gap-1.5 flex-wrap">
+                                <span class="px-1.5 py-0.5 rounded-md bg-purple-600 text-white text-[9px] font-black uppercase">Ghi nhận</span>
+                                <span class="text-xs font-black text-purple-950 truncate">${v.title}</span>
+                            </div>
+                            <div class="text-[10px] text-slate-500 font-semibold flex items-center gap-2"><span>Buổi: ${v.session || 'Sáng'}</span><span>•</span><span>Ngày: ${v.date || ''}</span></div>
+                            ${v.note ? `<div class="text-[10px] text-slate-600 italic mt-0.5">"${v.note}"</div>` : ''}
+                        </div>
+                        ${currentUserRole === 'admin' ? `<button onclick="deleteStudentManualActivity('${student.id}', ${realIdx})" title="Xóa ghi nhận" class="text-slate-400 hover:text-rose-600 p-1 text-xs flex-shrink-0"><i class="fa-solid fa-trash-can"></i></button>` : ''}
+                    </div>
+                `).join('');
+                const movHtml = joinedMovements.map(m => `
+                    <div class="p-2.5 rounded-2xl bg-white border border-slate-200 shadow-sm flex items-center justify-between gap-2">
+                        <div class="overflow-hidden"><div class="text-xs font-bold text-slate-800 truncate">${m.title}</div><div class="text-[10px] text-slate-400 font-semibold">${formatMovementDeadline(m.deadline)}</div></div>
+                        ${m.url ? `<a href="${m.url}" onclick="openExternalLink(event, '${m.url.replace(/'/g, "\\'")}')" class="text-purple-600 hover:text-purple-800 p-1 text-xs"><i class="fa-solid fa-arrow-up-right-from-square"></i></a>` : ''}
+                    </div>
+                `).join('');
+                listContainer.innerHTML = manualHtml + movHtml;
+            } else {
+                if (notJoinedMovements.length === 0) {
+                    listContainer.innerHTML = `<div class="p-4 text-center text-xs text-slate-400 italic">Danh sách trống.</div>`;
+                    return;
+                }
+                listContainer.innerHTML = notJoinedMovements.map(m => `
+                    <div class="p-2.5 rounded-2xl bg-white border border-slate-200 shadow-sm flex items-center justify-between gap-2">
+                        <div class="overflow-hidden"><div class="text-xs font-bold text-slate-800 truncate">${m.title}</div><div class="text-[10px] text-slate-400 font-semibold">${formatMovementDeadline(m.deadline)}</div></div>
+                        ${m.url ? `<a href="${m.url}" onclick="openExternalLink(event, '${m.url.replace(/'/g, "\\'")}')" class="text-purple-600 hover:text-purple-800 p-1 text-xs"><i class="fa-solid fa-arrow-up-right-from-square"></i></a>` : ''}
+                    </div>
+                `).join('');
+            }
+        }
+
+        let selectedActivityStudentIds = new Set();
+
+        function openRecordActivityModal(preselectStudentId = null) {
+            selectedActivityStudentIds = new Set();
+            if (preselectStudentId) {
+                selectedActivityStudentIds.add(preselectStudentId);
+                const stu = students.find(s => s.id === preselectStudentId);
+                document.getElementById('recordActivitySubtitle').innerText = stu ? `Đang chọn: #${stu.stt} - ${stu.name} (có thể chọn thêm)` : "Tự nhập hoạt động & chọn học sinh tham gia";
+            } else {
+                document.getElementById('recordActivitySubtitle').innerText = "Tự nhập hoạt động & chọn nhiều học sinh tham gia";
+            }
+            document.getElementById('actTitleInput').value = "";
+            document.getElementById('actSessionInput').value = "Sáng";
+            document.getElementById('actDateInput').value = getLocalISODate();
+            document.getElementById('actNoteInput').value = "";
+            document.getElementById('actStudentSearchInput').value = "";
+            renderActivityStudentsChecklist();
+            document.getElementById('recordActivityModal').classList.remove('hidden');
+            setTimeout(() => document.getElementById('actTitleInput')?.focus(), 100);
+        }
+
+        function closeRecordActivityModal() {
+            document.getElementById('recordActivityModal').classList.add('hidden');
+            selectedActivityStudentIds.clear();
+        }
+
+        function renderActivityStudentsChecklist() {
+            const container = document.getElementById('actStudentsChecklist');
+            const badge = document.getElementById('actSelectedCountBadge');
+            if (!container) return;
+            if (badge) badge.innerText = selectedActivityStudentIds.size;
+
+            const kw = removeVietnameseTones((document.getElementById('actStudentSearchInput')?.value || '').toLowerCase().trim());
+            const filtered = students.filter(s => !kw || removeVietnameseTones(s.name.toLowerCase()).includes(kw));
+            if (filtered.length === 0) {
+                container.innerHTML = `<div class="p-2 text-center text-xs text-slate-400 italic">Không tìm thấy học sinh.</div>`;
+                return;
+            }
+            container.innerHTML = filtered.map(s => {
+                const checked = selectedActivityStudentIds.has(s.id);
+                return `
+                    <label onclick="toggleActivityStudentSelection('${s.id}', event)" class="p-2 rounded-xl text-xs font-bold cursor-pointer transition flex items-center justify-between ${checked ? 'bg-purple-600 text-white shadow-sm' : 'bg-white hover:bg-purple-50 text-slate-700 border border-slate-200'}">
+                        <span class="truncate">#${s.stt} - ${s.name}</span>
+                        <i class="fa-solid ${checked ? 'fa-square-check' : 'fa-regular fa-square'} text-sm"></i>
+                    </label>
+                `;
+            }).join('');
+        }
+
+        function toggleActivityStudentSelection(studentId, e) {
+            if (e) e.preventDefault();
+            if (selectedActivityStudentIds.has(studentId)) {
+                selectedActivityStudentIds.delete(studentId);
+            } else {
+                selectedActivityStudentIds.add(studentId);
+            }
+            renderActivityStudentsChecklist();
+        }
+
+        function toggleSelectAllActivityStudents(selectAll) {
+            const kw = removeVietnameseTones((document.getElementById('actStudentSearchInput')?.value || '').toLowerCase().trim());
+            const filtered = students.filter(s => !kw || removeVietnameseTones(s.name.toLowerCase()).includes(kw));
+            filtered.forEach(s => {
+                if (selectAll) selectedActivityStudentIds.add(s.id);
+                else selectedActivityStudentIds.delete(s.id);
+            });
+            renderActivityStudentsChecklist();
+        }
+
+        function handleSaveManualActivity() {
+            const title = document.getElementById('actTitleInput')?.value.trim();
+            if (!title) {
+                showToast("Vui lòng nhập tên hoạt động!", "error");
+                document.getElementById('actTitleInput')?.focus();
+                return;
+            }
+            if (selectedActivityStudentIds.size === 0) {
+                showToast("Vui lòng chọn ít nhất 1 học sinh tham gia!", "error");
+                return;
+            }
+            const actDate = document.getElementById('actDateInput')?.value || getLocalISODate();
+            const actSession = document.getElementById('actSessionInput')?.value || "Sáng";
+            const actNote = document.getElementById('actNoteInput')?.value.trim() || "";
+            const nowIso = new Date().toISOString();
+
+            let count = 0;
+            selectedActivityStudentIds.forEach(sid => {
+                const stu = students.find(s => s.id === sid);
+                if (stu) {
+                    if (!stu.violations) stu.violations = [];
+                    stu.violations.unshift({
+                        type: "activity",
+                        title: title,
+                        session: actSession,
+                        date: actDate,
+                        note: actNote,
+                        timestamp: nowIso
+                    });
+                    count++;
+                }
+            });
+
+            saveStorageData();
+            closeRecordActivityModal();
+            renderStudentsList();
+            showToast(`Đã ghi nhận hoạt động cho ${count} học sinh!`, "success");
+
+            if (currentUserRole === 'admin' && appsScriptUrl) {
+                pushDataToGoogleSheet(true);
+            }
+        }
+
+        function deleteStudentManualActivity(studentId, realIndex) {
+            const student = students.find(s => s.id === studentId);
+            if (!student || !student.violations) return;
+            student.violations.splice(realIndex, 1);
+            saveStorageData();
+            renderStudentDetailMovements(student);
+            renderStudentsList();
+            showToast("Đã xóa ghi nhận hoạt động", "info");
+
+            if (currentUserRole === 'admin' && appsScriptUrl) {
+                pushDataToGoogleSheet(true);
+            }
         }
 
         function openRecordViolationModal(studentId) {
